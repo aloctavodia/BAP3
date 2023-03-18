@@ -1,0 +1,129 @@
+# Thinking Probabilistically
+
+> "Probability theory is nothing but common sense reduced to calculation." - Pierre Simon Laplace
+
+
+In this chapter, we will learn about the core concepts of Bayesian statistics and some of the instruments in the Bayesian toolbox. We will use some Python code, but this chapter will be mostly theoretical; most of the concepts we will see here will be revisited many times throughout this book. This chapter, being heavy on the theoretical side, is perhaps a little anxiogenic for the coder in you, but I think it will ease the path in effectively applying Bayesian statistics to your problems.
+
+
+In this chapter, we will cover the following topics:
+
+* Statistical modeling
+* Probabilities and uncertainty
+* Bayes' theorem and statistical inference
+* Single-parameter inference and the classic coin-flip problem
+* Choosing priors and why people often don't like them, but should
+* Communicating a Bayesian analysis
+
+
+## Statistics, models, and this book's approach
+
+Statistics is about collecting, organizing, analyzing, and interpreting data, and hence statistical knowledge is essential for data analysis. Two main statistical methods are used in
+data analysis:
+
+* Exploratory Data Analysis (EDA): This is about numerical summaries, such as the mean, mode, standard deviation, and interquartile ranges (this part of EDA is also known as descriptive statistics). EDA is also about visually inspecting the data, using tools you may be already familiar with, such as histograms and scatter plots.
+*Inferential statistics: This is about making statements beyond the current data. We may want to understand some particular phenomenon, or maybe we want to make predictions for future (as yet unobserved) data points, or we need to choose among several competing explanations for the same observations. Inferential statistics is the set of methods and tools that will help us to answer these types of questions.
+
+:::{.callout-note}
+The focus of this book is on how to perform Bayesian inferential statistics, and then how to use EDA to summarize, interpret, check, and communicate the results of Bayesian inference.
+:::
+
+
+Most introductory statistical courses, at least for non-statisticians, are taught as a collection of recipes that go like this: go to the statistical pantry, pick one tin can and open it, add data to taste, and stir until you obtain a consistent p-value, preferably under 0.05. The main goal of these courses is to teach you how to pick the proper can. I never liked this approach, mainly because the most common result is a bunch of confused people unable to grasp, even at the conceptual level, the unity of the different learned methods. We will take a different approach: we will also learn some recipes, but these will be homemade rather than canned food; we will learn how to mix fresh ingredients that will suit different gastronomic occasions and, more importantly, that will let you apply concepts far beyond the examples in this book.
+
+Taking this approach is possible for two reasons:
+
+* **Ontological**: Statistics is a form of modeling unified under the mathematical framework of probability theory. Using a probabilistic approach provides a unified view of what may seem like very disparate methods; statistical methods and machine learning methods look much more similar under the probabilistic lens.
+
+* **Technical**: Modern software, such as PyMC, allows practitioners, just like you and me, to define and solve models in a relatively easy way. Many of these models were unsolvable just a few years ago or required a high level of mathematical and technical sophistication.
+
+
+## Working with data
+
+Data is an essential ingredient in statistics and data science. Data comes from several sources, such as experiments, computer simulations, surveys, and field observations. If we are the ones in charge of generating or gathering the data, it is always a good idea to first think carefully about the questions we want to answer and which methods we will use, and only then proceed to get the data. There is a whole branch of statistics dealing with data collection, known as experimental design. In the era of the data deluge, we can sometimes forget that gathering data is not always cheap. For example, while it is true that the Large Hadron Collider (LHC) produces hundreds of terabytes a day, its construction took years of manual and intellectual labor.
+
+As a general rule, we can think of the process generating the data as stochastic, because there is ontological, technical, and/or epistemic uncertainty, that is, the system is intrinsically stochastic, there are technical issues adding noise or restricting us from measuring with arbitrary precision, and/or there are conceptual limitations veiling details from us. For all these reasons, we always need to interpret data in the context of models, including mental and formal ones. Data does not speak but through models.
+
+In this book, we will assume that we already have collected the data. Our data will also be clean and tidy, something rarely true in the real world. We will make these assumptions to focus on the subject of this book. I just want to emphasize, especially for newcomers to data analysis, that even when not covered in this book, these are important skills that you should learn and practice to successfully work with data.
+
+A very useful skill when analyzing data is knowing how to write code in a programming language, such as Python. Manipulating data is usually necessary given that we live in a messy world with even messier data, and coding helps to get things done. Even if you are lucky and your data is very clean and tidy, coding will still be very useful since modern Bayesian statistics is done mostly through programming languages such as Python or R. If you want to learn how to use Python for cleaning and manipulating data, you can find a good introduction in Python for Data Analysis by [-@mckinney_2022]
+
+## Bayesian modeling
+
+Models are simplified descriptions of a given system or process that, for some reason, we are interested in. Those descriptions are deliberately designed to capture only the most relevant aspects of the system and not to explain every minor detail. This is one reason a more complex model is not always a better one. There are many different kinds of models; in this book, we will restrict ourselves to Bayesian models. We can summarize the Bayesian modeling process using three steps:
+
+1. Given some data and some assumptions on how this data could have been
+generated, we design a model by combining building blocks known as
+**probability distributions**. Most of the time these models are crude
+approximations, but most of the time that's all we need.
+2. We use Bayes' theorem to add data to our models and derive the logical
+consequences of combining the data and our assumptions. We say we are
+**conditioning** the model on our data.
+3. We evaluate the model, and its predictions, under different criteria, including the data, our expertise on the subject, and sometimes by comparing it to other models.
+
+In general, we will find ourselves performing these three steps in an iterative non-linear fashion. We will retrace our steps at any given point: maybe we made a silly coding mistake, or we found a way to change the model and improve it, or we realized that we need to add more data or collect a different kind of data.
+
+Bayesian models are also known as **probabilistic models** because they are built using probabilities. Why probabilities? Because probabilities are a very useful tool to model uncertainty, we even have very good arguments to state they are the correct mathematical concept. So let's take a walk through the garden of forking paths [@borges_2018].
+
+
+## Probability theory
+The title of this section may be a little bit pretentious, it is not possible to learn probability theory in just a few pages, but that is not my intention. I just want to introduce a few general and important concepts that are necessary to better understand Bayesian methods, and that should be enough for understanding the rest of the book. If necessary, we will expand or introduce new probability-related concepts as we need them. For a detailed study of probability theory, I highly recommend the book, Introduction to Probability by Joseph K Blitzstein and Jessica Hwang [@blitzstein_2019].
+
+
+### Sample Spaces and Events
+Let's say we are conducting a survey to see how people feel about the weather in their area. We ask three individuals whether they enjoy sunny weather, with possible responses being "yes" or "no". The sample space of all possible outcomes can be denoted by $S$ and consists of eight possible combinations:
+
+$S$ = {(yes, yes, yes), (yes, yes, no), (yes, no, yes), (no, yes, yes), (yes, no, no), (no, yes, no), (no, no, yes), (no, no, no)}
+
+Here, each element of the sample space represents the responses of the three individuals in the order they were asked. For example, (yes, no, yes) means the first and third people answered "yes" while the second person answered "no".
+
+We can define events as subsets of the sample space, such as the event $A$ being that all three individuals answered "yes":
+
+$A$ = {(yes, yes, yes)}
+
+Similarly, we can define event $B$ that at least one person answered "no", and then we will have:
+
+$B$ = {(yes, yes, no), (yes, no, yes), (no, yes, yes), (yes, no, no), (no, yes, no), (no, no, yes), (no, no, no)}
+
+
+We can use probabilities as a measure of how likelly is a particular event. If the event is certain, for instance we go outside and we see that is actually raining, then the probability of that event will be 1 and if there is not rain 0. Most interesting things happend when probabilities take numbers in between. Let us see. 
+
+Given the sample space $S$, the probability of event A, which is the event that all three individuals answered "yes", is:
+
+$$P(A) = \frac{\text{number of outcomes in} A}{\text{total number of outcomes in} S}$$
+
+In this case, there is only one outcome in A, and there are eight outcomes in $S$. Therefore, the probability of $A$ is:
+
+$$P(A) = \frac{1}{8} = 0.125$$
+
+
+Similarly, we can calculate the probability of event $B$, which is the event that at least one person answered "no". Since there are seven outcomes in $B$ and eight outcomes in $S$, the probability of $B$ is:
+
+$$P(B) = 7/8 = 0.875$$
+
+Notice that for these computations we have assumed that all events in $S$ are equally likely, but that does not need to be like that. Considering all events equally likely is just a particular case. No matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. One way to think about this is that, if everything that can happen is defined by $S$, then something has to happen and thus we are certain of $S$ thus $P(S)=1$. We can also see that this is true by computing:
+
+$$P(S) = \frac{\text{number of outcomes in } S}{\text{total number of outcomes in } S}$$
+
+
+One useful way to think about probabilities is that they are conserved quantities distributed across the sample space. Meaning that if the probability of one event goes up the probability of some other event or events, must go down so the total probability remains 1. We can see this with a simple example. Let us suppose we ask one person whether it will rain tomorrow, with possible responses "yes" and "no". The sample space of possible responses is $S$ = {yes, no}. An event that it will rain tomorrow is $A$ = {yes}. If $p(A) = 0.5$, the probability of not $A$ ($p(A^c)$) has to be 0.5, and if for some reason $p(A) goes up to 0.8, the $p(A^c)=0.2$. This will be true for disjoint events, meaning events that cannot occur simultaneously. It can not simultaneously rain and not rain tomorrow. You may object that it can rain during the morning and not rain during the afternoon. That is totally true, but that's a different sample space!
+
+## Interpreting probabilities
+
+While probability theory is a mature and well-established branch of mathematics, there is more than one interpretation of probability. For instance, we can think that $P(A) = 0.125$, which means that if we repeat the survey many times, we would expect all three individuals to answer "yes" about 12.5% of the time. Thus, we can interpret probabilities as the outcome of long-run experiments. Another interpretation of probability is usually called subjective interpretation, where probabilities are interpreted as measures of an individual's uncertainty in an event. In this interpretation, probabilities are about our state of knowledge of the world and are not necessarily based on repeated trials. Under this definition of probability, it is valid and natural to ask about the probability of life on Mars, the probability of the mass of the electron being 9.1 x 10-31 kg, or the probability of the 9th of July of 1816 is a sunny day in Buenos Aires. All these are one-time events, we can not create 1 million Universes with 1 million Mars and check in how many of them life developed. Of course, we can do this as a mental experiment, so long-term frequencies can still be a valid mental scaffold.  
+
+Sometimes this Bayesian interpretation of probabilities is described in terms of personal beliefs, I don't like that. I think it can lead to unnecessary confusion as beliefs are generally associated with unsupported claims. And this can easily lead people to think that  Bayesian probabilities, and by extension Bayesian statistics, is less objective or less scientific than alternatives. I think this also helps to generate confusion about the role of prior knowledge in statistics. 
+Bayesian probabilities, and by extension Bayesian statistics, are as subjective (or objective) as any other well-established scientific method we have. Let me explain myself with an example, life on Mars exists or does not exist; the outcome is binary, a yes-no question. But given that we are not sure about that fact, a sensible course of action is trying to find out how likely life on Mars is. To answer this question any honest and scientific-minded person will use all the relevant geophysical data about Mars, all the relevant biochemical knowledge about necessary conditions for life, and so on. The response will be necessarily about our epistemic state of knowledge, and others could disagree and even get different probabilities. But at least in principle they all will be able to provide arguments in favor of their data, their methods, their modeling decisions etc. And this description is true even if no Bayesian method was involved.
+
+
+## Probabilities, uncertainty and logic
+
+Probabilities can help us to quantify uncertainty. If we do not have information about a problem, it is reasonable to state that every possible event is equally likely, this is equivalent to assigning the same probability to every possible event. In the absence of information, our uncertainty is maximum, and I am not saying this colloquially, this is something we can actually compute using probabilities. If we know instead that some events are more likely, then this can be formally represented by assigning a higher probability to those events and less to the others. Notice that when we talk about events in stats-speak, we are not restricting ourselves to things that can happen, such as an asteroid crashing into Earth or my auntie's 60th birthday party.  An event is just any of the possible values (or a subset of values) a variable can take, such as the event that you are older than 30, the price of a Sachertorte, or the number of bikes that will be sold next year around the world.
+
+The concept of probability is also related to the subject of logic. Under classical logic, we can only have statements that take the values of true or false. Under the Bayesian definition of probability, certainty is just a special case: a true statement has a probability of 1, and a false statement has a probability of 0. We would assign a probability of 1 to the statement, There is Martian life, only after having conclusive data indicating something is growing, reproducing, and doing other activities we associate with living organisms. Notice, however, that assigning a probability of 0 is harder because we can always think that there is some Martian spot that is unexplored, or that we have made mistakes with some experiment, or several other reasons that could lead us to falsely believe life is absent on Mars even when it is not. This is related to Cromwell's rule, which states that we should reserve the probabilities of 0 or 1 to logically true or false statements. Interestingly enough, it can be shown that if we want to extend the logic to include uncertainty, we must use probabilities and probability theory. Because Bayes' theorem is just a logical consequence of the rules of probability, as we will see soon. We can think of Bayesian statistics as an extension of logic that is useful whenever we are dealing with uncertainty. Thus one way to justify using Bayesian method is to recognize that uncertainty is commonplace, we generally have to deal with incomplete and or noisy data, we are intrinsically limited by our evolution-sculpted primate brain, etc.
+
+
+:::{.callout-note}
+From a practical point of view, the most relevant piece of information from this section is that Bayesian's use probabilities as a tool to quantify uncertainty.
+:::
+

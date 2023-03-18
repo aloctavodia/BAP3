@@ -1,0 +1,24 @@
+project:
+  type: book
+
+book:
+  title: "Bayesian Analysis with Python"
+  subtitle: "An introduction to probabilistic modeling"
+  author: "Osvaldo Martin"
+  date: "16/03/2023"
+  chapters:
+    - index.qmd
+    - chp_01.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    toc: true
+    theme: lumen
+  pdf:
+    toc: true
+    documentclass: scrreprt
+  epub:
+    cover-image: cover.png
