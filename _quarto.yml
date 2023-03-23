@@ -20,5 +20,8 @@ format:
   pdf:
     toc: true
     documentclass: scrreprt
+    include-in-header: 
+      text: |
+        \usepackage{epsdice}
   epub:
     cover-image: cover.png
