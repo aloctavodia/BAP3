@@ -86,7 +86,7 @@ Similarly, we can define event $B$ that at least one person answered "no", and t
 
 $B$ = {(yes, yes, no), (yes, no, yes), (no, yes, yes), (yes, no, no), (no, yes, no), (no, no, yes), (no, no, no)}
 
-We can use probabilities as a measure of how likelly these events are. Assumming all events are equally likely, the probability of event $A$, which is the event that all three individuals answered "yes", is:
+We can use probabilities as a measure of how likely these events are. Assuming all events are equally likely, the probability of event $A$, which is the event that all three individuals answered "yes", is:
 
 $$P(A) = \frac{\text{number of outcomes in} A}{\text{total number of outcomes in} S}$$
 
@@ -99,15 +99,15 @@ Similarly, we can calculate the probability of event $B$, which is the event tha
 
 $$P(B) = 7/8 = 0.875$$
 
-Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something call the naive definition of probability since it is restrictive and relies on strong assumptions. However it is still usefull if we are cautious when using it. 
+Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something called the naive definition of probability since it is restrictive and relies on strong assumptions. However, it is still useful if we are cautious when using it. 
 
 No matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. We can see that this is true by computing:
 
 $$P(S) = \frac{\text{number of outcomes in } S}{\text{total number of outcomes in } S}$$
 
-1 is the highest value a probability can take. Saying that $P(S)=1$ is saying that $S$ it not only very likelly, it is certain. If everything that can happend is defined by $S$, then $S$ will happend. 
+1 is the highest value a probability can take. Saying that $P(S)=1$ is saying that $S$ is not only very likely, it is certain. If everything that can happen is defined by $S$, then $S$ will happen. 
 
-If an event is imposible then it's probability is 0, let's define the event $S$ as the event of the three persons saying "banana",
+If an event is impossible then its probability is 0, let's define the event $S$ as the event of the three persons saying "banana",
 
 $C$ = {(banana, banana, banana)}
 
@@ -125,9 +125,9 @@ def P(S, A):
 
 I left for the reader the joy to play with this function.
 
-One useuful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease, so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that it will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds true for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. One may argue that it can rain in the morning and not rain in the afternoon. You may object that it can rain during the morning and not rain during the afternoon. That is totally true, but that's a different sample space! 
+One useful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds true for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. One may argue that it can rain in the morning and not rain in the afternoon. You may object that it can rain during the morning and not rain during the afternoon. That is totally true, but that's a different sample space! 
 
-So far we have avoided to directly defined probabilities, and instead we have just show some of their properties and way to compute it. A general definitition of probability, that works for non-equally likely events is as follows. Given a samples space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms [^1]: 
+So far we have avoided directly defining probabilities, and instead, we have just shown some of their properties and ways to compute them. A general definition of probability, that works for non-equally likely events is as follows. Given a sample space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms [^1]: 
 
 1. The probability of an event is a non-negative real number
 2. $P(S)$ = 1
@@ -149,22 +149,17 @@ $$P(A \mid B) = \frac{P(A, B)}{P(B)}$$
 $P(A, B)$ is the probability that both the event $A$ and event $B$ occur. $P(A \mid B)$ it is known as conditional probability, and it is the probability that event $A$ occurs, **conditioned** by the fact that we know
 (or assume, imagine, hypothesize, etc) that $B$ has occurred. For example, the probability that the pavement is wet is different from the probability that the pavement is wet if we know it's raining.
 
-A conditional probability can be larger than, smaller than, or equal to the unconditioned probability. If knowing $B$ does not provides us with information about $A$, then $P(A \mid B) = p(A)$. This will be true only if $A$ and $B$ are independent of each other. On
-the contrary, if knowing $B$ gives us useful information about $A$, then the conditional probability could be larger or smaller than the unconditional probability, depending on whether knowing makes less or more likely. Let's see a simple example using a fair six-
-sided die. What is the probability of getting the number 3 if we roll the die? $P(\text{die}=3) = \frac{1}{6}$ since each of the six numbers has the same chance for a fair six-sided die. And what is the probability of getting the number 3 given that we have obtained an odd number? $P(\text{die}=3 \mid \text{die}=\{1, 3, 5\}) = \frac{1}{3}$, because if we know we have an odd number, the only possible numbers are $\{1, 3, 5\}$ and each of them has the same chance. Finally, what is the probability of getting 3 if we have obtained an even number? This is $P(\text{die}=3 \mid \text{die}=\{2, 4, 6\}) = 0$, because if we know the number is even, then
-the only possible ones are $\{2, 4, 6\}$ and thus getting a 3 is not possible.
+A conditional probability can be larger than, smaller than, or equal to the unconditioned probability. If knowing $B$ does not provides us with information about $A$, then $P(A \mid B) = p(A)$. This will be true only if $A$ and $B$ are independent of each other. On the contrary, if knowing $B$ gives us useful information about $A$, then the conditional probability could be larger or smaller than the unconditional probability, depending on whether knowing $B$ makes $A$ less or more likely. Let's see a simple example using a fair six-sided die. What is the probability of getting the number 3 if we roll the die? $P(\text{die}=3) = \frac{1}{6}$ since each of the six numbers has the same chance for a fair six-sided die. And what is the probability of getting the number 3 given that we have obtained an odd number? $P(\text{die}=3 \mid \text{die}=\{1, 3, 5\}) = \frac{1}{3}$, because if we know we have an odd number, the only possible numbers are $\{1, 3, 5\}$ and each of them has the same chance. Finally, what is the probability of getting 3 if we have obtained an even number? This is $P(\text{die}=3 \mid \text{die}=\{2, 4, 6\}) = 0$, because if we know the number is even, then the only possible ones are $\{2, 4, 6\}$ and thus getting a 3 is not possible.
 
 As we can see from these simple examples, by conditioning on observed data we are changing the sample space. When asking about $P(\text{die}=3)$ we need to evaluate the sample space $S=\{1, 2, 3, 4, 5, 6\}$, but when we **condition on** having got an even number then the new sample space becomes $T=\{2, 4, 6\}$. 
 
-Conditional probabilities are the heart of statistics, irrespective of your problem being rolling dice or building self-driving cars.
-
-
+Conditional probabilities are the heart of statistics, irrespective of whether your problem is rolling dice or building self-driving cars.
 
 ### Random variables
 
-A random variable is a function that maps the sample space into the real numbers $\mathbb{R}$ (see @fig-random_variable). Continuing with the die example if the events of interest were the number of a die, the mapping is very simple, we associate ⚀ with the number 1, ⚁ with 2, etc. Another simple example is the answer to the question it will rain tomorrow? we can map "yes" to 1 and "no" to 0. It is common, but not always the case, to use capital letter for random variable like $X$ and lower letter for their outcomes $x$. For example we can write $P(X=0)$ to indicate the probability of getting the value 0 for the random variable $X$.
+A random variable is a function that maps the sample space into the real numbers $\mathbb{R}$ (see @fig-random_variable). Continuing with the die example if the events of interest were the number of a die, the mapping is very simple, we associate ⚀ with the number 1, ⚁ with 2, etc. Another simple example is the answer to the question it will rain tomorrow? we can map "yes" to 1 and "no" to 0. It is common, but not always the case, to use a capital letter for random variables like $X$ and a lower letter for their outcomes $x$. For example, we can write $P(X=0)$ to indicate the probability of getting the value 0 for the random variable $X$.
 
-Being able to map symbols like ⚀ or strings like "yes" to numbers, makes analysis simpler as we already know how to do math with numbers. Random variables are also useful, becasue we can operate with them without directly think in terms of the sample space. This feature becomes more and more relevant as the sample space becomes more complex. For example, when simulating molecular systems we need to specify the position and velocity of each atom, for complex molecules like proteins this means that we will need to track thousands, millions or even larger numbers. Instead, we can use random variables to summarize certain properties of the system, such as the total energy or the relative angles between certain atoms of the system. If you are still confused, that's fine the concept of random variable may sound too abstract at the beggining, but we will see plenty of example trought out the book that will help you cement this ideas. Still, let me try one analogy that I hope you find useful. Random variables are useful in a similar way that Python functions are useful. We often encapsulate code within functions, so we can store, reuse and "hide" complex manipulations of data into a single call. Even more once we have more than one function we can, sometimes, combine them in different way, like using adding the output of two function or using the output of one function as the input of the other. We can do all this without functions, by abstracting away the inner workings, not only makes the code cleaner it also help with the understanding and help us to create new ideas.
+Being able to map symbols like, ⚀, or strings like "yes" to numbers, makes analysis simpler as we already know how to do math with numbers. Random variables are also useful because we can operate with them without directly thinking in terms of the sample space. This feature becomes more and more relevant as the sample space becomes more complex. For example, when simulating molecular systems we need to specify the position and velocity of each atom, for complex molecules like proteins this means that we will need to track thousands, millions or even larger numbers. Instead, we can use random variables to summarize certain properties of the system, such as the total energy or the relative angles between certain atoms of the system. If you are still confused, that's fine the concept of random variable may sound too abstract at the beggining, but we will see plenty of example trought out the book that will help you cement this ideas. Still, let me try one analogy that I hope you find useful. Random variables are useful in a similar way that Python functions are useful. We often encapsulate code within functions, so we can store, reuse and "hide" complex manipulations of data into a single call. Even more once we have more than one function we can, sometimes, combine them in different way, like using adding the output of two function or using the output of one function as the input of the other. We can do all this without functions, by abstracting away the inner workings, not only makes the code cleaner it also help with the understanding and help us to create new ideas.
 
 ![random variable](/fig/random_variable.png){#fig-random_variable}
 
@@ -377,10 +372,10 @@ Why is Bayes theorem that important? Let's see. First, it says that $p(\theta \m
 probability of being Argentinian given that this person is the Pope. As there are around 47000000 Argentinians alive and a single one of them is the current Pope, we have $p(\text{Pope} \mid \text{Argentinean}) \approx \frac{1}{47000000}$ and we also have $p(\text{Argentinean} \mid \text{Pope}) = 1$.
 
 
-If we replace $\theta$ with hypothesis and $Y$ with data, Bayes' theorem tells us how to compute the probability of a hypothesis, $\theta$, given the data, $Y$, and that's the way you will find Bayes'
-theorem explained in a lot of places. But, how do we turn a hypothesis into something that we can put inside Bayes' theorem? Well, we do it by using probability distributions. So, in general, our hypothesis is a hypothesis in a very, very, very narrow sense; we will be more precise if we talk about finding a suitable value for parameters in our models, that is, parameters of probability distributions. By the way, don't try to set $\theta$ to statements such as unicorns are real, unless you are willing to build a realistic probabilistic model of unicorn existence!
+If we replace $\theta$ with "hypothesis" and $Y$ with "data", Bayes' theorem tells us how to compute the probability of a hypothesis, $\theta$, given the data, $Y$, and that's the way you will find Bayes'
+theorem explained in a lot of places. But, how do we turn a hypothesis into something that we can put inside Bayes' theorem? Well, we do it by using probability distributions. So, in general, our hypothesis is a hypothesis in a very, very, very narrow sense; we will be more precise if we talk about finding a suitable value for parameters in our models, that is, parameters of probability distributions. By the way, don't try to set $\theta$ to statements such as unicorns are real unless you are willing to build a realistic probabilistic model of unicorn existence!
 
-Bayes' theorem is central to Bayesian statistics, as we will see in Chapter 2, Programming Probabilistically using tool such as PyMC free ourselves of the need to explicitly write Bayes' theorem every time we build a Bayesian model. Nevertheless, it is important to know the name of its parts because we will constantly refer to them and it is important to understand what each part means because this will help us to conceptualize models. So let me rewrite Bayes' theorem now with labels:
+Bayes' theorem is central to Bayesian statistics, as we will see in Chapter 2, Programming Probabilistically using tools such as PyMC frees us of the need to explicitly write Bayes' theorem every time we build a Bayesian model. Nevertheless, it is important to know the name of its parts because we will constantly refer to them and it is important to understand what each part means because this will help us to conceptualize models. So let me rewrite Bayes' theorem now with labels:
 
 $$
 \overbrace{p(\theta \mid Y)}^{\text{posterior}} = \frac{\overbrace{p(Y \mid \theta)}^{\text{likelihood}} \overbrace{p(\theta)}^{\text{prior}}}{\underbrace{p(Y)}_{\text{marginal likelihood}}}
@@ -390,11 +385,10 @@ The **prior distribution** should reflect what we know about the value of the pa
 
 The **likelihood** is how we will introduce data in our analysis. It is an expression of the plausibility of the data given the parameters In some texts, you will find people call this term sampling model, statistical model, or just model. We will stick to the name likelihood and we will call the combination of priors and likelihood model.
 
-The **posterior distribution** is the result of the Bayesian analysis and reflects all that we know about a problem (given our data and model). The posterior is a probability distribution for the parameters in our model and not a single value. This distribution is a balance between the prior and the likelihood. There is a well-known joke: *A Bayesian is one who, vaguely expecting a horse, and catching a glimpse of a donkey, strongly believes he has seen a mule*. One excellent way to kill the mood after hearing this joke is to explain that if the likelihood and priors are both vague, you will get a posterior reflecting vague beliefs about seeing a mule rather than strong ones. Anyway, I like the joke, and I like how it captures the idea of a posterior being somehow a compromise between prior and likelihood. Conceptually, we can think of the posterior as the updated prior in the light of (new) data. In theory, the posterior from one analysis can be used as the prior for a new analysis [^3]. This makes Bayesian analysis particularly suitable for analyzing data that becomes available in sequential order. Some examples could be an early warning system for natural disasters that processes online data coming from meteorological stations and satellites. For more details, read about online machine learning methods
+The **posterior distribution** is the result of the Bayesian analysis and reflects all that we know about a problem (given our data and model). The posterior is a probability distribution for the parameters in our model and not a single value. This distribution is a balance between the prior and the likelihood. There is a well-known joke: *A Bayesian is one who, vaguely expecting a horse, and catching a glimpse of a donkey, strongly believes he has seen a mule*. One excellent way to kill the mood after hearing this joke is to explain that if the likelihood and priors are both vague, you will get a posterior reflecting vague beliefs about seeing a mule rather than strong ones. Anyway, I like the joke, and I like how it captures the idea of a posterior being somehow a compromise between prior and likelihood. Conceptually, we can think of the posterior as the updated prior in light of (new) data. In theory, the posterior from one analysis can be used as the prior for a new analysis [^3]. This makes Bayesian analysis particularly suitable for analyzing data that becomes available in sequential order. One example could be an early warning system for natural disasters that processes online data coming from meteorological stations and satellites. For more details, read about online machine-learning methods
 
 
-The last term is the **marginal likelihood**, sometimes refered as the **evidence**. Formally, the marginal likelihood is the probability of observing the data averaged over all the possible values the parameters can take (as prescribed by the prior). We can write this as ${\int_{\Theta} p(Y \mid \theta) p(\theta) \text{d}\theta}$. We will not really care about the marginal likelihood until Chapter 5 Model Comparison. For the moment we can think of it as a normalization factor that ensures the posterior is a proper $pmf$ or $pdf$. If we ignore the marginal likelihood, we can write Bayes' theorem
-as a proportionality, this is this is also a common way to write Bayes' theorem.
+The last term is the **marginal likelihood**, sometimes referred to as the **evidence**. Formally, the marginal likelihood is the probability of observing the data averaged over all the possible values the parameters can take (as prescribed by the prior). We can write this as ${\int_{\Theta} p(Y \mid \theta) p(\theta) \text{d}\theta}$. We will not really care about the marginal likelihood until Chapter 5 Model Comparison. For the moment we can think of it as a normalization factor that ensures the posterior is a proper $pmf$ or $pdf$. If we ignore the marginal likelihood, we can write Bayes' theorem as a proportionality, this is also a common way to write Bayes' theorem.
 
 $$
 p(\theta \mid Y) \propto p(Y \mid \theta) p(\theta)
@@ -446,6 +440,82 @@ for $y=1$ (heads).
 
 ### Choosing the prior
 
+As a prior, we will use a beta distribution, which is a very common distribution in Bayesian statistics and looks as follows:
+
+
+$$
+p(\theta) = \underbrace{\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) + \Gamma(\beta)}}_{\text{normalizing constant}} \;\; \theta^{\alpha-1} (1-\theta)^{\beta-1}
+$$
+
+If we look carefully, we will see that the beta distribution looks similar to the binomial except for the first term. $\Gamma$ is the Greek uppercase gamma letter and represents the gamma function, that's not really important, what is relevant for us is that the first term is a normalizing constant that ensures the distribution integrates to 1. We can see from the preceding formula that the beta distribution has two parameters, $\alpha$ and \$beta$. @fig-beta_distribution
+
+
+![Nine members of the beta family](/fig/beta_distribution.png){#fig-beta_distribution}
+
+I really like the beta distribution and all the shapes we can get from it, but why are we using it for our model? There are many reasons to use a beta distribution for this and other problems. One of them is that the beta distribution is restricted to be between 0 and 1, in the same way our $\theta$ parameter is. In general, we use the beta distribution when we want to model proportions of a binomial variable. Another reason is for its versatility. As we can see in the preceding figure, the distribution adopts several shapes (all restricted to the [0, 1] interval), including a uniform distribution, Gaussian-like distributions, and U-like distributions. As a third reason, the beta distribution is the conjugate prior of the binomial distribution (which we are using as the likelihood). A conjugate prior of a likelihood is a prior that, when used in combination with a given likelihood, returns a posterior with the same functional form as the prior. Untwisting the tongue, every time we use a beta distribution as the prior and a binomial distribution as the likelihood, we will get a beta as the posterior distribution. There are other pairs of conjugate priors; for example, the Normal distribution is the conjugate prior of itself. For many years, Bayesian analysis was restricted to the use of conjugate priors. Conjugacy ensures mathematical tractability of the posterior, which is important given that a common problem in Bayesian statistics is ending up with a posterior we cannot solve analytically. This was a deal breaker before the development of suitable computational methods to solve probabilistic methods. From Chapter 2, Programming Probabilistically onwards, we will learn how to use modern computational methods to solve Bayesian problems, whether we choose conjugate priors or not.
+
+
+### Getting the posterior
+Let's remember that Bayes' theorem says the posterior is proportional to the likelihood times the prior. So, for our problem, we have to multiply the binomial and the beta distributions:
+
+
+$$
+p(\theta \mid Y) = \overbrace{{\frac{N!}{y!(N-y)!} \theta^y (1 - \theta)^{N−y}}}^\text{prior} \; \overbrace{{\theta^{\alpha-1} (1-\theta)^{\beta-1}}}^{\text{likelihood}}
+$$
+
+We can simplify this expression by dropping all the terms that do not depend on $\theta$ and our results will still be valid. Accordingly, we can write:
+
+$$
+p(\theta \mid Y) \propto \overbrace{{\theta^y (1 - \theta)^{N−y}}}^\text{prior} \; \overbrace{{\theta^{\alpha-1} (1-\theta)^{\beta-1}}}^{\text{likelihood}}
+$$
+
+Reordering it, we get:
+
+$$
+p(\theta \mid Y) \propto \text{Beta}(\alpha_{\text{prior}}
+ + y, \beta_{\text{prior} + N - y})
+$$
+
+Based on this analytical expresion we can compute the posterior. @fig-beta_posterior shows the results for 3 priors and different number of trials. The following block of code shows the gist to generate @fig-beta_posterior by ommiting the code neccesary for ploting.
+
+```python
+n_trials = [0, 1, 2, 3, 4, 8, 16, 32, 50, 150]
+n_heads = [0, 1, 1, 1, 1, 4, 6, 9, 13, 48]
+beta_params = [(1, 1), (20, 20), (1, 4)]
+
+x = np.linspace(0, 1, 2000)
+
+for idx, N in enumerate(n_trials):
+    y = n_heads[idx]
+    for (α_prior, β_prior) in beta_params:
+        posterior = pz.Beta(α_prior + y, β_prior + N - y).pdf(x)
+```
+
+![The first subplot show 3 priors. The test the sucesive update as we get new data](/fig/beta_posterior.png){#fig-beta_posterior}
+
+
+On the first subplot of @fig-beta_posterior, we have zero trials, thus the three curves represent our
+priors:
+
+* The uniform prior (black). This represent all the possible values for the bias being equally probable a priori.
+* The Gaussian-like prior (dark gray) is centered and concentrated around 0.5, so this prior is compatible with information indicating that the coin has more or less about the same chance of landing heads or tails. We could also say this prior is compatible with the knowledge that coins are fair. 
+* The skewed prior (light gray) puts most of the weight on a tail-biased outcome.
+
+The rest of the subplots show posterior distributions for successive trials. The number of trials (or coin tosses) and the number of heads are indicated in each subplot's legend. There is also a black dot at 0.35 representing the true value for $\theta$. Of course, in real problems, we do not know this value, and it is here just for pedagogical reasons. This figure can teach us a lot about Bayesian analysis, so grab your coffee, tea, or favorite drink and let's take a moment to understand it:
+
+
+* The result of a Bayesian analysis is a posterior distribution, not a single value but
+a distribution of plausible values given the data and our model.
+* The most probable value is given by the mode of the posterior (the peak of the distribution).
+* The spread of the posterior is proportional to the uncertainty about the value of a parameter; the more spread out the distribution, the less certain we are.
+* Intuitively, we are more confident in a result when we have observed more data supporting that result. Thus, even when numerically $\frac{1}{2} = \frac{4}{8} = 0.5$, seeing four heads out of eight trials gives us more confidence that the bias is 0.5 than observing one head out of two trials. This intuition is reflected in the posterior, as you can check for yourself if you pay attention to the (blue) posterior in the third and sixth subplots; while the mode is the same, the spread (uncertainty) is larger in the third subplot than in the sixth subplot.
+* Given a sufficiently large amount of data, two or more Bayesian models with different priors will tend to converge to the same result. In the limit of infinite data, no matter which prior we use, all of them will provide the same posterior.
+* Remember that infinite is a limit and not a number, so from a practical point of view, we could get practically indistinguishably posteriors for a finite and rather small number of data points.
+* How fast posteriors converge to the same distribution depends on the data and the model. In the preceding figure, we can see that the posteriors coming from the blue prior (uniform) and green prior (biased towards tails) converge faster to almost the same distribution, while it takes longer for the orange posterior (the one coming from the concentrated prior). In fact, even after 150 trials, it is somehow easy to recognize the orange posterior as a different distribution from the two others.
+* Something not obvious from the figure is that we will get the same result if we update the posterior sequentially than if we do it all at once. We can compute the posterior 150 times, each time adding one more observation and using the obtained posterior as the new prior, or we can just compute one posterior for the 150 tosses at once. The result will be exactly the same. This feature not only makes perfect sense, it also leads to a natural way of updating our estimations
+when we get new data, a situation common in many data-analysis problems.
+
+## The influence of the prior and how to choose one
 
 ## Summary
 
