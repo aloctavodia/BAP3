@@ -1,0 +1,41 @@
+# Programming Probabilistically
+
+> "Our golems rarely have a physical form, but they too are often made of clay living in silicon as computer code." - Richard McElreath
+
+
+Now that we have a basic understanding of Bayesian statistics, we are going to learn how  to build probabilistic models using computational tools. Specifically, we are going to learn  about probabilistic programming with PyMC3. The basic idea is to specify models using  code and then solve them in a more or less automatic way. It is not that we are too lazy to  learn the mathematical way, nor are we elitist-hardcore-hackers-in-code. One important  reason behind this choice is that many models do not lead to an analytic closed form, and  thus we can only solve those models using numerical techniques.  Another reason to learn probabilistic programming is that modern Bayesian statistics is  mainly done by writing code, and since we already know Python, why would we do it in  another way? Probabilistic programming offers an effective way to build and solve  complex models and allows us to focus more on model design, evaluation, and  interpretation, and less on mathematical or computational details. In this chapter, and  through the rest of this book, we are going to use PyMC3, a very flexible Python library for  probabilistic programming, as well as ArviZ, a new Python library that will help us  interpret the results of probabilistic models. Knowing PyMC3 and ArviZ will also help us  to learn advanced Bayesian concepts in a more practical way.  In this chapter, we will cover the following topics:  
+
+* Probabilistic programming
+* PyMC primer
+* The coin-flipping problem revisited
+* Summarizing the posterior
+* The Gaussian and student's t models
+* Comparing groups and the effect size
+* Hierarchical models and shrinkage
+
+
+
+## Posterior predictive checks
+
+One of the nice elements of the Bayesian toolkit is that once we have a posterior $\p(\theta \mid Y)$, it is
+possible to use it to generate predictions, $p(\tilde Y)$. Mathematically this can be done by computing:
+
+$$
+p(\tilde Y \mid Y) = \int p(\tilde Y \mid \theta) p(\theta \mid Y) d\theta
+$$
+
+This is the **posterior predictive distribution**. *Posterior* because we are taking the values of $\theta$ according to the posterior distribution, *Predictitve* because we are computing the distribution of the data, $\tilde Y$, given the observed data, $Y$. Or in other words predictions. And *distribution* because we are not computing a single value, but a distribution of values. 
+
+In practice we are not going to directly compute this integral, but we will approximate it by sampling in two steps:
+
+1. We sample a value of $\theta$ from the posterior $p(\theta \mid Y)$,
+2. We feed that value of to the likelihood $p(Y \mid \theta)$
+
+This will generate one sample from $p(\tilde Y)$, we keep doing this many times. The resulting samples will be distruted as the posterior predictive distribution.
+
+
+:::{.callout-note}
+The posterior predictive distribution combines two sources of uncertainty: the parameters uncertainty; as captured by the posterior; and the sampling uncertainty; as captured by the likelihood
+:::
+
+<!-- show how to sample using PreliZ and then show how to do it using PyMC -->
