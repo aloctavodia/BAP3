@@ -2,41 +2,36 @@
 
 > "Probability theory is nothing but common sense reduced to calculation." - Pierre Simon Laplace
 
-
 In this chapter, we will learn about the core concepts of Bayesian statistics and some of the instruments in the Bayesian toolbox. We will use some Python code, but this chapter will be mostly theoretical; most of the concepts we will see here will be revisited many times throughout this book. This chapter, being heavy on the theoretical side, is perhaps a little anxiogenic for the coder in you, but I think it will ease the path in effectively applying Bayesian statistics to your problems.
-
 
 In this chapter, we will cover the following topics:
 
-* Statistical modeling
-* Probabilities and uncertainty
-* Bayes' theorem and statistical inference
-* Single-parameter inference and the classic coin-flip problem
-* Choosing priors and why people often don't like them, but should
-* Communicating a Bayesian analysis
-
+-   Statistical modeling
+-   Probabilities and uncertainty
+-   Bayes' theorem and statistical inference
+-   Single-parameter inference and the classic coin-flip problem
+-   Choosing priors and why people often don't like them, but should
+-   Communicating a Bayesian analysis
 
 ## Statistics, models, and this book's approach
 
-Statistics is about collecting, organizing, analyzing, and interpreting data, and hence statistical knowledge is essential for data analysis. Two main statistical methods are used in
-data analysis:
+Statistics is about collecting, organizing, analyzing, and interpreting data, and hence statistical knowledge is essential for data analysis. Two main statistical methods are used in data analysis:
 
-* Exploratory Data Analysis (EDA): This is about numerical summaries, such as the mean, mode, standard deviation, and interquartile ranges (this part of EDA is also known as descriptive statistics). EDA is also about visually inspecting the data, using tools you may be already familiar with, such as histograms and scatter plots.
-*Inferential statistics: This is about making statements beyond the current data. We may want to understand some particular phenomenon, or maybe we want to make predictions for future (as yet unobserved) data points, or we need to choose among several competing explanations for the same observations. Inferential statistics is the set of methods and tools that will help us to answer these types of questions.
+* Exploratory Data Analysis (EDA): This is about numerical summaries, such as the mean, mode, standard deviation, and interquartile ranges. EDA is also about visually inspecting the data, using tools you may be already familiar with, such as histograms and scatter plots.
 
-:::{.callout-note}
-The focus of this book is on how to perform Bayesian inferential statistics, and then how to use EDA to summarize, interpret, check, and communicate the results of Bayesian inference.
+* Inferential statistics: This is about making statements beyond the current data. We may want to understand some particular phenomenon, or maybe we want to make predictions for future (yet unobserved) data points, or we need to choose among several competing explanations for the same set of observations. In summary, inferential statistics allow us to draw meaningful insights from a limited set of data and make informed decisions based on the results of our analysis.
+
+::: callout-note
+The focus of this book is on how to perform Bayesian inferential statistics, but we will also use ideas from EDA to summarize, interpret, check, and communicate the results of Bayesian inference.
 :::
-
 
 Most introductory statistical courses, at least for non-statisticians, are taught as a collection of recipes that go like this: go to the statistical pantry, pick one tin can and open it, add data to taste, and stir until you obtain a consistent p-value, preferably under 0.05. The main goal of these courses is to teach you how to pick the proper can. I never liked this approach, mainly because the most common result is a bunch of confused people unable to grasp, even at the conceptual level, the unity of the different learned methods. We will take a different approach: we will also learn some recipes, but these will be homemade rather than canned food; we will learn how to mix fresh ingredients that will suit different gastronomic occasions and, more importantly, that will let you apply concepts far beyond the examples in this book.
 
 Taking this approach is possible for two reasons:
 
-* **Ontological**: Statistics is a form of modeling unified under the mathematical framework of probability theory. Using a probabilistic approach provides a unified view of what may seem like very disparate methods; statistical methods and machine learning methods look much more similar under the probabilistic lens.
+-   **Ontological**: Statistics is a form of modeling unified under the mathematical framework of probability theory. Using a probabilistic approach provides a unified view of what may seem like very disparate methods; statistical methods and machine learning methods look much more similar under the probabilistic lens.
 
-* **Technical**: Modern software, such as PyMC, allows practitioners, just like you and me, to define and solve models in a relatively easy way. Many of these models were unsolvable just a few years ago or required a high level of mathematical and technical sophistication.
-
+-   **Technical**: Modern software, such as PyMC, allows practitioners, just like you and me, to define and solve models in a relatively easy way. Many of these models were unsolvable just a few years ago or required a high level of mathematical and technical sophistication.
 
 ## Working with data
 
@@ -52,27 +47,21 @@ A very useful skill when analyzing data is knowing how to write code in a progra
 
 Models are simplified descriptions of a given system or process that, for some reason, we are interested in. Those descriptions are deliberately designed to capture only the most relevant aspects of the system and not to explain every minor detail. This is one reason a more complex model is not always a better one. There are many different kinds of models; in this book, we will restrict ourselves to Bayesian models. We can summarize the Bayesian modeling process using three steps:
 
-1. Given some data and some assumptions on how this data could have been
-generated, we design a model by combining building blocks known as
-**probability distributions**. Most of the time these models are crude
-approximations, but most of the time that's all we need.
-2. We use Bayes' theorem to add data to our models and derive the logical
-consequences of combining the data and our assumptions. We say we are
-**conditioning** the model on our data.
-3. We evaluate the model, and its predictions, under different criteria, including the data, our expertise on the subject, and sometimes by comparing it to other models.
+1.  Given some data and some assumptions on how this data could have been generated, we design a model by combining building blocks known as **probability distributions**. Most of the time these models are crude approximations, but most of the time that's all we need.
+2.  We use Bayes' theorem to add data to our models and derive the logical consequences of combining the data and our assumptions. We say we are **conditioning** the model on our data.
+3.  We evaluate the model, and its predictions, under different criteria, including the data, our expertise on the subject, and sometimes by comparing it to other models.
 
 In general, we will find ourselves performing these three steps in an iterative non-linear fashion. We will retrace our steps at any given point: maybe we made a silly coding mistake, or we found a way to change the model and improve it, or we realized that we need to add more data or collect a different kind of data.
 
 Bayesian models are also known as **probabilistic models** because they are built using probabilities. Why probabilities? Because probabilities are a very useful tool to model uncertainty, we even have very good arguments to state they are the correct mathematical concept. So let's take a walk through the garden of forking paths [@borges_2018].
 
+## A Probability primer for Bayesian Practitioners
 
-## Probability Basics for Bayesian practitioners
+In this section, we are going to discuss a few general and important concepts that are key for better understanding Bayesian methods. Additional probability-related concepts will be introduced or elaborated on in future chapters, as we need them. For a detailed study of probability theory, I highly recommend the book, Introduction to Probability by Joseph K Blitzstein and Jessica Hwang [@blitzstein_2019]. Those already familiar with the basic elements of probability theory can skip this section or skim it.
 
-In this section, we are going to discuss a few general and important concepts that are key for better understanding Bayesian methods. Additional probability-related concepts will be introduced or elaborated on in future chapters, as we need them. For a detailed study of probability theory, I highly recommend the book, Introduction to Probability by Joseph K Blitzstein and Jessica Hwang [@blitzstein_2019]. Those already familiar with the basic elements of probability theory can skip this section or skim it. 
+### Sample Space and Events
 
-
-### Sample Spaces and Events
-Let's say we are conducting a survey to see how people feel about the weather in their area. We ask three individuals whether they enjoy sunny weather, with possible responses being "yes" or "no". The sample space of all possible outcomes can be denoted by $S$ and consists of eight possible combinations:
+Let's say we are surveying to see how people feel about the weather in their area. We ask three individuals whether they enjoy sunny weather, with possible responses being "yes" or "no". The sample space of all possible outcomes can be denoted by $S$ and consists of eight possible combinations:
 
 $S$ = {(yes, yes, yes), (yes, yes, no), (yes, no, yes), (no, yes, yes), (yes, no, no), (no, yes, no), (no, no, yes), (no, no, no)}
 
@@ -88,34 +77,37 @@ $B$ = {(yes, yes, no), (yes, no, yes), (no, yes, yes), (yes, no, no), (no, yes, 
 
 We can use probabilities as a measure of how likely these events are. Assuming all events are equally likely, the probability of event $A$, which is the event that all three individuals answered "yes", is:
 
-$$P(A) = \frac{\text{number of outcomes in} A}{\text{total number of outcomes in} S}$$
+$$
+P(A) = \frac{\text{number of outcomes in } A}{\text{total number of outcomes in } S}
+$$
 
 In this case, there is only one outcome in $A$, and there are eight outcomes in $S$. Therefore, the probability of $A$ is:
 
-$$P(A) = \frac{1}{8} = 0.125$$
-
+$$
+P(A) = \frac{1}{8} = 0.125
+$$
 
 Similarly, we can calculate the probability of event $B$, which is the event that at least one person answered "no". Since there are seven outcomes in $B$ and eight outcomes in $S$, the probability of $B$ is:
 
-$$P(B) = 7/8 = 0.875$$
+$$
+P(B) = \frac{7}{8} = 0.875
+$$
 
-Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something called the naive definition of probability since it is restrictive and relies on strong assumptions. However, it is still useful if we are cautious when using it. 
-
-No matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. We can see that this is true by computing:
+Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something called the naive definition of probability since it is restrictive and relies on strong assumptions. However, it is still useful if we are cautious when using it. For instance, it is not true that all yes-no questions have a 50-50 chance. What is the probability of seeing a purple horse? The right answer can vary a lot depending if we talking about the natural color of a real horse, a horse from a cartoon, a horse dressed in a parade, etc. Anyway, no matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. We can see that this is true by computing:
 
 $$P(S) = \frac{\text{number of outcomes in } S}{\text{total number of outcomes in } S}$$
 
-1 is the highest value a probability can take. Saying that $P(S)=1$ is saying that $S$ is not only very likely, it is certain. If everything that can happen is defined by $S$, then $S$ will happen. 
+1 is the highest value a probability can take. Saying that $P(S)=1$ is saying that $S$ is not only very likely, it is certain. If everything that can happen is defined by $S$, then $S$ will happen.
 
-If an event is impossible then its probability is 0, let's define the event $S$ as the event of the three persons saying "banana",
+If an event is impossible then its probability is 0, let's define the event $C$ as the event of the three persons saying "banana",
 
 $C$ = {(banana, banana, banana)}
 
-As $C$ is not part of $S$, then it can not happen. Think of this as the questionnaire from your survey only having two boxes, yes and no. By design, your survey is restricting all other possible options.  
+As $C$ is not part of $S$, by definition, it can not happen. Think of this as the questionnaire from our survey only having two boxes, yes and no. By design, our survey is restricting all other possible options.
 
-We can take advantage of the fact that Python includes sets and define a Python function that computes probabilities:
+We can take advantage of the fact that Python includes sets and define a Python function to compute probabilities following their naive definition:
 
-```python 
+``` python
 def P(S, A):
     if set(A).issubset(set(S)):
         return len(A)/len(S)
@@ -125,157 +117,140 @@ def P(S, A):
 
 I left for the reader the joy to play with this function.
 
-One useful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. One may argue that it can rain in the morning and not rain in the afternoon. You may object that it can rain during the morning and not rain during the afternoon. That is totally true, but that's a different sample space! 
+One useful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. You may object that it can rain during the morning and not rain during the afternoon. That is true, but that's a different sample space!
 
-So far we have avoided directly defining probabilities, and instead, we have just shown some of their properties and ways to compute them. A general definition of probability, that works for non-equally likely events is as follows. Given a sample space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms [^1]: 
+So far we have avoided directly defining probabilities, and instead, we have just shown some of their properties and ways to compute them. A general definition of probability, that works for non-equally likely events is as follows. Given a sample space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms [^chp_01-1]:
 
-1. The probability of an event is a non-negative real number
-2. $P(S)$ = 1
-3. If $A1, A2, \dots$ are disjoint events, meaning they cannot occur simultaneously then:
+[^chp_01-1]: An axiom is a statement that is taken to be true, and that we use as the starting point in our reasoning.
+
+1.  The probability of an event is a non-negative real number
+2.  $P(S)$ = 1
+3.  If $A1, A2, \dots$ are disjoint events, meaning they cannot occur simultaneously then:
 
 $$P(A1 , A2 , \dots) = P(A1) + P(A2) +  \dots$$
 
-[^1]: An axiom is a statement that is taken to be true, and that we use as the starting point in our reasoning. It is possible to define probabilities using other axioms.
 
-<!-- 
-If this were a book on probability, we would likely dedicate a few pages to demonstrate the consequences of these axioms and provide exercises for manipulating probabilities, that will help us to become proficient in manipulating probabilities. However, our main focus is not on those topics. We are learning about these axioms to understand that probabilities are well-defined mathematical concepts with rules that govern their operation. They are a particular type of function, and there is no mystery surrounding them. We still have some more concepts of probability to introduce. -->
-
-
-### Conditional Probability
-
-Given two events $A$ and $B$ with $P(B) > 0$, the probability of $A$ given $B$, which we write as $P(A \mid B)$ is defined as :
-$$P(A \mid B) = \frac{P(A, B)}{P(B)}$$
-
-$P(A, B)$ is the probability that both the event $A$ and event $B$ occur. $P(A \mid B)$ it is known as conditional probability, and it is the probability that event $A$ occurs, **conditioned** by the fact that we know
-(or assume, imagine, hypothesize, etc) that $B$ has occurred. For example, the probability that the pavement is wet is different from the probability that the pavement is wet if we know it's raining.
-
-A conditional probability can be larger than, smaller than, or equal to the unconditioned probability. If knowing $B$ does not provides us with information about $A$, then $P(A \mid B) = p(A)$. This will be true only if $A$ and $B$ are independent of each other. On the contrary, if knowing $B$ gives us useful information about $A$, then the conditional probability could be larger or smaller than the unconditional probability, depending on whether knowing $B$ makes $A$ less or more likely. Let's see a simple example using a fair six-sided die. What is the probability of getting the number 3 if we roll the die? $P(\text{die}=3) = \frac{1}{6}$ since each of the six numbers has the same chance for a fair six-sided die. And what is the probability of getting the number 3 given that we have obtained an odd number? $P(\text{die}=3 \mid \text{die}=\{1, 3, 5\}) = \frac{1}{3}$, because if we know we have an odd number, the only possible numbers are $\{1, 3, 5\}$ and each of them has the same chance. Finally, what is the probability of getting 3 if we have obtained an even number? This is $P(\text{die}=3 \mid \text{die}=\{2, 4, 6\}) = 0$, because if we know the number is even, then the only possible ones are $\{2, 4, 6\}$ and thus getting a 3 is not possible.
-
-As we can see from these simple examples, by conditioning on observed data we are changing the sample space. When asking about $P(\text{die}=3)$ we need to evaluate the sample space $S=\{1, 2, 3, 4, 5, 6\}$, but when we **condition on** having got an even number then the new sample space becomes $T=\{2, 4, 6\}$. 
-
-Conditional probabilities are the heart of statistics, irrespective of whether your problem is rolling dice or building self-driving cars.
+If this were a book on probability theory, we would likely dedicate a few pages to demonstrate the consequences of these axioms and provide exercises for manipulating probabilities. That will help us to become proficient in manipulating probabilities. However, our main focus is not on those topics. My motivation to present these axioms is just to show that probabilities are well-defined mathematical concepts with rules that govern their operation. They are a particular type of function, and there is no mystery surrounding them.
 
 ### Random variables
 
-A random variable is a function that maps the sample space into the real numbers $\mathbb{R}$ (see @fig-random_variable). Continuing with the die example if the events of interest were the number of a die, the mapping is very simple, we associate ⚀ with the number 1, ⚁ with 2, etc. Another simple example is the answer to the question it will rain tomorrow? we can map "yes" to 1 and "no" to 0. It is common, but not always the case, to use a capital letter for random variables like $X$ and a lower letter for their outcomes $x$. For example, we can write $P(X=0)$ to indicate the probability of getting the value 0 for the random variable $X$.
+A random variable is a function that maps the sample space into the real numbers $\mathbb{R}$ (see @fig-random_variable). Continuing with the die example if the events of interest were the number of a die, the mapping is very simple, we associate \epsdice{1}⚀ with the number 1, \epsdice{2}⚁ with 2, etc. Another simple example is the answer to the question it will rain tomorrow? we can map "yes" to 1 and "no" to 0. It is common, but not always the case, to use a capital letter for random variables like $X$ and a lower letter for their outcomes $x$. For example, we can write $P(X=0)$ to indicate the probability of getting the value 0 for the random variable $X$.
 
-Being able to map symbols like, ⚀, or strings like "yes" to numbers, makes analysis simpler as we already know how to do math with numbers. Random variables are also useful because we can operate with them without directly thinking in terms of the sample space. This feature becomes more and more relevant as the sample space becomes more complex. For example, when simulating molecular systems we need to specify the position and velocity of each atom, for complex molecules like proteins this means that we will need to track thousands, millions or even larger numbers. Instead, we can use random variables to summarize certain properties of the system, such as the total energy or the relative angles between certain atoms of the system. If you are still confused, that's fine, the concept of a random variable may sound too abstract at the beginning, but we will see plenty of examples throughout the book that will help you cement these ideas. Still, let me try one analogy that I hope you find useful. Random variables are useful in a similar way that Python functions are useful. We often encapsulate code within functions, so we can store, reuse and "hide" complex manipulations of data into a single call. Even more, once we have more than one function we can, sometimes, combine them differently, like using adding the output of two functions or using the output of one function as the input of the other. We can do all this without functions, but abstracting away the inner workings, not only makes the code cleaner it also helps with understanding and fostering new ideas.
+Being able to map symbols like, \epsdice{1}⚀, or strings like "yes" to numbers, makes analysis simpler as we already know how to do math with numbers. Random variables are also useful because we can operate with them without directly thinking in terms of the sample space. This feature becomes more and more relevant as the sample space becomes more complex. For example, when simulating molecular systems we need to specify the position and velocity of each atom, for complex molecules like proteins this means that we will need to track thousands, millions or even larger numbers. Instead, we can use random variables to summarize certain properties of the system, such as the total energy or the relative angles between certain atoms of the system. If you are still confused, that's fine, the concept of a random variable may sound too abstract at the beginning, but we will see plenty of examples throughout the book that will help you cement these ideas. Before moving on, let me try one analogy that I hope you find useful. Random variables are useful in a similar way that Python functions are useful. We often encapsulate code within functions, so we can store, reuse and *hide* complex manipulations of data into a single call. Even more, once we have a few functions we can, sometimes, combine them in many ways, like adding the output of two functions or using the output of one function as the input of the other. We can do all this without functions, but abstracting away the inner workings, not only makes the code cleaner it also helps with understanding and fostering new ideas. Random variables play a similar role in statistics.
 
-![random variable](/fig/random_variable.png){#fig-random_variable}
+![random variable. UPDATE](/fig/random_variable.png){#fig-random_variable width=80%}
 
-The mapping between the sample space and $\mathbb{R}$ is deterministic. There is no randomness involved. So why do we call it a *random* variable? Because we can *ask* the variable for values, and every time we ask, we will get a different number. The randomness comes from the probability associated with the events, in 
-@fig-random_variable we have represented $P$ as the size of the circles. Given that we have random variables that are functions and a bunch of probabilities associated with them. What about putting all these probabilities into a single object like a function? That's the topic of the next section.
+The mapping between the sample space and $\mathbb{R}$ is deterministic. There is no randomness involved. So why do we call it a *random* variable? Because we can *ask* the variable for values, and every time we ask, we will get a different number. The randomness comes from the probability associated with the events, in @fig-random_variable we have represented $P$ as the size of the circles.
 
-The two most common types of random variables are discrete and continuous ones. Without going into a proper definition we are going to say that discrete variables take only certain values, we usually use integers to represent them, like 1, 5, 42.  And continuous variables take real values, so we use floats to work with them, like 3.1415, 1.01, 23.4214, etc
-
-When we need one or the other is problem-dependent. If we ask people about their favorite color we will get answers like "red", "blue", and "green". This is an example of a discrete random variable. The answers are categories, there are no intermediate values between "red" and "green". But if we are studying the properties of light absorption, then discrete values like "red" and "green" may sound not very adequate and instead working with wavelength seems more appropriate, in that case, we will expect to get values like 650 nm and 510 nm and an infinite number of values between them.
-
+The two most common types of random variables are discrete and continuous ones. Without going into a proper definition we are going to say that discrete variables take only discrete values, we usually use integers to represent them, like 1, 5, 42. And continuous variables take real values, so we use floats to work with them, like 3.1415, 1.01, 23.4214, etc. When we use one or the other is problem-dependent. If we ask people about their favorite color we will get answers like "red", "blue", and "green". This is an example of a discrete random variable. The answers are categories, there are no intermediate values between "red" and "green". But if we are studying the properties of light absorption, then discrete values like "red" and "green" may not be adequate and instead working with wavelength could be more appropriate. In that case, we will expect to get values like 650 nm and 510 nm and any number in-between including 579.1.
 
 ### Discrete random variables and their distributions
 
-Instead of calculating the probability that all three individuals answered "yes", or the probability of getting a 3 when rolling a die, we may be more interested in finding out the *list of probabilities* for all possible answers or for all numbers on a die. Once this list is computed we can inspect it visually or use it to compute other quantities like the probability of getting at least one "no", the probability of getting an odd number, or the probability of getting a number equal to or larger than 5. The formal name of this *list* is **probability distribution**.
+Instead of calculating the probability that all three individuals answered "yes", or the probability of getting a 3 when rolling a die, we may be more interested in finding out the *list of probabilities* for all possible answers or all possible numbers from a die. Once this list is computed we can inspect it visually or use it to compute other quantities like the probability of getting at least one "no", the probability of getting an odd number, or the probability of getting a number equal to or larger than 5. The formal name of this *list* is **probability distribution**.
 
 Using the frequentist definition of probability we can get the empirical probability distribution of a die, by rolling it a few times and tabulating how many times we got each number. To turn each value into a probability and the entire list into a valid probability distribution we need to *normalize* the counts. We can do this by dividing the value we got for each number by the number of times we roll the die.
 
 Empirical distributions are very useful, and we are going to extensively use them. But instead of rolling dice by hand we are going to use advanced computational methods to make the hard work for us, this will not only save us time and boredness by it will allow us to get samples from really complicated distributions effortlessly. But we are getting ahead of ourselves. We know what to focus on theoretical distributions, which are central in statistics among other reasons because they allow the construction of probabilistic models.
 
-As we saw, there is nothing random or mysterious with random variables, they are just a type of mathematical function. The same goes for theoretical probability distributions. I like to compare probability distributions with circles. Because we are all familiar with circles even before we get into school, we are not afraid of them and they don't look mysterious to us. We can define a circle as the geometric space of points on a plane that is equidistant from another point called the center. And we can even give a mathematical expression for this definition. In an $x-y$ Cartesian coordinate system, the circle with radius $r$ is the set of all points $(x, y)$ such that
+As we saw, there is nothing random or mysterious with random variables, they are just a type of mathematical function. The same goes for theoretical probability distributions. I like to compare probability distributions with circles. Because we are all familiar with circles even before we get into school, we are not afraid of them and they don't look mysterious to us. We can define a circle as the geometric space of points on a plane that is equidistant from another point called the center. We can go further and provide a mathematical expression for this definition. In a $x-y$ Cartesian coordinate system, the circle with radius $r$ is the set of all points $(x, y)$ such that
 
-$$x^2 + y^2 = r^2 $$
+$$
+x^2 + y^2 = r^2
+$$
 
 We are omitting here the fact that we can move the circle around the coordinate system. We don't care about that.
 
-Given the **parameter** $r$, the radius, of a circle is completely defined. It is all that we need to plot it and all that we need to compute properties such as the perimeter, $2\pi r$. Because all circles are essentially very similar objects, we can think of them as The Family of Circles, where each member is identified from the rest from the value of $r$.
+Given the **parameter** $r$ the circle is completely defined. It is all that we need to plot it and all that we need to compute properties such as the perimeter, which is $2\pi r$. Because all circles are essentially very similar objects, we can think of them as The Family of Circles, where each member is set apart from the rest precisely by the value of $r$.
 
-All of these directly apply to probability distributions. They also have mathematical expressions that define them, and these expressions have parameters, that we can change to define all members of a family of probability distributions. @fig-dice_distribution shows four members of one probability distribution known as beta-binomial.
+So far, so good, but why are we talking about circles? Because all this can be directly applied to probability distributions. They also have mathematical expressions that define them, and these expressions have parameters, that we can change to define all members of a family of probability distributions. @fig-dice_distribution shows four members of one probability distribution known as beta-binomial.
 
-![Four members of the beta-binomial distribution with parameters
-$\alpha$ and $\beta$. The height of the bars represents the probability
-of each $x$ value. The values of $x$ below 1 or above 6 have probability 0 as they are out of the support of the distribution.](/fig/dice_distribution.png){#fig-dice_distribution}
+![Four members of the beta-binomial distribution with parameters $\alpha$ and $\beta$. The height of the bars represents the probability of each $x$ value. The values of $x$ below 1 or above 6 have probability 0 as they are out of the support of the distribution.](/fig/dice_distribution.png){#fig-dice_distribution}
 
 This is the mathematical expression for the beta-binomial distribution
-$$pmf(x) = {n\choose x}\frac{\mathrm{B}(x+\alpha,n-x+\beta)} {\mathrm{B}(\alpha,\beta)}.$$
 
-$pmf$ stands for **probability mass function**, for discrete random variables the $pmf is the function that returns probabilities. In mathematical notation, if we have a random variable $X$, then $pmf(x) = P(X=x)$.
+$$
+\text{pmf}(x) = {n\choose x}\frac{\mathrm{B}(x+\alpha,n-x+\beta)} {\mathrm{B}(\alpha,\beta)}
+$$
 
-Understanding, or remembering the $pmf$ of the beta-binomial has 0 importance for us. I just show it here so you can see that this is just another function, you input one number and you get another number. Nothing particularly weird, at least not in principle, to fully understand the details of the beta-binomial distribution you will need to know what is ${n\choose x}$, known as the binomial coefficient, and what is $\mathrm{B}$, the Beta function. But that's no different from showing you $\log(x)$ if you are not familiar with logarithms. 
+pmf stands for **probability mass function**, for discrete random variables the pmf is the function that returns probabilities. In mathematical notation, if we have a random variable $X$, then $\text{pmf}(x) = P(X=x)$.
 
-Mathematical expressions can be super useful, as they are concise and we can use them to derive properties from them. But sometimes that can be too much work, even if we are good at maths. Other times, we just don't have the time. Visualization can be a good alternative (or complement) to help us understand probability distributions. I can not fully show this on paper, but if you run:
+Understanding, or remembering the pmf of the beta-binomial has zero importance for us. I just show it here so you can see that this is just another function, you put in one number and you get out another number. Nothing weird, at least not in principle. I must concede that to fully understand the details of the beta-binomial distribution we need to know what is ${n\choose x}$, known as the binomial coefficient, and what is $\mathrm{B}$, the Beta function. But that's not fundamentally different from showing $x^2 + y^2 = r^2 $.
+
+Mathematical expressions can be super useful, as they are concise and we can use them to derive properties from them. But sometimes that can be too much work, even if we are good at maths. Visualization can be a good alternative (or complement) to help us understand probability distributions. I can not fully show this on paper, but if you run:
 
 ```python
 import preliz as pz
 pz.BetaBinomial(alpha=10, beta=10, n=6).plot_interactive()
 ```
 
-you will get an interactive plot that will allow you to explore BetaBinomial distribution by changing `alpha`, `beta` and `n`. @fig-beta_binomial_interactive shows a static version of the interactive plot.
+you will get an interactive plot that will update every time you move the sliders for the parameters `alpha`, `beta` and `n`. @fig-beta_binomial_interactive shows a static version of this interactive plot.
 
-![The output of pz.BetaBinomial(alpha=10, beta=10, n=6).plot_interactive(). We got 3 sliders to interactively change the parameter of the distribution](/fig/beta_binomial_interactive.png){#fig-beta_binomial_interactive}
+![We got 3 sliders to interactively change the parameter of the distribution. This is the output of `pz.BetaBinomial(alpha=10, beta=10, n=6).plot_interactive()`. ](/fig/beta_binomial_interactive.png){#fig-beta_binomial_interactive width=80%}
 
+On the x-axis we have the support of this distribution, i.e. the values it can take, $x \in \{0, 1, 2, 3, 4, 5\}$. On the y-axis, the probabilities are associated with each of those values. Listed, they will be:
 
- On the x-axis we have the support of this distribution, i.e. the values it can take, $x \in \{0, 1, 2, 3, 4, 5\}$. On the y-axis, the probabilities are associated with each of those values. Tabulated, they will be:
+| x value | probability |
+|---------|-------------|
+| 0       | 0.047       |
+| 1       | 0.168       |
+| 2       | 0.285       |
+| 3       | 0.285       |
+| 4       | 0.168       |
+| 5       | 0.047       |
 
-|x value|probability|  
-|-------|-----------|
-| 0 | 0.047|
-| 1 | 0.168|
-| 2 | 0.285|
-| 3 | 0.285|
-| 4 | 0.168|
-| 5 | 0.047|
+Visualizations are usually easier to read than tables. Notice that the black dots in @fig-beta_binomial_interactive represent the probabilities for each value of the random variable, while the dotted black line is just a visual aid. The `BetaBinomial(alpha=10, beta=10, n=6)` distribution will return 0 for any value not in $\{0, 1, 2, 3, 4, 5\}$, including values such as $-1, 0.5, \pi, 42$.
 
-Notice that the black dots represent the probabilities for each value of the random variable, while the dotted black line is just a visual aid. The `BetaBinomial(alpha=10, beta=10, n=6)` distribution will return 0 for any value not in $\{0, 1, 2, 3, 4, 5\}$, including values such as $-1, 0.5, \pi, 42$. 
+We previously mentioned that we can *ask* a random variable for values and every time we ask, we will get a different number. We can simulate this with PreliZ, for instance:
 
-We previously mentioned that we can *ask* for a random variable for values and every time we ask, we will get a different number. We can simulate this with PreliZ, for instance:
-
-```python
+``` python
 pz.BetaBinomial(alpha=10, beta=10, n=6).rvs()
 ```
 
-will give us an integer between 0 and 5. Which one? We don't know! But if you run:
+will give us an integer between 0 and 5. Which one? We don't know! But if we run:
 
-```python
+``` python
 plt.hist(pz.BetaBinomial(alpha=2, beta=5, n=5).rvs(1000))
 pz.BetaBinomial(alpha=2, beta=5, n=5).plot_pdf();
 ```
 
-we will get something similar to Figure @fig-beta_binomial_sampling. This shows that even when we can not predict the next value from a random variable, we can predict the probability of getting any particular value and by the same token if we get many values we can predict their overall distribution. 
+we will get something similar to @fig-beta_binomial_sampling. Even when we can not predict the next value from a random variable, we can predict the probability of getting any particular value and by the same token if we get many values we can predict their overall distribution.
 
 ![The black dots represent the pmf of the betabinomial sample the gray bars is an histogram of 1000 sample from that distribution](/fig/beta_binomial_sampling.png){#fig-beta_binomial_sampling}
 
-
 In this book, we will sometimes know the parameters of a given distribution and we will want to get random samples from it. And sometimes we are going to be in the opposite scenario, we will have a set of samples and we will want to estimate the parameters of a distribution. Playing back and forth between these two scenarios will become second nature as we move forward through the pages.
-
 
 ### Continuous random variables and their distributions
 
-Probably the most widely known continuous probability distribution is the Normal distribution, also known as the Gaussian distribution. Its probability density function is:
+Probably the most widely known continuous probability distribution is the Normal distribution, also known as the Gaussian distribution. Its **probability density function** is:
 
 $$
-pdf(x \mid \mu, \sigma) =
+\text{pdf}(x) =
     \frac{1}{\sigma \sqrt{2\pi}}
     \exp\left\{ -\frac{1}{2} \left(\frac{x-\mu}{\sigma}\right)^2 \right\}
 $$
 
-Again, we only show this expression to remove the mystery veil. No need to pay too much attention to its details, other than this distribution has two parameters $\mu$, which controls the location of the peak of the distribution and $\sigma$, which controls the spread of the distribution. @fig-gaussian_pdfs show 3 examples
+Again, we only show this expression to remove the mystery veil. No need to pay too much attention to its details [^chp_01-2], other than this distribution has two parameters $\mu$, which controls the location of the peak of the curve and $\sigma$, which controls the spread of the curve. @fig-gaussian_pdfs show 3 examples from the Gaussian family.
+
+[^chp_01-2]: This is a great video if you want to go deeper into the details <https://www.youtube.com/watch?v=cy8r7WSuT1I>
 
 ![3 members of the Gaussian family](/fig/gaussian_pdf.png){#fig-gaussian_pdfs}
 
-Notice that now we wrote $pdf$, meaning probability density function, instead of $pmf$. Why the difference? Let's take one step back, the output of a discrete probability distribution is a probability, where the height of the bars in @fig-dice_distribution or the height of the dots in @fig-beta_binomial_interactive are probabilities. Each bar or dot will never be higher than 1 and if you sum all the bars or dots you will always get 1. Let's do the same now but with the curve in #fig-gaussian_pdfs. We can think that the curve is made up of super thin bars, so thin that we assign one bar for every real value in the support of the distributions, we measure the height of each bar and we perform an infinite sum. Will this sum give as exactly 1? or a large number? Is the sum actually finite or do we get infinite?
+If you have been paying attention you may have noticed that we said **probability density function** (pdf) instead of **probability mass function** (pmf). This was no typo, they are actually two different objects. Let's take one step back, the output of a discrete probability distribution is a probability. The height of the bars in @fig-dice_distribution or the height of the dots in @fig-beta_binomial_interactive are probabilities. Each bar or dot will never be higher than 1 and if you sum all the bars or dots you will always get 1. Let's do the same but with the curve in @fig-gaussian_pdfs, the first thing to notice is that we don't have bars or dots, we have a continuous and smooth curve. So maybe we can think that the curve is made up of super thin bars, so thin that we assign one bar for every real value in the support of the distributions, we measure the height of each bar and we perform an infinite sum. This is a sensible thing to do, right? Well yes, but it is not immediately obvious what are we going to get from this. Will this sum give us exactly 1? or instead we are going to get a large number? Is the sum finite? Does the result depend on the parameters of the distribution?
 
-A proper answer to this question requires measure theory, and we are not going into that rabbit hole. But the answer is that we can only assign a probability of 0 to every possible value a continuous random variable can take, and we can only mindfully compute probabilities if we ask about the range of values. For a Gaussian, the probability of getting exactly the number -2, i.e the number -2 follow by an infinite number of zeros after the decimal point, is 0. But the probability of getting a number between -2 and 0 is some positive number. The practical take-away message is that $pdf$ return densities and to get a probability from a probability density we must integrate over some interval:
+A proper answer to these questions requires measure theory, and this is a very informal introduction to probability, so we are not going into that rabbit hole. But the answer essentially is that for a continuous random variable, we can only assign a probability of 0 to every individual value it may take; instead, we can assign densities to them and then we can calculate probabilities for a range of values. Thus, for a Gaussian, the probability of getting exactly the number -2, i.e the number -2 follow by an infinite number of zeros after the decimal point, is 0. But the probability of getting a number between -2 and 0 is some number larger than 0 and smaller than 1. To find out the exact answer we need to compute:
+$$
+P(a < X < b) =  \int_a^b \text{pdf}(x) dx
+$$
 
-$$P(a < X < b) =  \int_a^b pdf(x) dx$$ 
+And to compute that we need to replace the symbols for concrete quantity. If we replace the pdf by $\text{Normal}(0, 1)$, and $a=-2$, $b=0$, we will get that $P(-2 < X < 0) \approx 0.477$, this is the shaded area in @fig-gauss_prob.
 
-So if in the previous expresion $pdf$ is the probability density function for a $\text{Normal}(0, 1)$, and we integrate between the interval $a=-2$, $b=0$, we will get that $P(-2 < X < 0) \approx 0.477$, this is the shaded area in @fig-gauss_prob
+![The black line represent the pdf of a Gaussian with parameters mu=0 and sigma=1, the gray area is the probability of a value being larger than -2 and smaller than 0](/fig/gauss_prob.png){#fig-gauss_prob width=80%}
 
+You may remember that we can approximate an integral by summing areas of rectangles and the approximation becomes more and more accurate as we reduce the length of the base of the rectangles[^chp_01-3]. Based on this idea and using PreliZ we can estimate $P(-2 < X < 0)$ as:
 
-![The black line represent the pdf of a Gaussian with parameters mu=0 and sigma=1, the gray area is the probability of a value being larger than -2 and smaller than 0](/fig/gauss_prob.png){#fig-gauss_prob}
+[^chp_01-3]: check <https://en.wikipedia.org/wiki/Riemann_integral>
 
-You may remember that we can approximate an integral by summing areas of rectangles and the approximation becomes more and more accurate as we reduce the length of the base of the rectangles[^2]. Based on this idea and using PreliZ we can estimate $P(-2 < X < 0)$ as:
-
-[^2]: check <https://en.wikipedia.org/wiki/Riemann_integral>
-
-```python
+``` python
 dist = pz.Normal(0, 1)
 a = -2
 b = 0
@@ -285,60 +260,55 @@ base = (b-a)/num
 np.sum(dist.pdf(x_s) * base)
 ```
 
-If we increase the value of `num` we will get an even better approximation.
+If we increase the value of `num` we will get a better approximation.
 
-## Cumulative distribution function
+### Cumulative distribution function
 
-We have seen the $pmf$ and the $pdf$, another useful way to characterize distributions is to use the cumulative distribution function. The $cdf$ of a random variable $X$ is the function $F_X$ given by $F_X(x) = P(X \le x)$. In words, the $cdf$ is the answer to the question of what is the probability of getting a number lower or equal to $x$. #fig-cdf_pdf shows the on the first column the $pmf$ and $cdf$ of a Betabinomial and on the second column the $pdf$ and $cdf$ of the Gaussian. Notice how the $cdf$ has *jumps* for the discrete variable but it is smooth for the continuous. The height of each *jump* represents a probability, just compare them with the height of the dots. We can use the plot of the $cdf$ of a continuous variable as visual proof that probabilities are zero for any value of the continuous variable.
+We have seen the pmf and the pdf, but these are not the only ways to characterize distributions. An alternative is the cumulative distribution function. The cdf of a random variable $X$ is the function $F_X$ given by $F_X(x) = P(X \le x)$. In words, the cdf is the answer to the question; what is the probability of getting a number lower or equal to $x$? On the first column of @fig-cdf_pdf we can see the pmf and cdf of a Betabinomial, and on the second column the pdf and cdf of a Gaussian. Notice how the cdf has *jumps* for the discrete variable but it is smooth for the continuous. The height of each *jump* represents a probability, just compare them with the height of the dots. We can use the plot of the cdf of a continuous variable as visual proof that probabilities are zero for any value of the continuous variable. Just notice how there are no *jumps* for continuous variables, which is equivalent to saying that the height of the *jumps* is exactly zero.
 
 ![The pmf of betabimoial with its corresponding cdf and the pdf of the betabinomial with its corresponding cdf](/fig/cdf_pdf.png){#fig-cdf_pdf}
 
-Just by looking at a $cdf$, it is easier to get what is the probability of getting a number smaller than 1, we just need to go to the value 1 on the x-axis, move up until we cross the black line and then check the value of the y-axis. Even without a ruler or gridlines, we can see that it should be something in the middle of 0.75 and 1, let's say it is $\approx 0.85$. This is way harder to do with the $pdf$ because for the pdf we need to compare the entire area below 1 to the total area to get the answer. Judging areas is more difficult than height/length.  
+Just by looking at a cdf, it is easier to get what is the probability of getting a number smaller than, let's say 1, we just need to go to the value 1 on the x-axis, move up until we cross the black line and then check the value of the y-axis. Even without a ruler or gridlines, we can see that it should be something in the middle of 0.75 and 1, let's say it is $\approx 0.85$. This is way harder to do with the pdf because for the pdf we need to compare the entire area below 1 to the total area to get the answer. Humans are worse at judging areas than judging heights or lengths.
 
-## Joint, Conditional and Marginal Distributions¶
 
-## Expected values
+### Conditional Probability
+
+Given two events $A$ and $B$ with $P(B) > 0$, the probability of $A$ given $B$, which we write as $P(A \mid B)$ is defined as: $$P(A \mid B) = \frac{P(A, B)}{P(B)}$$
+
+$P(A, B)$ is the probability that both the event $A$ and event $B$ occur. $P(A \mid B)$ is known as conditional probability, and it is the probability that event $A$ occurs, **conditioned** by the fact that we know (or assume, imagine, hypothesize, etc) that $B$ has occurred. For example, the probability that the pavement is wet is different from the probability that the pavement is wet if we know it's raining.
+
+A conditional probability can be larger than, smaller than, or equal to the unconditioned probability. If knowing $B$ does not provides us with information about $A$, then $P(A \mid B) = p(A)$. This will be true only if $A$ and $B$ are independent of each other. On the contrary, if knowing $B$ gives us useful information about $A$, then the conditional probability could be larger or smaller than the unconditional probability, depending on whether knowing $B$ makes $A$ less or more likely. Let's see a simple example using a fair six-sided die. What is the probability of getting the number 3 if we roll the die? $P(\text{die}=3) = \frac{1}{6}$ since each of the six numbers has the same chance for a fair six-sided die. And what is the probability of getting the number 3 given that we have obtained an odd number? $P(\text{die}=3 \mid \text{die}=\{1, 3, 5\}) = \frac{1}{3}$, because if we know we have an odd number, the only possible numbers are $\{1, 3, 5\}$ and each of them has the same chance. Finally, what is the probability of getting 3 if we have obtained an even number? This is $P(\text{die}=3 \mid \text{die}=\{2, 4, 6\}) = 0$, because if we know the number is even, then the only possible ones are $\{2, 4, 6\}$ and thus getting a 3 is not possible.
+
+As we can see from these simple examples, by conditioning on observed data we are changing the sample space. When asking about $P(\text{die}=3)$ we need to evaluate the sample space $S=\{1, 2, 3, 4, 5, 6\}$, but when we **condition on** having got an even number then the new sample space becomes $T=\{2, 4, 6\}$.
+
+Conditional probabilities are at the heart of statistics, irrespective of whether your problem is rolling dice or building self-driving cars.
+
+The central panel of @fig-joint_marginal_cond represents $p(A, B)$ using a grayscale with darker colors for higher probability density. We see the joint distribution is elongated, indicating that a longer earthworm is likely to weigh more than a short one. Knowing the value of $A$ tells us something about the values of $B$ and the other way around. On the top and right *margins* of @fig-joint_marginal_cond we have the **marginal distributions** $p(A)$ and $p(B)$ respectively. To compute the marginal of $A$ we take $p(A, B)$ and we average overall values of $B$, intuitively this is like taking a 2D object, the joint distribution, and projecting it into one dimension. The marginal distribution of $B$ is computed similarly. The dashed lines represent the **conditional probability** $p(A \mid B)$ for 3 different values of $B$. We get them by slicing the joint $p(A, B)$ at a given value of $B$. We can think of this as the distribution of $A$ given that we have observed a particular value of $B$.
+
+![The relationship between the join, the marginal and the conditional probabilities](/fig/joint_marginal_cond.png){#fig-joint_marginal_cond width=80%}
+
+
+### Expected values
 
 If $X$ is a discrete random variable we can compute its expected value as:
 
-$$\mathbb{E}(X) = \sum_x x P(X = x)$$
+$$
+\mathbb{E}(X) = \sum_x x P(X = x)
+$$
 
-This is just the mean or average value. 
+This is just the mean or average value.
 
 You are probably used to computing means or averages of samples or collections of numbers, either by hand a calculator or using Python. But notice that here we are not talking about the mean of a bunch of numbers we are talking about the mean of a distribution. Once we have defined the parameters of a distribution we can, in principle, compute its expected values. Those are properties of the distribution, in the same way, the perimeter is a property of a circle that gets defined once we set the value of the radius.
 
- Another expected value is the variance, which we can use to describe the spread of a distribution. The variance appears *naturally* in many computations in statistics, but in practice, it is often more useful to use the standard deviation, which is the square root of the variance. The reason is that the standard deviation is in the same units as the random variable.
+Another expected value is the variance, which we can use to describe the spread of a distribution. The variance appears *naturally* in many computations in statistics, but in practice, it is often more useful to use the standard deviation, which is the square root of the variance. The reason is that the standard deviation is in the same units as the random variable.
 
-The mean and variance are often called the **moments** of a distribution, other moments are skew, which tells us about the asymmetry of a distribution.  and the kurtosis, which tells us about the behavior of the tails or the *extreme values* @westfall2014. @fig-moments show examples of different distributions and their mean $\mu$, standard deviation $\sigma$, skew $\gamma$ and kurtosis $\kappa$. Notice that for some distributions some moments may not be defined or they may be $\inf$. 
-
+The mean and variance are often called the **moments** of a distribution, other moments are skew, which tells us about the asymmetry of a distribution, and the kurtosis, which tells us about the behavior of the tails or the *extreme values* [@westfall2014]. @fig-moments show examples of different distributions and their mean $\mu$, standard deviation $\sigma$, skew $\gamma$ and kurtosis $\kappa$. Notice that for some distributions some moments may not be defined or they may be $\inf$.
 
 ![Four distributions with their first four moments](/fig/moments.png){#fig-moments}
 
 
-## Interpreting probabilities
+### Bayes' theorem
 
-Probabilities can be interpreted in various useful ways. For instance, we can think that $P(A) = 0.125$, which means that if we repeat the survey many times, we would expect all three individuals to answer "yes" about 12.5% of the time. We are interpreting probabilities as the outcome of long-run experiments. This is a very useful interpretation not only can help us think about probabilities but can also provide an empirical method to estimate probabilities. What is the probability of a car tire exploding if filled with air beyond the manufacturer's recommendation? Just inflate 120 tires or so, and you may get a good approximation. This is usually called the frequentist interpretation.
-
-Another interpretation of probability, usually called subjective or Bayesian interpretation, states that probabilities can be interpreted as measures of an individual's uncertainty about events. In this interpretation, probabilities are about our state of knowledge of the world and are not necessarily based on repeated trials. Under this definition of probability, it is valid and natural to ask about the probability of life on Mars, the probability of the mass of the electron is 9.1 x 10-31 kg, or the probability of the 9th of July of 1816 is a sunny day in Buenos Aires. All these are one-time events, we can not create 1 million Universes with 1 million Mars and check how many of them life developed. Of course, we can do this as a mental experiment, so long-term frequencies can still be a valid mental scaffold.  
-
-Sometimes this Bayesian interpretation of probabilities is described in terms of personal beliefs, I don't like that. I think it can lead to unnecessary confusion as beliefs are generally associated with unsupported claims. And this can easily lead people to think that  Bayesian probabilities, and by extension Bayesian statistics, is less objective or less scientific than alternatives. I think this also helps to generate confusion about the role of prior knowledge in statistics. 
-
-The description of Bayesian probabilities, and by extension Bayesian statistics, as subjective, can also lead to misunderstanding. But Bayesian methods are as subjective (or objective) as any other well-established scientific method we have. Let me explain myself with an example, life on Mars exists or does not exist; the outcome is binary, a yes-no question. But given that we are not sure about that fact, a sensible course of action is trying to find out how likely life on Mars is. To answer this question any honest and scientific-minded person will use all the relevant geophysical data about Mars, all the relevant biochemical knowledge about necessary conditions for life, and so on. The response will be necessarily about our epistemic state of knowledge, and others could disagree and even get different probabilities. But at least in principle they all will be able to provide arguments in favor of their data, their methods, their modeling decisions etc. A rational debate about life on Mars does not admit *arguments* as an Angel told me about green tiny little creatures. Notice that this description is true even if no Bayesian method was involved, this is just a description of how to think scientifically, Bayesian statistics is just a procedure to make scientific statements that use probabilities as building blocks.
-
-
-## Probabilities, uncertainty and logic
-
-Probabilities can help us to quantify uncertainty. If we do not have information about a problem, it is reasonable to state that every possible event is equally likely, this is equivalent to assigning the same probability to every possible event. In the absence of information, our uncertainty is maximum, and I am not saying this colloquially, this is something we can actually compute using probabilities. If we know instead that some events are more likely, then this can be formally represented by assigning a higher probability to those events and less to the others. Notice that when we talk about events in stats-speak, we are not restricting ourselves to things that can happen, such as an asteroid crashing into Earth or my auntie's 60th birthday party.  An event is just any of the possible values (or a subset of values) a variable can take, such as the event that you are older than 30, the price of a Sachertorte, or the number of bikes that will be sold next year around the world.
-
-The concept of probability is also related to the subject of logic. Under classical logic, we can only have statements that take the values of true or false. Under the Bayesian definition of probability, certainty is just a special case: a true statement has a probability of 1, and a false statement has a probability of 0. We would assign a probability of 1 to the statement, There is Martian life, only after having conclusive data indicating something is growing, reproducing, and doing other activities we associate with living organisms. Notice, however, that assigning a probability of 0 is harder because we can always think that there is some Martian spot that is unexplored, or that we have made mistakes with some experiment, or several other reasons that could lead us to falsely believe life is absent on Mars even when it is not. This is related to Cromwell's rule, which states that we should reserve the probabilities of 0 or 1 to logically true or false statements. Interestingly enough, it can be shown that if we want to extend the logic to include uncertainty, we must use probabilities and probability theory. Because Bayes' theorem is just a logical consequence of the rules of probability, as we will see soon. We can think of Bayesian statistics as an extension of logic that is useful whenever we are dealing with uncertainty. Thus one way to justify using the Bayesian method is to recognize that uncertainty is commonplace, we generally have to deal with incomplete and or noisy data, we are intrinsically limited by our evolution-sculpted primate brain, etc.
-
-
-:::{.callout-note}
-From a practical point of view, the most relevant piece of information from this section is that Bayesians use probabilities as a tool to quantify uncertainty.
-:::
-
-
-## Bayes' theorem
 Now that we have learned some of the basic concepts and jargon from probability theory, we can move to the moment everyone was waiting for. Without further ado, let's contemplate, in all its majesty, Bayes' theorem:
 
 $$
@@ -347,13 +317,11 @@ $$
 
 Well, it's not that impressive, is it? It looks like an elementary school formula, and yet, paraphrasing Richard Feynman, this is all you need to know about Bayesian statistics. Learning where Bayes' theorem comes from will help us to understand its meaning. According to the product rule we have:
 
-
 This can also be written as:
 
 $$
 p(\theta, Y) = p(Y \mid \theta)\; p(\theta)
 $$
-
 
 Given that the terms on the left are equal for both equations, we can combine them and write:
 
@@ -361,19 +329,15 @@ $$
 p(\theta \mid Y) \; p(Y) = p(Y \mid \theta)\; p(\theta)
 $$
 
-
 And if we reorder 1.7, we get expression 1.4, thus is Bayes' theorem.
 
 $$
 p(\theta \mid Y) = \frac{p(Y \mid \theta) p(\theta)}{p(Y)}
 $$
 
-Why is Bayes's theorem that important? Let's see. First, it says that $p(\theta \mid Y)$  is not necessarily the same as $p(Y \mid \theta )$. This is a very important fact, one that is easy to miss in daily situations even for people trained in statistics and probability. Let's use a simple example to clarify why these quantities are not necessarily the same. The probability of a person being the Pope given that this person is Argentinian is not the same as the
-probability of being Argentinian given that this person is the Pope. As there are around 47000000 Argentinians alive and a single one of them is the current Pope, we have $p(\text{Pope} \mid \text{Argentinean}) \approx \frac{1}{47000000}$ and we also have $p(\text{Argentinean} \mid \text{Pope}) = 1$.
+Why is Bayes's theorem that important? Let's see. First, it says that $p(\theta \mid Y)$ is not necessarily the same as $p(Y \mid \theta )$. This is a very important fact, one that is easy to miss in daily situations even for people trained in statistics and probability. Let's use a simple example to clarify why these quantities are not necessarily the same. The probability of a person being the Pope given that this person is Argentinian is not the same as the probability of being Argentinian given that this person is the Pope. As there are around 47000000 Argentinians alive and a single one of them is the current Pope, we have $p(\text{Pope} \mid \text{Argentinean}) \approx \frac{1}{47000000}$ and we also have $p(\text{Argentinean} \mid \text{Pope}) = 1$.
 
-
-If we replace $\theta$ with "hypothesis" and $Y$ with "data", Bayes' theorem tells us how to compute the probability of a hypothesis, $\theta$, given the data, $Y$, and that's the way you will find Bayes'
-theorem explained in a lot of places. But, how do we turn a hypothesis into something that we can put inside Bayes' theorem? Well, we do it by using probability distributions. So, in general, our hypothesis is a hypothesis in a very, very, very narrow sense; we will be more precise if we talk about finding a suitable value for parameters in our models, that is, parameters of probability distributions. By the way, don't try to set $\theta$ to statements such as unicorns are real unless you are willing to build a realistic probabilistic model of unicorn existence!
+If we replace $\theta$ with "hypothesis" and $Y$ with "data", Bayes' theorem tells us how to compute the probability of a hypothesis, $\theta$, given the data, $Y$, and that's the way you will find Bayes' theorem explained in a lot of places. But, how do we turn a hypothesis into something that we can put inside Bayes' theorem? Well, we do it by using probability distributions. So, in general, our hypothesis is a hypothesis in a very, very, very narrow sense; we will be more precise if we talk about finding a suitable value for parameters in our models, that is, parameters of probability distributions. By the way, don't try to set $\theta$ to statements such as unicorns are real unless you are willing to build a realistic probabilistic model of unicorn existence!
 
 Bayes' theorem is central to Bayesian statistics, as we will see in Chapter 2, Programming Probabilistically using tools such as PyMC frees us of the need to explicitly write Bayes' theorem every time we build a Bayesian model. Nevertheless, it is important to know the name of its parts because we will constantly refer to them and it is important to understand what each part means because this will help us to conceptualize models. So let me rewrite Bayes' theorem now with labels:
 
@@ -385,24 +349,44 @@ The **prior distribution** should reflect what we know about the value of the pa
 
 The **likelihood** is how we will introduce data in our analysis. It is an expression of the plausibility of the data given the parameters In some texts, you will find people call this term sampling model, statistical model, or just model. We will stick to the name likelihood and we will call the combination of priors and a likelihood model.
 
-The **posterior distribution** is the result of the Bayesian analysis and reflects all that we know about a problem (given our data and model). The posterior is a probability distribution for the parameters in our model and not a single value. This distribution is a balance between the prior and the likelihood. There is a well-known joke: *A Bayesian is one who, vaguely expecting a horse, and catching a glimpse of a donkey, strongly believes he has seen a mule*. One excellent way to kill the mood after hearing this joke is to explain that if the likelihood and priors are both vague, you will get a posterior reflecting vague beliefs about seeing a mule rather than strong ones. Anyway, I like the joke, and I like how it captures the idea of a posterior being somehow a compromise between prior and likelihood. Conceptually, we can think of the posterior as the updated prior in light of (new) data. In theory, the posterior from one analysis can be used as the prior for a new analysis [^3]. This makes Bayesian analysis particularly suitable for analyzing data that becomes available in sequential order. One example could be an early warning system for natural disasters that processes online data coming from meteorological stations and satellites. For more details, read about online machine-learning methods
+The **posterior distribution** is the result of the Bayesian analysis and reflects all that we know about a problem (given our data and model). The posterior is a probability distribution for the parameters in our model and not a single value. This distribution is a balance between the prior and the likelihood. There is a well-known joke: *A Bayesian is one who, vaguely expecting a horse, and catching a glimpse of a donkey, strongly believes he has seen a mule*. One excellent way to kill the mood after hearing this joke is to explain that if the likelihood and priors are both vague, you will get a posterior reflecting vague beliefs about seeing a mule rather than strong ones. Anyway, I like the joke, and I like how it captures the idea of a posterior being somehow a compromise between prior and likelihood. Conceptually, we can think of the posterior as the updated prior in light of (new) data. In theory, the posterior from one analysis can be used as the prior for a new analysis [^chp_01-4]. This makes Bayesian analysis particularly suitable for analyzing data that becomes available in sequential order. One example could be an early warning system for natural disasters that processes online data coming from meteorological stations and satellites. For more details, read about online machine-learning methods
 
+[^chp_01-4]: In practice, life can be harder.
 
-The last term is the **marginal likelihood**, sometimes referred to as the **evidence**. Formally, the marginal likelihood is the probability of observing the data averaged over all the possible values the parameters can take (as prescribed by the prior). We can write this as ${\int_{\Theta} p(Y \mid \theta) p(\theta) \text{d}\theta}$. We will not really care about the marginal likelihood until Chapter 5 Model Comparison. For the moment we can think of it as a normalization factor that ensures the posterior is a proper $pmf$ or $pdf$. If we ignore the marginal likelihood, we can write Bayes' theorem as a proportionality, this is also a common way to write Bayes' theorem.
+The last term is the **marginal likelihood**, sometimes referred to as the **evidence**. Formally, the marginal likelihood is the probability of observing the data averaged over all the possible values the parameters can take (as prescribed by the prior). We can write this as ${\int_{\Theta} p(Y \mid \theta) p(\theta) \text{d}\theta}$. We will not really care about the marginal likelihood until Chapter 5 Model Comparison. For the moment we can think of it as a normalization factor that ensures the posterior is a proper pmf or pdf. If we ignore the marginal likelihood, we can write Bayes' theorem as a proportionality, this is also a common way to write Bayes' theorem.
 
 $$
 p(\theta \mid Y) \propto p(Y \mid \theta) p(\theta)
 $$
 
-
 Understanding the exact role of each term in Bayes' theorem will take some time and practice, and it will require we work through a few examples, and that's what the rest of this book is for.
 
-[^3]: In practice, life can be harder.
+## Interpreting probabilities
+
+Probabilities can be interpreted in various useful ways. For instance, we can think that $P(A) = 0.125$ means that if we repeat the survey many times, we would expect all three individuals to answer "yes" about 12.5% of the time. We are interpreting probabilities as the outcome of long-run experiments. This is a very common and useful interpretation. It not only can help us think about probabilities but can also provide an empirical method to estimate probabilities. Do we want to know the probability of a car tire exploding if filled with air beyond the manufacturer's recommendation? Just inflate 120 tires or so, and you may get a good approximation. This is usually called the frequentist interpretation.
+
+Another interpretation of probability, usually called subjective or Bayesian interpretation, states that probabilities can be interpreted as measures of an individual's uncertainty about events. In this interpretation, probabilities are about our state of knowledge of the world and are not necessarily based on repeated trials. Under this definition of probability, it is valid and natural to ask about the probability of life on Mars, the probability of the mass of the electron is 9.1 x 10-31 kg, or the probability of the 9th of July of 1816 is a sunny day in Buenos Aires. All these are one-time events, we can not re-create 1 million Universes each with one Mars and check how many of them develop life. Of course, we can do this as a mental experiment, so long-term frequencies can still be a valid mental scaffold.
+
+Sometimes the Bayesian interpretation of probabilities is described in terms of personal beliefs, I don't like that. I think it can lead to unnecessary confusion as beliefs are generally associated with the notion of faith or unsupported claims. This association can easily lead people to think that Bayesian probabilities, and by extension Bayesian statistics, is less objective or less scientific than alternatives. I think it also helps to generate confusion about the role of prior knowledge in statistics and makes people think that being objective or rational means not using prior information. We will discuss more about this later.
+
+Bayesian methods are as subjective (or objective) as any other well-established scientific method we have. Let me explain myself with an example, life on Mars exists or does not exist; the outcome is binary, a yes-no question. But given that we are not sure about that fact, a sensible course of action is trying to find out how likely life on Mars is. To answer this question any honest and scientific-minded person will use all the relevant geophysical data about Mars, all the relevant biochemical knowledge about necessary conditions for life, and so on. The response will be necessarily about our epistemic state of knowledge, and others could disagree and even get different probabilities. But at least in principle they all will be able to provide arguments in favor of their data, their methods, their modeling decisions etc. A rational debate about life on Mars does not admit *arguments* as an Angel told me about tiny green little creatures. Notice that this description is true even if no Bayesian method was involved, this is just a description of how to think scientifically, Bayesian statistics is just a procedure to make scientific statements that use probabilities as building blocks.
+
+## Probabilities, uncertainty and logic
+
+Probabilities can help us to quantify uncertainty. If we do not have information about a problem, it is reasonable to state that every possible event is equally likely, this is equivalent to assigning the same probability to every possible event. In the absence of information, our uncertainty is maximum, and I am not saying this colloquially, this is something we can compute using probabilities. If we know instead that some events are more likely, then this can be formally represented by assigning a higher probability to those events and less to the others. Notice that when we talk about events in stats-speak, we are not restricting ourselves to things that can happen, such as an asteroid crashing into Earth or my auntie's 60th birthday party. An event is just any of the possible values (or a subset of values) a variable can take, such as the event that you are older than 30, the price of a Sachertorte, or the number of bikes that will be sold next year around the world.
+
+The concept of probability is also related to the subject of logic. Under classical logic, we can only have statements that take the values of true or false. Under the Bayesian definition of probability, certainty is just a special case: a true statement has a probability of 1, and a false statement has a probability of 0. We would assign a probability of 1 to the statement, There is Martian life, only after having conclusive data indicating something is growing, reproducing, and doing other activities we associate with living organisms. Notice, however, that assigning a probability of 0 is harder because we can always think that there is some Martian spot that is unexplored, or that we have made mistakes with some experiment, or several other reasons that could lead us to falsely believe life is absent on Mars even when it is not. This is related to Cromwell's rule, which states that we should reserve the probabilities of 0 or 1 to logically true or false statements. Interestingly enough, it can be shown that if we want to extend the logic to include uncertainty, we must use probabilities and probability theory. Because Bayes' theorem is just a logical consequence of the rules of probability, as we will see soon. We can think of Bayesian statistics as an extension of logic that is useful whenever we are dealing with uncertainty. Thus one way to justify using the Bayesian method is to recognize that uncertainty is commonplace, we generally have to deal with incomplete and or noisy data, we are intrinsically limited by our evolution-sculpted primate brain, etc.
+
+::: callout-note
+From a practical point of view, the most relevant piece of information from this section is that Bayesians use probabilities as a tool to quantify uncertainty.
+:::
+
 
 ## Single-parameter inference
-In the last two sections, we learned several important concepts, but two of them are essentially the core of Bayesian statistics, so let's restate them in a single sentence.
 
-:::{.callout-note}
+In the last sections we learned several important concepts, but two of them are essentially the core of Bayesian statistics, so let's restate them in a single sentence.
+
+::: callout-note
 Probabilities are used to measure the uncertainty we have about parameters, and Bayes' theorem is the mechanism to correctly update those probabilities in light of new data, hopefully reducing our uncertainty.
 :::
 
@@ -412,17 +396,13 @@ Now that we know what Bayesian statistics is, let's learn how to do Bayesian sta
 
 The coin-flipping problem, or the beta-binomial model if you want to sound fancy at parties, is a classical problem in statistics and goes like this: we toss a coin several times and record how many heads and tails we get. Based on this data, we try to answer questions such as, is the coin fair? Or, more generally, how biased is the coin? While this problem may sound dull, we should not underestimate it. The coin-flipping problem is a great example to learn the basics of Bayesian statistics because it is a simple model that we can solve and compute with ease. Besides, many real problems consist of binary, mutually- exclusive outcomes such as 0 or 1, positive or negative, odds or evens, spam or ham, hotdog or not a hotdog, cat or dog, safe or unsafe, and healthy or unhealthy. Thus, even when we are talking about coins, this model applies to any of those problems. To estimate the bias of a coin, and in general to answer any questions in a Bayesian setting, we will need data and a probabilistic model. For this example, we will assume that we have already tossed a coin several times and we have a record of the number of observed heads, so the data-gathering part is already done. Getting the model will take a little bit more effort. Since this is our first model, we will explicitly write Bayes' theorem and do all the necessary math (don't be afraid, I promise it will be painless) and we will proceed very slowly. From Chapter 2, Programming Probabilistically, onward, we will use PyMC and our computer to do the math for us.
 
-
 To estimate the bias of a coin, and in general to answer any questions in a Bayesian setting, we will need data and a probabilistic model. For this example, we will assume that we have already tossed a coin several times and we have a record of the number of observed heads, so the data-gathering part is already done. Getting the model will take a little bit more effort. Since this is our first model, we will explicitly write Bayes' theorem and do all the necessary math (don't be afraid, I promise it will be painless) and we will proceed very slowly. From Chapter 2, Programming Probabilistically, onward, we will use PyMC3 and our computer to do the math for us.
-
 
 The first thing we will do is generalize the concept of bias. We will say that a coin with a bias of 1 will always land heads, one with a bias of 0 will always land tails, and one with a bias of 0.5 will land half of the time heads and half of the time tails. To represent the bias, we will use the parameter, and to represent the total number of heads for several tosses, we will use the variable. According to Bayes' theorem (equation 1.4), we have to specify the prior, $p(\theta)$, and likelihood, $p(Y \mid \theta)$, we will use. Let's start with the likelihood.
 
+### Choosing the likelihood
 
-### Choosing the likelihood 
-
-Let's assume that only two outcomes are possible—heads or tails—and let's also assume that a coin toss does not affect other tosses, that is, we are assuming coin tosses are independent of each other. We will further assume all coin tosses come from the same distribution. Thus the random variable coin toss is an example of an iid variable. I hope you agree these are very reasonable assumptions to make for our problem. Given these assumptions a good candidate for the likelihood is the binomial distribution:
-
+Let's assume that only two outcomes are possible---heads or tails---and let's also assume that a coin toss does not affect other tosses, that is, we are assuming coin tosses are independent of each other. We will further assume all coin tosses come from the same distribution. Thus the random variable coin toss is an example of an independent and identically distributed (iid) variable. I hope you agree these are very reasonable assumptions to make for our problem. Given these assumptions a good candidate for the likelihood is the binomial distribution:
 
 $$
 p(Y \mid \theta) = \frac{N!}{y!(N-y)!} \theta^y (1 - \theta)^{N−y}
@@ -430,34 +410,29 @@ $$
 
 This is a discrete distribution returning the probability of getting $y$ heads (or in general, successes) out of $N$ coin tosses (or in general, trials or experiments) given a fixed value of $\theta$
 
-@fig-binomial_distribution shows nine binomial distributions; each subplot has its own legend indicating the values of the parameters. Notice that for this plot I did not omit the values on the y-axis. I did this so you can check for yourself that if you sum the high of all bars you will get 1, that is, for discrete distributions, the height of the bars represents actual probabilities.
+@fig-binomial_distribution shows nine binomial distributions; each subplot has its legend indicating the values of the parameters. Notice that for this plot I did not omit the values on the y-axis. I did this so you can check for yourself that if you sum the high of all bars you will get 1, that is, for discrete distributions, the height of the bars represents actual probabilities.
 
 ![Nine members of the binomial family](fig/binomial_distribution.png){#fig-binomial_distribution}
 
-
-The binomial distribution is a reasonable choice for the likelihood. We can see that $\theta$ indicates how likely it is to obtain a head when tossing a coin. This is easier to see when $N=1$ but is valid for any value of N, just compare the value of $\theta$ with the height of the bar
-for $y=1$ (heads).
+The binomial distribution is a reasonable choice for the likelihood. We can see that $\theta$ indicates how likely it is to obtain a head when tossing a coin. This is easier to see when $N=1$ but is valid for any value of $N$, just compare the value of $\theta$ with the height of the bar for $y=1$ (heads).
 
 ### Choosing the prior
 
 As a prior, we will use a beta distribution, which is a very common distribution in Bayesian statistics and looks as follows:
 
-
 $$
 p(\theta) = \underbrace{\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) + \Gamma(\beta)}}_{\text{normalizing constant}} \;\; \theta^{\alpha-1} (1-\theta)^{\beta-1}
 $$
 
-If we look carefully, we will see that the beta distribution looks similar to the binomial except for the first term. $\Gamma$ is the Greek uppercase gamma letter and represents the gamma function, that's not really important, what is relevant for us is that the first term is a normalizing constant that ensures the distribution integrates to 1. We can see from the preceding formula that the beta distribution has two parameters, $\alpha$ and \$beta$. @fig-beta_distribution
-
+If we look carefully, we will see that the beta distribution looks similar to the binomial except for the first term. $\Gamma$ is the Greek uppercase gamma letter and represents the gamma function, that's not really important, what is relevant for us is that the first term is a normalizing constant that ensures the distribution integrates to 1. We can see from the preceding formula that the beta distribution has two parameters, $\alpha$ and \$beta\$. @fig-beta_distribution
 
 ![Nine members of the beta family](/fig/beta_distribution.png){#fig-beta_distribution}
 
-I really like the beta distribution and all the shapes we can get from it, but why are we using it for our model? There are many reasons to use a beta distribution for this and other problems. One of them is that the beta distribution is restricted to be between 0 and 1, in the same way, our $\theta$ parameter is. In general, we use the beta distribution when we want to model the proportions of a binomial variable. Another reason is its versatility. As we can see in the preceding figure, the distribution adopts several shapes (all restricted to the [0, 1] interval), including a uniform distribution, Gaussian-like distributions, and U-like distributions. As a third reason, the beta distribution is the conjugate prior of the binomial distribution (which we are using as the likelihood). A conjugate prior of a likelihood is a prior that, when used in combination with a given likelihood, returns a posterior with the same functional form as the prior. Untwisting the tongue, every time we use a beta distribution as the prior and a binomial distribution as the likelihood, we will get a beta as the posterior distribution. There are other pairs of conjugate priors; for example, the Normal distribution is the conjugate prior of itself. For many years, Bayesian analysis was restricted to the use of conjugate priors. Conjugacy ensures mathematical tractability of the posterior, which is important given that a common problem in Bayesian statistics is ending up with a posterior we cannot solve analytically. This was a deal breaker before the development of suitable computational methods to solve probabilistic methods. From Chapter 2, Programming Probabilistically onwards, we will learn how to use modern computational methods to solve Bayesian problems, whether we choose conjugate priors or not.
-
+I like the beta distribution and all the shapes we can get from it, but why are we using it for our model? There are many reasons to use a beta distribution for this and other problems. One of them is that the beta distribution is restricted to be between 0 and 1, in the same way, our $\theta$ parameter is. In general, we use the beta distribution when we want to model the proportions of a binomial variable. Another reason is its versatility. As we can see in the preceding figure, the distribution adopts several shapes (all restricted to the \[0, 1\] interval), including a uniform distribution, Gaussian-like distributions, and U-like distributions. As a third reason, the beta distribution is the conjugate prior of the binomial distribution (which we are using as the likelihood). A conjugate prior of a likelihood is a prior that, when used in combination with a given likelihood, returns a posterior with the same functional form as the prior. Untwisting the tongue, every time we use a beta distribution as the prior and a binomial distribution as the likelihood, we will get a beta as the posterior distribution. There are other pairs of conjugate priors; for example, the Normal distribution is the conjugate prior to itself. For many years, Bayesian analysis was restricted to the use of conjugate priors. Conjugacy ensures mathematical tractability of the posterior, which is important given that a common problem in Bayesian statistics is ending up with a posterior we cannot solve analytically. This was a deal breaker before the development of suitable computational methods to solve probabilistic methods. From Chapter 2, Programming Probabilistically onwards, we will learn how to use modern computational methods to solve Bayesian problems, whether we choose conjugate priors or not.
 
 ### Getting the posterior
-Let's remember that Bayes' theorem says the posterior is proportional to the likelihood times the prior. So, for our problem, we have to multiply the binomial and the beta distributions:
 
+Let's remember that Bayes' theorem says the posterior is proportional to the likelihood times the prior. So, for our problem, we have to multiply the binomial and the beta distributions:
 
 $$
 p(\theta \mid Y) = \overbrace{{\frac{N!}{y!(N-y)!} \theta^y (1 - \theta)^{N−y}}}^\text{prior} \; \overbrace{{\theta^{\alpha-1} (1-\theta)^{\beta-1}}}^{\text{likelihood}}
@@ -478,7 +453,7 @@ $$
 
 Based on this analytical expression we can compute the posterior. @fig-beta_binomial_posterior shows the results for 3 priors and different numbers of trials. The following block of code shows the gist to generate @fig-beta_binomial_posterior by omitting the code necessary for plotting.
 
-```python
+``` python
 n_trials = [0, 1, 2, 3, 4, 8, 16, 32, 50, 150]
 n_heads = [0, 1, 1, 1, 1, 4, 6, 9, 13, 48]
 beta_params = [(1, 1), (20, 20), (1, 4)]
@@ -493,61 +468,67 @@ for idx, N in enumerate(n_trials):
 
 ![The first subplot show 3 priors. The rest the sucesive update as we get new data](/fig/beta_binomial_posterior.png){#fig-beta_binomial_posterior}
 
+On the first subplot of @fig-beta_binomial_posterior, we have zero trials, thus the three curves represent our priors:
 
-On the first subplot of @fig-beta_binomial_posterior, we have zero trials, thus the three curves represent our
-priors:
-
-* The uniform prior (black). This represents all the possible values for the bias being equally probable a priori.
-* The Gaussian-like prior (dark gray) is centered and concentrated around 0.5, so this prior is compatible with information indicating that the coin has more or less about the same chance of landing heads or tails. We could also say this prior is compatible with the knowledge that coins are fair. 
-* The skewed prior (light gray) puts most of the weight on a tail-biased outcome.
+-   The uniform prior (black). This represents all the possible values for the bias being equally probable a priori.
+-   The Gaussian-like prior (dark gray) is centered and concentrated around 0.5, so this prior is compatible with information indicating that the coin has more or less about the same chance of landing heads or tails. We could also say this prior is compatible with the knowledge that coins are fair.
+-   The skewed prior (light gray) puts most of the weight on a tail-biased outcome.
 
 The rest of the subplots show posterior distributions for successive trials. The number of trials (or coin tosses) and the number of heads are indicated in each subplot's legend. There is also a black dot at 0.35 representing the true value for $\theta$. Of course, in real problems, we do not know this value, and it is here just for pedagogical reasons. This figure can teach us a lot about Bayesian analysis, so grab your coffee, tea, or favorite drink and let's take a moment to understand it:
 
-
-* The result of a Bayesian analysis is a posterior distribution, not a single value but
-a distribution of plausible values given the data and our model.
-* The most probable value is given by the mode of the posterior (the peak of the distribution).
-* The spread of the posterior is proportional to the uncertainty about the value of a parameter; the more spread out the distribution, the less certain we are.
-* Intuitively, we are more confident in a result when we have observed more data supporting that result. Thus, even when numerically $\frac{1}{2} = \frac{4}{8} = 0.5$, seeing four heads out of eight trials gives us more confidence that the bias is 0.5 than observing one head out of two trials. This intuition is reflected in the posterior, as you can check for yourself if you pay attention to the (blue) posterior in the third and sixth subplots; while the mode is the same, the spread (uncertainty) is larger in the third subplot than in the sixth subplot.
-* Given a sufficiently large amount of data, two or more Bayesian models with different priors will tend to converge to the same result. In the limit of infinite data, no matter which prior we use, all of them will provide the same posterior.
-* Remember that infinite is a limit and not a number, so from a practical point of view, we could get practically indistinguishable posteriors for a finite and rather small number of data points.
-* How fast posteriors converge to the same distribution depends on the data and the model. In the preceding figure, we can see that the posteriors coming from the blue prior (uniform) and green prior (biased towards tails) converge faster to almost the same distribution, while it takes longer for the orange posterior (the one coming from the concentrated prior). In fact, even after 150 trials, it is somehow easy to recognize the orange posterior as a different distribution from the two others.
-* Something not obvious from the figure is that we will get the same result if we update the posterior sequentially than if we do it all at once. We can compute the posterior 150 times, each time adding one more observation and using the obtained posterior as the new prior, or we can just compute one posterior for the 150 tosses at once. The result will be exactly the same. This feature not only makes perfect sense, but it also leads to a natural way of updating our estimations when we get new data, a situation common in many data-analysis problems.
+-   The result of a Bayesian analysis is a posterior distribution, not a single value but a distribution of plausible values given the data and our model.
+-   The most probable value is given by the mode of the posterior (the peak of the distribution).
+-   The spread of the posterior is proportional to the uncertainty about the value of a parameter; the more spread out the distribution, the less certain we are.
+-   Intuitively, we are more confident in a result when we have observed more data supporting that result. Thus, even when numerically $\frac{1}{2} = \frac{4}{8} = 0.5$, seeing four heads out of eight trials gives us more confidence that the bias is 0.5 than observing one head out of two trials. This intuition is reflected in the posterior, as you can check for yourself if you pay attention to the (blue) posterior in the third and sixth subplots; while the mode is the same, the spread (uncertainty) is larger in the third subplot than in the sixth subplot.
+-   Given a sufficiently large amount of data, two or more Bayesian models with different priors will tend to converge to the same result. In the limit of infinite data, no matter which prior we use, all of them will provide the same posterior.
+-   Remember that infinite is a limit and not a number, so from a practical point of view, we could get practically equivalent posteriors for a finite and relatively small number of data points.
+-   How fast posteriors converge to the same distribution depends on the data and the model. In the preceding figure, we can see that the posteriors coming from the blue prior (uniform) and green prior (biased towards tails) converge faster to almost the same distribution, while it takes longer for the orange posterior (the one coming from the concentrated prior). Even after 150 trials, it is somehow easy to recognize the orange posterior as a different distribution from the two others.
+-   Something not obvious from the figure is that we will get the same result if we update the posterior sequentially than if we do it all at once. We can compute the posterior 150 times, each time adding one more observation and using the obtained posterior as the new prior, or we can just compute one posterior for the 150 tosses at once. The result will be exactly the same. This feature not only makes perfect sense, but it also leads to a natural way of updating our estimations when we get new data, a situation common in many data-analysis problems.
 
 ## The influence of the prior
 
-From the preceding example, it is clear that priors can influence inferences. That's fine, priors are supposed to do that. Maybe it would be better to not have priors at all. That would make modeling easier, right? Well, not necessarily. If you are not setting the prior someone else will be doing it for you. Sometimes this is fine, "default priors" can be useful and have their place, but sometimes it is better to have more control. Let me explain, we can think that every model, Bayesian or not, has some kind of prior in one way or another, even if the prior is not set explicitly. Many results from frequentist statistics, can be seen as special cases of a Bayesian model under certain circumstances, such as flat priors. One common frequentist method to estimate parameters is known as maximum likelihood; this method avoids setting a prior and works just by finding the value that maximizes the likelihood. This value is usually notated by adding a little hat on top of the name of the parameter we are estimating, such as $\hat \theta$. Contrary to the posterior estimate, that is a distribution $\hat \theta$ is a point estimate (a number). For the coin-flipping problem, we can compute this analytically:
+From the preceding example, it is clear that priors can influence inferences. That's fine, priors are supposed to do that. Maybe it would be better to not have priors at all. That would make modeling easier, right? Well, not necessarily. If you are not setting the prior someone else will be doing it for you. Sometimes this is fine, "default priors" can be useful and have their place, but sometimes it is better to have more control. Let me explain, we can think that every (statistical) model, Bayesian or not, has some kind of prior, even if the prior is not set explicitly. For instance, many procedures typically used in frequentist statistics can be seen as special cases of a Bayesian model under certain conditions, such as flat priors. One common way to estimate parameters is known as maximum likelihood; this method avoids setting a prior and works just by finding the single value maximizing the likelihood. This value is usually notated by adding a little hat on top of the name of the parameter we are estimating, such as $\hat \theta$. Contrary to the posterior estimate, that is a distribution, $\hat \theta$ is a point estimate, a number. For the coin-flipping problem, we can compute it analytically:
+
 $$
 \hat \theta = \frac{y}{N}
 $$
 
-If you go back to @fig-beta_binomial_posterior, you will be able to check for yourself that the mode of the black posterior (the one corresponding to the uniform/flat prior) agrees with the values of $\hat \theta$, computed for each subplot. This is not a coincidence, it is a consequence of the fact that setting a uniform prior and then taking the mode of the posterior is equivalent to maximum likelihood. 
+If you go back to @fig-beta_binomial_posterior, you will be able to check for yourself that the mode of the black posterior (the one corresponding to the uniform/flat prior) agrees with the values of $\hat \theta$, computed for each subplot. This is not a coincidence, it is a consequence of the fact that setting a uniform prior and then taking the mode of the posterior is equivalent to maximum likelihood.
 
-We cannot avoid priors, but if we include them in our analysis, we can get some potential benefits. The most direct benefit is that we get a posterior distribution, which is a distribution of plausible values and not only the most probable ones. Having a distribution can be more informative than a single-point estimate, as we saw the width of the distribution is related to the uncertainty we have for the estimate. Another benefit is that computing the posteriors means to average over the prior, this can lead to models that are more difficult to overfit and more robust predictions @wilson_2022.
+We cannot avoid priors, but if we include them in our analysis, we can get some potential benefits. The most direct benefit is that we get a posterior distribution, which is a distribution of plausible values and not only the most probable ones. Having a distribution can be more informative than a single-point estimate, as we saw the width of the distribution is related to the uncertainty we have for the estimate. Another benefit is that computing the posteriors means to average over the prior, this can lead to models that are more difficult to overfit and more robust predictions [@wilson_2022].
 
-Priors can bring us other benefits. Starting next chapter we are going to use numerical methods to get posteriors, these methods feel like magic, until they don't. The folk theorem of statistical computing [^4] states *When you have computational problems, often there’s a problem with your model*. Sometimes a wise choice of prior can make inference easier or faster. It is important to remark that we are not advocating for setting priors specifically to make inference faster, but it is often the case that by thinking about priors we can get faster models.
+Priors can bring us other benefits. Starting next chapter we are going to use numerical methods to get posteriors, these methods feel like magic, until they don't. The folk theorem of statistical computing [^chp_01-5] states *When you have computational problems, often there's a problem with your model*. Sometimes a wise choice of prior can make inference easier or faster. It is important to remark that we are not advocating for setting priors specifically to make inference faster, but it is often the case that by thinking about priors we can get faster models.
 
-[^4: <https://statmodeling.stat.columbia.edu/2008/05/13/the_folk_theore/>]
+[^chp_01-5]: <https://statmodeling.stat.columbia.edu/2008/05/13/the_folk_theore/>
 
-One advantage of priors, one that is sometimes overlooked, is that having to think about priors can *force us* to think a little bit deeper about the problem we are trying to solve and the data we have. Sometimes the modeling process leads to a better understanding by itself irrespective of how well we end and fit the data or make predictions. By being explicit about priors we get more transparent models, meaning they're easier to criticize, debug (in a broad sense of the word), explain to others and hopefully improve. 
-
+One advantage of priors, one that is sometimes overlooked, is that having to think about priors can *force us* to think a little bit deeper about the problem we are trying to solve and the data we have. Sometimes the modeling process leads to a better understanding by itself irrespective of how well we end and fit the data or make predictions. By being explicit about priors we get more transparent models, meaning they're easier to criticize, debug (in a broad sense of the word), explain to others and hopefully improve.
 
 ## How to choose priors
 
 Newcomers to Bayesian analysis (as well as detractors of this paradigm) are generally a little nervous about how to choose priors because they do not want the prior distribution to act as a censor that does not let the data speak for itself! That's OK, but we have to remember that data does not speak; at best, data murmurs. We can only make sense of data in the context of our models, including mathematical and mental models. There are plenty of examples in the history of science where the same data leads people to think differently about the same topics, and this can happen even if you base your opinions on formal models. Some people like the idea of using non-informative priors (also known as flat, vague, or diffuse priors); these priors have the least possible amount of impact on the analysis. While it is possible to use them, in general, we can do better. Throughout this book, we will follow the recommendations of Gelman, McElreath, Kruschke, and many others, and we will prefer weakly-informative priors. For many problems, we often know something about the values a parameter can take, we may know that a parameter is restricted to being positive, or we may know the approximate range it can take, or whether we expect the value to be close to zero or below/above some value. In such cases, we can use priors to put some weak information in our models without being afraid of being too pushy. Because these priors work to keep the posterior distribution within certain reasonable bounds, they are also known as regularizing priors. Using informative priors is also a valid option if we have good-quality information to define those priors. Informative priors are very strong priors that convey a lot of information. Depending on your problem, it could be easy or not to find this type of prior. I used to work on structural bioinformatics, in this field people have been using, in Bayesian and non-Bayesian ways, all the prior information they could get to study and predict the structure of proteins. This is reasonable because we have been collecting data from thousands of carefully-designed experiments for decades and hence we have a great amount of trustworthy prior information at our disposal. Not using it would be absurd! There is nothing "objective" or "scientific" about throwing away valuable information. If you have reliable prior information, you should use it. Imagine if every time an automotive engineer had to design a new car, they had to start from scratch and reinvent the combustion engine, the wheel, and for that matter, the whole concept of a car.
 
-XXXX TALK ABOUT PRELIZ
+PreliZ is a new Python library for prior elicitation [@mikkola_2021]. Its goal is to make it easier for users to incorporate prior knowledge into their Bayesian models. Preliz is a tool that allows users to elicit, represent and visualize their prior knowledge. We have already been using PreliZ to visualize distributions. We can also ask PreliZ to compute the parameters of a distribution from a set of constraints. For instance, we can ask PreliZ what is the Beta distribution with 90% of the mass between 0.1 and 0.7
 
 
-## The Bayesian worflow
-Building models is an iterative process; sometimes the iteration takes a few minutes, and sometimes it could take years. Sometimes it will only involve you, and sometimes it will involve people you do not even know. Reproducibility matters and transparent assumptions in a model contribute to it. Besides, we are free to use more than one prior (or likelihood) for a given analysis if we are not sure about any special one; exploring the effect of different priors can also bring valuable information to the table. Part of the modeling process is about questioning assumptions, and priors (and likelihood) are just that. Different assumptions will lead to different models and probably different results. By using data and our domain knowledge of the problem, we will be able to compare models and, if necessary, decide on a winner. Chapter 5, Model Comparison, will be devoted to this issue. Since priors have a central role in Bayesian statistics, we will keep discussing them as we face new problems. So if you have doubts and feel a little bit confused about this discussion, just keep calm and don't worry, people have been confused for decades and the discussion is still going on.
+```python
+dist = pz.Beta()
+pz.maxent(dist, 0.1, 0.7, 0.9)
+```
 
+The result is a Beta distribution with parameters $\alpha = 2.5$ and $\beta = 3.6$ (rounded to the first decimal point). The `pz.maxent` computes the **maximum entropy** distribution given the constraints we specified. Why a maximum entropy distribution? Because that is equivalent to computing the least informative distribution under those constraints. By default, PreliZ will plot the distribution see @fig-maxent_beta. 
 
+![Maximum entropy Beta distribution with 90% of the mass between 0.1 and 0.7](/fig/maxent_beta.png){#fig-maxent_beta width=80%}
+
+As eliciting prior has many facets PreliZ offers many other ways to elicit priors. We will see many of them in upcoming chapters. If you are interested in learning more about PreliZ, you can check the documentation at <https://preliz.readthedocs.io>.
+
+Building models is an iterative process; sometimes the iteration takes a few minutes, and sometimes it could take years. Reproducibility matters and transparent assumptions in a model contribute to it. We are free to use more than one prior (or likelihood) for a given analysis if we are not sure about any special one; exploring the effect of different priors can also bring valuable information to the table. Part of the modeling process is about questioning assumptions, and priors (and likelihood) are just that. Different assumptions will lead to different models and probably different results. By using data and our domain knowledge of the problem, we will be able to compare models and, if necessary, decide on a winner. Chapter 5, Model Comparison, will be devoted to this issue. Since priors have a central role in Bayesian statistics, we will keep discussing them as we face new problems. So if you have doubts and feel a little bit confused about this discussion, just keep calm and don't worry, people have been confused for decades and the discussion is still going on.
 
 ## Communicating a Bayesian analysis
+
 Creating reports and communicating results is central to the practice of statistics and data science. In this section, we will briefly discuss some of the peculiarities of this task when working with Bayesian models. In future chapters, we will keep looking at examples of this important matter.
 
 ### Model notation and visualization
+
 If you want to communicate the results of an analysis, you should also communicate the model you used. A common notation to succinctly represent probabilistic models is:
 
 $$
@@ -557,47 +538,87 @@ y &\sim \text{Bin}(n=1, p=\theta)
 \end{aligned}
 $$
 
-This is just the model we use for the coin-flip example. As you may remember, the $\sim$ symbol indicates that the variable, on the left of it, is a random variable distributed according to the distribution on the right. In many contexts, this symbol is used to indicate that a variable takes *approximately* some value, but when talking about probabilistic models,  we will read this symbol out loud saying *is distributed as*. Thus, we can say $\theta$ is distributed as a beta with parameters $\alpha$ and $\beta$, and $y$ is distributed as a binomial with parameters $n=1$ and $p=\theta$. The very same model can be represented graphically using Kruschke's diagrams:
+This is just the model we use for the coin-flip example. As you may remember, the $\sim$ symbol indicates that the variable, on the left of it, is a random variable distributed according to the distribution on the right. In many contexts, this symbol is used to indicate that a variable takes *approximately* some value, but when talking about probabilistic models, we will read this symbol out loud saying *is distributed as*. Thus, we can say $\theta$ is distributed as a beta with parameters $\alpha$ and $\beta$, and $y$ is distributed as a binomial with parameters $n=1$ and $p=\theta$. The very same model can be represented graphically using Kruschke's diagrams:
 
-![A Kruschke's diagram of a beta-binomial model](/fig/beta_binomial_dag.png)
+![A Kruschke's diagram of a beta-binomial model](/fig/beta_binomial_dag.png){width=20%}
 
 On the first level, we have the prior that generates the values for $\theta$, then the likelihood, and on the last line the data, $y$ Arrows indicate the relationship between variables, and the symbol $\sim$ indicates the stochastic nature of the variables. All Kruschke's diagrams in the book were made using the templates provided by Rasmus Bååth (<http://www.sumsar.net/blog/2013/10/diy-kruschke-style-diagrams/>).
 
-
-## Summarizing the posterior
+### Summarizing the posterior
 
 The result of a Bayesian analysis is a posterior distribution, and all the information about the parameters given a model and dataset is contained in the posterior distribution. Thus, by summarizing the posterior, we are summarizing the logical consequences of a model and data. A common practice is to report, for each parameter, the mean (or mode or median) to have an idea of the location of the distribution and some measure of dispersion, such as the standard deviation, to have an idea of uncertainty in our estimates. The standard deviation works well for normal-like distributions but can be misleading for other types of distributions, such as skewed ones. In the next section, we describe a more robust measure of uncertainty, the highest density interval (HDI).
 
+A commonly-used device to summarize the spread of a posterior distribution is to use a Highest-Density interval (HDI). An HDI is the shortest interval containing a given portion of the probability density. If we say that the 95% HDI for some analysis is \[2-5\], we mean that according to our data and model, the parameter in question is between 2 and 5 with a probability of 0.95. There is nothing special about choosing 95%, 50%, or any other value. We are free to choose the 82% HDI interval if we like. Ideally, justifications should be context-dependent and not automatic, but it is ok to settle on some common value like 95%. As a friendly reminder of the arbitrary nature of this choice, ArviZ default is 94%.
 
-### Highest-posterior density
+ArviZ is a Python package for exploratory analysis of Bayesian models, and it has many functions to help us summarize the posterior. One of those functions is `az.plot_posterior`, which we can use to generate a plot with the mean and HDI of. The distribution does not need to be a posterior distribution will work. Figure @fig-plot_posterior_beta shows the result for a random sample from a beta distribution:
 
-A commonly-used device to summarize the spread of a posterior distribution is to use a  Highest-Density interval (HDI). An HDI is the shortest interval containing a given portion of the probability density. If we say that the 95% HDI for some analysis is [2-5],  we mean that according to our data and model, the parameter in question is between 2 and 5 with a probability of 0.95.  There is nothing special about choosing 95%, 50%, or any other value. We are free to choose the 82% HDI interval if we like. Ideally, justifications should be context-dependent and not automatic, but it is ok to settle on some common value like 95%. As a friendly reminder of the arbitrary nature of this choice, ArviZ default is 94%.
-
-ArviZ is a Python package for exploratory analysis of Bayesian models, and it has many functions to help us summarize the posterior. One of those functions is
-`az.plot_posterior`, which we can use to generate a plot with the mean and HDI of. The distribution does not need to be a posterior distribution will work. Figure @fig-plot_posterior_beta shows the result for a random sample from a beta distribution:
-
-```python
+``` python
 np.random.seed(1)
 az.plot_posterior({'θ':pz.Beta(4, 12).rvs(1000)})
 ```
 
-![The 94% HDI for a sample from a beta distribution](/fig/plot_posterior_beta.png){#fig-plot_posterior_beta}
+![A KDE of a sample from a beta distribution with its mean and 94% HDI](/fig/plot_posterior_beta.png){#fig-plot_posterior_beta width=80%}
 
-
-:::{.callout-note}
+::: callout-note
 If you are familiar with the frequentist paradigm, please note that HDIs are not the same as confidence intervals. In the frequentist framework parameters are fixed by design; a frequentist confidence interval either contains or does not contain the true value of a parameter. In the Bayesian framework, parameters are random variables, and thus we can talk bout the probability of a parameter having specific values or being inside some interval. The unintuitive nature of confident intervals makes them easily misinterpreted and people often talk about frequentist confidence intervals as if they were Bayesian credible intervals.
 :::
 
-
-
 ## Summary
 
+We began our Bayesian journey with a very brief discussion of statistical modeling, probabilities, conditional probabilities, random variables, probability distributions and Bayes' theorem. We then used the coin-flipping problem as an excuse to introduce basic aspects of Bayesian modeling and data analysis. We used this classic toy example to convey some of the most important ideas of Bayesian statistics, such as using probability distributions to build models and represent uncertainties. We tried to demystify the use of priors and put them on an equal footing with other elements that are part of the modeling process, such as the likelihood, or even more meta-questions, such as why we are trying to solve a particular problem in the first place. We ended the chapter by discussing the interpretation and communication of the results of a Bayesian analysis. We assume there is a True distribution that in general is unknown (and in principle also unknowable), from which we get a finite sample, either by doing an experiment, a survey, an observation, or a simulation. To learn something from the True distribution, given that we have only observed a sample, we build a probabilistic model. A probabilistic model has two basic ingredients: a prior and a likelihood. Using the model and the sample, we perform Bayesian Inference and obtain a Posterior distribution; this distribution encapsulates all the information about a problem, given our model and data. From a Bayesian perspective, the posterior distribution is the main object of interest and everything else is derived from it, including predictions in the form of a Posterior Predictive Distribution. As the Posterior distribution (and any other derived quantity from it) is a consequence of the model and data, the usefulness of Bayesian inferences is restricted by the quality of models and data. In this chapter, we have briefly summarized the main aspects of doing Bayesian data analysis. Throughout the rest of this book, we will revisit these ideas to absorb them and use them as the scaffold of more advanced concepts. In the next chapter, we will introduce PyMC, which is a Python library for Bayesian modeling and Probabilistic Machine Learning and will use more features from ArviZ, a Python library for the exploratory analysis of Bayesian models, and PreliZ a Python library for prior elicitation.
 
-We began our Bayesian journey with a very brief discussion of statistical modeling, probabilities, conditional probabilities, random variables, probability distributions and Bayes' theorem. We then used the coin-flipping problem as an excuse to introduce basic aspects of Bayesian modeling and data analysis. We used this classic toy example to convey some of the most important ideas of Bayesian statistics, such as using probability distributions to build models and represent uncertainties. We tried to demystify the use of priors and put them on an equal footing with other elements that are part of the modeling process, such as the likelihood, or even more meta-questions, such as why we are trying to solve a particular problem in the first place. We ended the chapter by discussing the interpretation and communication of the results of a Bayesian analysis.  We assume there is a True distribution that in general is unknown (and in principle also unknowable), from which we get a finite sample, either by doing an experiment, a survey,  an observation, or a simulation. To learn something from the True distribution, given that we have only observed a sample, we build a probabilistic model. A probabilistic model has two basic ingredients: a prior and a likelihood. Using the model and the sample, we perform Bayesian Inference and obtain a Posterior distribution; this distribution encapsulates all the information about a problem, given our model and data. From a  Bayesian perspective, the posterior distribution is the main object of interest and everything else is derived from it, including predictions in the form of a Posterior Predictive  Distribution. As the Posterior distribution (and any other derived quantity from it) is a  consequence of the model and data, the usefulness of Bayesian inferences is restricted by the quality of models and data. In this chapter, we have briefly summarized the main aspects of doing Bayesian data analysis. Throughout the rest of this book, we will revisit these ideas to absorb them and use them as the scaffold of more advanced concepts. In the next chapter, we will introduce PyMC, which is a Python library for Bayesian modeling and Probabilistic  Machine Learning and will use more features from ArviZ, a Python library for the exploratory analysis of Bayesian models, and PreliZ a Python library for prior elicitation.
+## Exercises
+
+We do not know whether the brain works in a Bayesian way, in an approximately Bayesian fashion, or maybe some evolutionary (more or less) optimized heuristics. Nevertheless, we know that we learn by exposing ourselves to data, examples, and exercises... well you may say that humans never learn, given our record as a species on subjects such as wars or economic systems that prioritize profit and not people's well-being... Anyway, I recommend you do the proposed exercises at the end of each chapter:
+
+1. Suppose you have a jar with 4 jelly beans: 2 are strawberry-flavored, 1 is blueberry-flavored, and 1 is cinnamon-flavored. You draw one jelly bean at random from the jar.
+
+a. What is the sample space for this experiment?
+b. We define event $A$ as "The jelly bean drawn is strawberry-flavored" and event $B$ as "The jelly bean drawn is not cinnamon-flavored". What are the probabilities of events $A$ and $B$?
+c. Are events $A$ and $B$ mutually exclusive? Why or why not?
+
+2. Previously we define a Python function `P` to compute the probability of an event using the naive definition of probability. Generalize that function to compute the probability of events when they are not all equally likely. Use this new function to compute the probability of events $A$ and $B$ from the previous exercise. Hint: you can pass a third argument with the probability of each event. 
+
+3. Use PreliZ to explore different parameters for the beta-binomial and Gaussian, distributions. Use the methods `plot_pdf`, `plot_cdf` and `plot_interactive`.
+
+4. We discussed the probability mass/density functions and the cumulative density function. But there are other ways to represent function like the percentile point function ppf. Using the `plot_ppf` method of PreliZ, plot the percentile point function for the beta-binomial and Gaussian distributions. Can you explain how is the ppf related to the cdf and pmf/pdf?
+
+5. From the following expressions, which one corresponds to the sentence, The probability of being sunny given that it is 9^th^ of July of 1816?
+
+* p(sunny)
+* p(sunny | July)
+* p(sunny | 9 of July of 1816)
+* p(9^th^ of July of 1816 | sunny)
+* p(sunny, 9^th^ of July of 1816) / p(9^th^ of July of 1816)
+
+6. We showed that the probability of choosing a human at random and picking the Pope is not the same as the probability of the Pope being human. In the animated series Futurama, the (Space) Pope is a reptile. How does this change your previous calculations?
 
 
-##  Exercises
+7. Following the example in @fig-moments use PreliZ to compute the moments for the SkewNormal distribution for a different combination of parameters. Generate random samples of different sizes, like 10, 100, 1000 and see if you can recover the values of the first two moments (mean and variance) from the samples. What do you observe?
 
-We do not know whether the brain works in a Bayesian way, in an approximately Bayesian fashion, or maybe some evolutionary (more or less) optimized heuristics. Nevertheless, we know that we learn by exposing ourselves to data, examples, and exercises... well you may say that humans never learn, given our record as a species on
-subjects such as wars or economic systems that prioritize profit and not people's well-being... Anyway, I recommend you do the proposed exercises at the end of each chapter:
+8. Repeat the previous exercise for the StudentT distribution. Try numbers of nu like 2, 3, 500.  What do you observe?
 
+
+9. In the following definition of a probabilistic model identify the prior and the likelihood:
+
+$$
+\begin{aligned}
+Y &\sim \text{Normal}(\mu, \sigma) \\
+\mu &\sim \text{Normal}(0, 2) \\
+\sigma &\sim \text{Half-Normal}(0.75)
+\end{aligned}
+$$
+
+10. In the previous model, how many parameters will the posterior have? Compare it with the model for the coin-flipping problem.
+
+11. Write Bayes' theorem for the model in exercise 9.
+
+12. Let's suppose that we have two coins; when we toss the first coin, half of the time it lands tails and half of the time on heads. The other coin is a loaded coin that always lands on heads. If we take one of the coins at random and get a head what is the probability that this coin is the unfair one?
+
+13. Try re-plotting @fig-beta_binomial_posterior using other priors (beta_params) and other data (trials and data).
+
+14. Read about the Cromwell rule on Wikipedia:
+<https://en.wikipedia.org/wiki/Cromwell%27s_rule>.
+
+15. Read about probabilities and the Dutch book on Wikipedia:
+<https://en.wikipedia.org/wiki/Dutch_book>.
