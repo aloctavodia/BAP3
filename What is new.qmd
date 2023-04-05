@@ -1,0 +1,19 @@
+# What's new?
+
+## Some general notes
+
+In the second edition we extensively use PyMC and ArviZ. In this new edition we add 3 new libraries to me mix:
+
+* PreliZ a library for prior elicitation
+* Bambi a library for Bayesian regression
+* Kulrprit a library for variable selection
+
+
+## Chapter 1
+
+* New introduction to probability theory. The introduction is not meant to be a replacement for a proper course in probability theory, but it should be enough to get you started.
+
+
+## Chapter 2
+
+* We discuss the Savage-Dickey density ratio (also in chapter 5). 

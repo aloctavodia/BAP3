@@ -8,7 +8,8 @@ book:
   date: "16/03/2023"
   chapters:
     - index.qmd
-    - chp_01.qmd
+    # - chp_01.qmd
+    - chp_02.qmd
     - references.qmd
 
 bibliography: references.bib
@@ -25,3 +26,4 @@ format:
         \usepackage{epsdice}
   epub:
     cover-image: cover.png
+    toc: true

@@ -3,18 +3,279 @@
 > "Our golems rarely have a physical form, but they too are often made of clay living in silicon as computer code." - Richard McElreath
 
 
-Now that we have a basic understanding of Bayesian statistics, we are going to learn how  to build probabilistic models using computational tools. Specifically, we are going to learn  about probabilistic programming with PyMC3. The basic idea is to specify models using  code and then solve them in a more or less automatic way. It is not that we are too lazy to  learn the mathematical way, nor are we elitist-hardcore-hackers-in-code. One important  reason behind this choice is that many models do not lead to an analytic closed form, and  thus we can only solve those models using numerical techniques.  Another reason to learn probabilistic programming is that modern Bayesian statistics is  mainly done by writing code, and since we already know Python, why would we do it in  another way? Probabilistic programming offers an effective way to build and solve  complex models and allows us to focus more on model design, evaluation, and  interpretation, and less on mathematical or computational details. In this chapter, and  through the rest of this book, we are going to use PyMC3, a very flexible Python library for  probabilistic programming, as well as ArviZ, a new Python library that will help us  interpret the results of probabilistic models. Knowing PyMC3 and ArviZ will also help us  to learn advanced Bayesian concepts in a more practical way.  In this chapter, we will cover the following topics:  
+Now that we have a very basic understanding of probability theory and Bayesian statistics, we are going to learn how to build probabilistic models using computational tools. Specifically, we are going to learn about probabilistic programming with PyMC. The basic idea is that we use code to specify statistical models and then PyMC will solve those models for us. We will not need to write Bayes' theorem in explicit form. This is a good strategy for two reasons. First, many models do not lead to an analytic closed form, and thus we can only solve those models using numerical techniques.  Second, modern Bayesian statistics is mainly done by writing code. We will be able to see that probabilistic programming offers an effective way to build and solve complex models and allows us to focus more on model design, evaluation, and interpretation, and less on mathematical or computational details. In this chapter, we will cover the following topics:  
 
 * Probabilistic programming
-* PyMC primer
+* A PyMC primer
 * The coin-flipping problem revisited
 * Summarizing the posterior
 * The Gaussian and student's t models
 * Comparing groups and the effect size
 * Hierarchical models and shrinkage
 
+## Probabilistic programming
+
+Bayesian statistics is conceptually very simple; we have the *knows* and the *unknowns*; we use Bayes' theorem to condition the latter on the former. If we are lucky, this process will reduce the uncertainty about the *unknowns*. Generally, we refer to the *knowns* as **data** and treat it like a constant, and the *unknowns* as parameters and treat them as *random variables*. Although conceptually simple, fully probabilistic models often lead to analytically intractable expressions. For many years, this was a real problem and was one of the main issues that hindered the wide adoption of Bayesian methods. The arrival of the computational era and the development of numerical methods that, at least in principle, can be used to solve any inference problem, have dramatically transformed the Bayesian data analysis practice. We can think of these numerical methods as *universal inference engines*. The possibility of automating the inference process has led to the development of probabilistic programming languages (PPLs), which allows for a clear separation between model creation and inference. In the PPL framework, users specify a full probabilistic model by writing a few lines of code, and then inference follows automatically. It is expected that probabilistic programming will have a major impact on data science and other disciplines by enabling practitioners to build complex probabilistic models in a less time-consuming and less error-prone way. I think one good analogy for the impact that programming languages can have on scientific computing is the introduction of the Fortran programming language more than six decades ago. While nowadays Fortran has lost its shine [^fortran], at one time, it was considered to be very revolutionary. For the first time, scientists moved away from computational details and began focusing on building numerical methods, models, and simulations more naturally. 
+
+[^fortran]: Some folks are working on making Fortran cool again <https://fortran-lang.org/en/>
+
+## Flipping coins the PyMC way
+
+Let's revisit the coin-flipping problem from Chapter 1, Thinking Probabilistically, but this time using PyMC. We will use the same synthetic data we used in that chapter. Since we are generating the data, we know the true value of $\theta$, called `theta_real`, in the following block of code. Of course, for a real dataset, we will not have this knowledge:
+
+```python
+np.random.seed(123)
+trials = 4
+theta_real = 0.35 # unknown value in a real experiment
+data = pz.Binomial(n=1, p=theta_real).rvs(trials)
+```
 
 
+Now that we have the data, we need to specify the model. Remember that this is done by specifying the likelihood and the prior. For the likelihood, we will use the binomial distribution with parameters $n=1$, $p=\theta$ and for the prior, a beta distribution with the parameters $\alpha=\beta=1$. A beta distribution with such parameters is equivalent to a uniform distribution on the interval [0, 1]. Using mathematical notation we can write the model as:
+
+$$
+\begin{aligned}
+\theta &\sim \text{Beta}(\alpha=1, \beta=1) \\
+Y &\sim \text{Binomial}(n=1, p=\theta)
+\end{aligned}
+$$
+
+This statistical model has an almost one-to-one translation to PyMC:
+
+```python
+with pm.Model() as our_first_model:
+    θ = pm.Beta('θ', alpha=1., beta=1.)
+    y = pm.Bernoulli('y', p=θ, observed=data)
+    idata = pm.sample(1000)
+```
+
+The first line of the code creates a container for our model. Everything inside the with-block will be automatically added to our_first_model. You can think of this as syntactic sugar to ease model specification as we do not need to manually assign variables to the model. The second line specifies the prior. As you can see, the syntax follows the mathematical notation closely. The third line specifies the likelihood, the syntax is almost the same as for the prior, except that we pass the data using the `observed` argument. The observed values can be passed as a Python list, a tuple, a NumPy array, or a pandas DataFrame. Now, we are finished with the model specification! Pretty neat, right?
+
+We still have one more line of code to explain. The last line is where the magic happens. Behind this innocent line, PyMC has hundreds of oompa loompas singing and baking a delicious Bayesian inference just for you! Well, not exactly, but PyMC is automating a lot of tasks. For the time being, we are going to treat that line as a black box that will give us the correct result. What is important to understand is that under the hood we will be using numerical methods to compute the posterior distribution. In principle, these numerical methods are capable of solving any model we can write. The cost we pay for this generality is that the solution is going to take the form of samples from the posterior. The samples are stored in the `idata` object and we will use the samples to summarize the posterior distribution. Later we will be able to corroborate that these samples come from a Beta distribution, as we learn from the previous chapter. Because the numerical methods are stochastic, the samples will vary every time we run them. However, if the inference process works as expected, the samples will be representative of the posterior distribution and thus we will obtain the same conclusion from any of those samples. The details of what happens under the hood and how to check if the samples are indeed trustworthy will be explained in Chapter 8, Inference Engines.
+
+OK, so on the last line, we are asking for 1,000 samples from the posterior. If you run the code, you will get a message like this:
+
+```
+Auto-assigning NUTS sampler...
+Initializing NUTS using jitter+adapt_diag...
+Multiprocess sampling (4 chains in 4 jobs)
+NUTS: [θ]
+Sampling 4 chains for 1_000 tune and 1_000 draw iterations
+(4_000 + 4_000 draws total) took 1 seconds.
+```
+
+The first and second lines tell us that PyMC has automatically assigned the NUTS sampler (one inference engine that works very well for continuous variables), and has used a method to initialize that sampler (these methods need some initial guess of where to start sampling). The third line says that PyMC will run four chains in parallel, thus we will get four independent samples from the posterior. As PyMC attempt to parallelize these chains across the available processors in your machine, we will get the four for the price of one. The exact number of chains is computed taking into account the number of processors in your machine, you can change it using the `chains` argument for the `sample` function. The next line is telling us which variables are being sampled by which sampler. For this particular case, this line is not adding new information, because NUTS is used to sample the only variable we have $\theta$. However, this is not always the case as PyMC can assign different samplers to different variables. PyMC has rules to ensure that each variable is associated with the best possible sampler. Users can manually assign samplers using the `step` argument of the `sample` function, you will hardly need to do that.
+
+Finally, the last line is a progress bar, with several related metrics indicating how fast the sampler is working, including the number of iterations per second. If you run the code, you will see the progress bar get updated really fast. Here, we are seeing the last stage when the sampler has finished its work. You will notice that we have asked for 1000 samples, but PyMC is computing 8000 samples. We have 1000 draws per chain to tune the sampling algorithm (NUTS, in this example). These draws will be discarded by default, PyMC uses them to increase the efficiency and reliability of the sampling method, which are both important to obtain a useful approximation to the posterior. We also have 1000 productive draws per chain for a total of 4000, these are the ones we are going to use as our posterior. We can change the number of tuning steps with the `tune` argument of the sample function and the number of draws with the `draw` argument.
+
+## Summarizing the posterior
+
+Generally, the first task we will perform after sampling from the posterior is to check what the results look like. The `plot_trace` function from ArviZ is ideally suited to this task:
+
+
+```python
+az.plot_trace(idata)
+```
+
+![A trace plot for the posterior of `our_first_model`](/fig/idata_trace.png){#fig-idata_trace}
+
+
+@fig-idata_trace shows the default result when calling `az.plot_trace`, we get two subplots for each unobserved variable. The only unobserved variable in our model is $\theta$. Notice that $y$ is an observed variable representing the data; we do not need to sample that because we already know those values. Thus we only get two subplots. On the left, we have a Kernel Density Estimation (KDE) plot; this is like the smooth version of the histogram. Ideally, we want all chains to have a very similar KDE, like in @fig-idata_trace. On the right, we get the individual values at each sampling step, we got as many lines as chains. Ideally, we want to be something that looks noisy, with no clear pattern, and we should have a hard time identifying one chain from the others. In Chapter 9, Inference Engines we give more details on how to interpret these plots. The gist is that if we ran many samples, like four, and there are practically indistinguishable from each other. The sampler did a good job and we can trust the samples.
+
+As with other ArviZ functions `az.plot_trace` has many options. For instance, we can run the function with the `combined` argument set to `True` to get a single KDE plot for all chains and with `kind=rank_bars` to get a **rank plot**
+
+
+```python
+az.plot_trace(idata, kind="rank_bars", combined=True, rank_kwargs={"colors": "k"});
+```
+
+![A trace plot for the posterior of `our_first_model`, using the options `kind="rank_bars"`, `combined=True`](/fig/idata_rank.png){#fig-idata_rank}
+
+
+A rank plot is another way to check if we can trust the samples, for this plot we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In Chapter 9, Inference Engines, we provide further details on how to interpret rank plots and how they are constructed.
+
+ArviZ provides several other plots to help interpret the posterior, and we will see them in the following pages. We may also want to have a numerical summary of the posterior. We can get that using `az.summary`, which will return a pandas DataFrame:
+
+```python
+az.summary(idata, kind="stats").round(2)
+```
+
+|   |   mean |   sd |   hdi_3% |   hdi_97% |
+|---|--------|------|----------|-----------|
+|θ	|  0.34  | 0.18 |	   0.03|       0.66|
+
+
+The first column is the name of the variable, the second column is the mean of the posterior, the third column is the standard deviation of the posterior, and the last two columns are the lower and upper boundaries of the 94% highest density interval. Thus, according to our model and data, we think the value of $\theta$ is likely to be 0.34 with a 94% probability that it is actually between 0.03 and 0.66. We can report a similar summary using the standard deviation. The advantage of the standard deviation over the HDI is that it is a more popular statistic. As a disadvantage, we have to be more careful interpreting it, otherwise, it can lead to meaningless results. For example, if we compute the mean $\pm$ 2 standard deviation we will get the intervals (-0.02, 0.7) the upper value is not that far from 0.66, which we got from the HDI, but the lower bound is actually outside the possible values of $\theta$, which is between 0 and 1.
+
+Another way to visually summarize the posterior is to use the `az.plot_posterior` function that comes with ArviZ. We have already used this distribution in the previous chapter for a fake posterior. We are going to use it now for a real posterior. By default, plot_posterior shows a histogram for discrete variables and KDEs for continuous variables. We also get the mean of the distribution (we can ask for the median or mode using the `point_estimate` argument) and the 94% HDI as a black line at the bottom of the plot. Different interval values can be set for the HDI with the credible_interval argument. This type of plot was introduced by John K. Kruschke in his great book Doing Bayesian Data Analysis [@kruschke_2014]:
+
+```python
+az.plot_posterior(idata)
+```
+
+![The plot shows the posterior distribution of $\theta$ and the 94% HDI. ](/fig/idata_posterior.png){#fig-idata_posterior width="80%"}
+
+
+## Posterior-based decisions
+
+Sometimes, describing the posterior is not enough. Sometimes, we need to make decisions based on our inferences. We have to reduce a continuous estimation to a dichotomous one: yes-no, health-sick, contaminated-safe, and so on. We may need to decide if the coin is fair or not. A fair coin is one with a $\theta$ value of exactly 0.5. We can compare the value of 0.5 against the HPD interval. From @fig-idata_posterior, we can see that the HDI goes from 0.03 to 0.7 and hence 0.5 is included in the HDI. We can interpret this as an indication that the coin is tail-biased, but we cannot completely rule out the possibility that the coin is fair. If we want a sharper decision, we will need to collect more data to reduce the spread of the posterior or maybe we need to find out how to define a more informative prior.
+
+
+### Savage-Dickey density ratio
+
+One way to evaluate how much support the posterior provides for a given value is to compare the ratio of the posterior and prior densities at that value. This is called the Savage-Dickey density ratio and we can compute it with ArviZ using the `az.plot_bf` function
+
+```python
+az.plot_bf(idata, var_name="θ", prior=np.random.uniform(0, 1, 10000), ref_val=0.5);
+```
+
+![The plot shows the prior and posterior for `our_first_model` the black dots represent their values evaluated at the reference value 0.5](/fig/idata_bf.png){#fig-idata_bf width="80%"}
+
+
+From @fig-idata_bf we can see that the value of BF_01 is 1.3, which means that the value of $\theta=0.5$ is 1.3 times more likely under the posterior distribution than under the prior distribution. To compute this value we just divided the height of the posterior at $\theta=0.5$ by the height of the prior at $\theta=0.5$. The value of BF_10 is just the inverse $\frac{1}{1.3} = 0.77$, we can think of this as the value of $\theta \not 0.5$ being 0.77 times more likely under the posterior than under the prior. How do we interpret these numbers? With a pinch of salt, the following table shows one possible interpretation by [@kass_1995]:
+
+| BF_01        | Interpretation |
+|--------------|----------------|
+| 1 to 3.2     | Not worth more than a bare mention|
+| 3.2 to 10    | Substantial    |
+| 10 to 100    | Strong         |
+| > 100 	   | Decisive       |
+
+The Savage-Dickey density ratio is a particular way to compute what is called Bayes Factor. We will learn more about Bayes Factors, and their caveats, in Chapter 5, Model Comparison.
+
+### Region of Practical Equivalence
+
+Strictly speaking, the chance of observing exactly 0.5 (that is, with infinite trailing zeros) is zero. Also, in practice, we generally do not care about exact results but results within a certain margin. Accordingly, in practice, we can relax the definition of fairness and we can say that a fair coin is one with a value of *around* 0.5. For example, we could say that any value in the interval [0.45, 0.55] will be, for our purposes, practically equivalent to 0.5. We call this interval a Region Of Practical Equivalence (ROPE). Once the ROPE is defined, we compare it against the HDI. We can get at least three scenarios:
+
+* The ROPE does not overlap with the HDI; we can say the coin is not fair
+* The ROPE contains the entire HDI; we can say the coin is fair
+* The ROPE partially overlaps with HDI; we cannot say the coin is fair or unfair
+
+If we choose the ROPE to match the support of a parameter, like [0, 1] for the coin-flipping example, we will always say we have a fair coin. Notice that we do not need to collect data to perform any type of inference.
+
+The choice of ROPE is completely arbitrary we can choose any value we want. Of course, some choices are not very useful. If for the coin-flipping example, we choose the ROPE to be [0, 1], then we will always say the coin is fair. Even more, we don't need to collect data or perform any analysis to reach this conclusion. Of course, this is a trivial example. More worrisome is to pick the ROPE after performing the analysis. This is problematic because we can accommodate the results to say whatever we want them to say, again why do we even bother to do an analysis, if we are going to accomodate the result to our expectations? The ROPE should be informed from domain knowledge. 
+
+We can use the plot_posterior function to plot the posterior with the HDI interval and the ROPE. The ROPE appears as a semi-transparent thick (gray) line:
+
+```python
+az.plot_posterior(idata, rope=[0.45, .55])
+```
+
+![The plot shows the posterior distribution of $\theta$ and the 94% HDI. The ROPE is shown as a thick light-gray line. ](/fig/idata_posterior_rope.png){#fig-idata_posterior_rope width="80%"}
+
+Another tool we can use to help us make a decision is to compare the posterior against a reference value. We can do this using plot_posterior. As you can see, we get a vertical (gray) line and the proportion of the posterior above and below our reference value:
+
+```python
+az.plot_posterior(idata, ref_val=0.5)
+```
+
+![The plot shows the posterior distribution of $\theta$ and the 94% HDI. The reference value is shown as a gray vertical line. ](/fig/idata_posterior_ref.png){#fig-idata_posterior_ref width="80%"}
+
+For a more detailed discussion on the use of the ROPE you could read Chapter 12 Doing Bayesian Data Analysis by John Kruschke [@kruschke_2014]. That chapter also discusses how to perform hypothesis testing in a Bayesian framework and the caveats of hypothesis testing, whether in a Bayesian or non-Bayesian setting.
+
+### Loss functions
+
+If you think these ROPE rules sound a little bit clunky and you want something more formal, loss functions are what you are looking for! To make a good decision, it is important to have the highest possible level of precision for the estimated value of the relevant parameters, but it is also important to take into account the cost of making a mistake. The cost/benefit trade-off can be mathematically formalized using loss functions. The names for loss functions or their inverses vary across different fields, and we could find names such as cost functions, objective functions, fitness functions, utility functions, and so on. No matter the name, the key idea is to use a function that captures how different the true value and the estimated value of a parameter are. The larger the value of the loss function, the worse the estimation is (according to the loss function). Some common examples of loss functions are:
+
+
+* The quadratic loss function, $(\theta - \hat \theta)^2$
+* The absolute loss function, $|\theta - \hat \theta|$
+* The 0-1 loss function, $\mathbb{1}(\theta \neq \hat \theta)$, where $\mathbb{1}$ is the indicator function
+
+In practice, we don't know the value of the true parameter. Instead, we have an estimation in the form of a posterior distribution. Thus, what we can do is find out the value of $\theta$ that minimizes the expected loss function. By expected loss function, we mean the loss function averaged over the whole posterior distribution. In the following block of code, we have two loss functions: the absolute loss (lossf_a) and the quadratic loss (lossf_b). We will explore the value of over a grid of 200 points. We will then plot those curves and we will also include the value of $\theta$ that minimizes each loss function. The following block shows the Python code without the plotting part:
+
+```python
+grid = np.linspace(0, 1, 200)
+θ_pos = idata.posterior['θ']
+lossf_a = [np.mean(abs(i - θ_pos)) for i in grid]
+lossf_b = [np.mean((i - θ_pos)**2) for i in grid]
+for lossf, c in zip([lossf_a, lossf_b], ['C0', 'C1']):
+    ...
+```
+
+
+![The absolute (black) and quadratic (gray) loss functions applied to the posterior from `our_first_model`](/fig/idata_loss.png){/fig/idata_loss width="80%"}
+
+
+As we can see, the result looks somewhat similar for the absolute (black) and quadratic (gray) loss functions. What is interesting from this result is that the first value is equal to the median of the posterior and the last value is equal to the mean of the posterior. You can check this for yourself by computing `np.mean(θ_pos)`, `np.median(θ_pos)`. This is no coincidence, different loss functions are related to different point estimates. The mean is the point estimates that minimizes the quadratic loss, the median the absolute loss, the mode de 1-0 loss.
+
+If we want to be formal and we want to compute a single-point estimate, we must decide which loss function we want. Conversely, if we choose one point estimate, we are implicitly (and maybe unconsciously) assuming a loss function. 
+
+The advantage of explicitly choosing a loss function is that we can tailor the function to our problem, instead of using a predefined rule. It is very common to observe that the cost of making a decision is asymmetric; for example, vaccines can cost overreaction of the immune system or other problems but the benefit to the vaccinated persons and even non-vaccinated persons overcomes the risk usually by many orders of magnitude. Thus, if our problem demands it, we can construct an asymmetric loss function. 
+
+It is also important to notice that, as the posterior is in the form of numerical samples, we can compute complex loss functions that don't need to be restricted by mathematical convenience or mere simplicity. The following code, and @fig-idata_loss2 generated from it, is just a silly example of this:
+
+```python
+lossf = []
+for i in grid:
+    if i < 0.5:
+        f = 1/np.median(θ_pos / np.abs(i**2 - θ_pos))
+    else:
+        f = np.mean((i - θ_pos)**2 + np.exp(-i)) - 0.25
+    lossf.append(f)
+```
+
+![A weird loss function applied to the posterior from `our_first_model`](/fig/idata_loss2.png){#fig-idata_loss2 width="80%"}
+
+
+## Gaussians all the way down
+
+ We introduced the main Bayesian notions using the beta-binomial model mainly because of its simplicity. Another very simple model is the Gaussian or normal model. Gaussians are very appealing from a mathematical point of view because working with them is easy; for example, we know that the conjugate prior of the Gaussian mean is the Gaussian itself. Besides, many phenomena can be nicely approximated using Gaussians; essentially, almost every time that we measure the average of something, using a *big enough* sample size, that average will be distributed as a Gaussian. The details of when this is true, when this is not true, and when this is more or less true, are elaborated in the **central limit theorem** (CLT); you may want to stop reading now and search about this really *central* statistical concept (very bad pun intended).
+ 
+ Well, we were saying that many phenomena are indeed averages. Just to follow a cliché, the height (and almost any other trait of a person, for that matter) is the result of many environmental factors and many genetic factors, and hence we get a nice Gaussian distribution for the height of adult people. Well, indeed we get a mixture of two Gaussians, which is the result of overlapping the distribution of heights of women and men, but you get the idea. In summary, Gaussians are easy to work with and they are abundant in natural phenomena, and hence many of the statistical methods you may already know, assume normality. Thus, it is important to learn how to build these models, and then it is also equally important to learn how to relax the normality assumptions, something surprisingly easy in a Bayesian framework and with modern computational tools such as PyMC. 
+ 
+ 
+ ### Gaussian inferences
+ 
+ 
+ **Nuclear magnetic resonance** (NMR) is a powerful technique used to study molecules and also living things such as humans, sunflowers and yeast (because, after all, *we are just a bunch of molecules*). NMR allows you to measure different kinds of observable quantities that are related to unobservable and interesting molecular properties. One of these observables is known as **chemical shift**; we can only get chemical shifts for the nuclei of certain types of atoms. The details belong to quantum chemistry and are irrelevant to this discussion. For all we care at the moment, we could have been measuring the height of a group of people, the average time to travel back home, the weight of bags of oranges, or the number of sexual partners of Bonobos. Even when this last example the variable is discrete it may be a good approximation because our cousins are very promiscuous. For this example, we have 48 chemical shift values Represented in a boxplot in @fig-boxplot, we can see that the median (the line inside the box) is around 53 and the interquartile range (the box) is around  52 and 55. We can see that there are two values far away from the rest of the data (empty circles).
+
+ ![Boxplot of the 48 chemical shift values. We observed two values above 60, far away from the rest of the data](/fig/boxplot.png){#fig-boxplot width="80%"}
+ 
+
+Let's forget about those two points for a moment and assume that a Gaussian distribution is a good description of the data. Since we do not know the mean or the standard deviation, we must set priors for both of them. Therefore, a reasonable model could be:
+
+$$
+\begin{aligned}
+\mu &\sim \mathcal{U}(l, h) \\
+\sigma &\sim \text{HalfNormal}(\sigma_{\sigma}) \\
+Y &\sim \mathcal{N}(\mu, \sigma)
+\end{aligned}
+$$
+
+
+where $\mathcal{U}(l, h)$ is the uniform distribution between $l$ and $h$, $\text{HalfNormal}(\sigma_{\sigma})$ is the half-normal distribution with standard deviation $\sigma_{\sigma}$, and $\mathcal{N}(\mu, \sigma)$ is the Gaussian distribution with mean $\mu$ and standard deviation $\sigma$. A half-Normal distribution is similar to a Normal distribution but restricted to positive values (including zero).
+
+If we do not know the possible values of $\mu$ and $\sigma$, we can set priors reflecting our ignorance. One option is to set the boundaries of the uniform distribution to be $l=40$, $h=75$, which is a range larger than the range of the data. Alternatively, we can choose a range based on our previous knowledge. For instance, we may know that this is not physically possible to have values below 0 or above 100 for this type of measurement. And thus use those values as the boundaries of the uniform distribution. For the HalfNormal, and in the absence of more information, we can choose a large value compared to the scale of the data. Using PyMC, we can write the model as follows:
+
+The code for this model is:
+
+```python
+with pm.Model() as model_g:
+    μ = pm.Uniform('μ', lower=40, upper=70)
+    σ = pm.HalfNormal('σ', sigma=5)
+    Y = pm.Normal('Y', mu=μ, sigma=σ, observed=data)
+    idata_g = pm.sample()
+```
+
+![Posterior from `model_g` ploted using `az.plot_trace(idata_g)`](/fig/idata_g.png){#fig-idata_g_trace}
+
+Let's see what the posterior looks like, @fig-idata_g_trace was generated with the ArviZ function `plot_trace`, it has one row for each parameter. For this model, the posterior is bidimensional, so each row is showing one marginal distribution. We can use the `plot_pair` function from ArviZ to see what the bi-dimensional posterior looks like, together with the marginal distributions for $\mu$ and $\sigma$:
+
+
+![Posterior from `model_g` ploted using `az.plot_pair(idata_g, kind='kde', marginals=True)`](/fig/idata_g_pair.png){#fig-idata_g_pair width="80%"}
+
+
+<!-- ::: callout-note
+Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
+
+
+
+
+
+
+
+<!--
 ## Posterior predictive checks
 
 One of the nice elements of the Bayesian toolkit is that once we have a posterior $\p(\theta \mid Y)$, it is
@@ -26,16 +287,16 @@ $$
 
 This is the **posterior predictive distribution**. *Posterior* because we are taking the values of $\theta$ according to the posterior distribution, *Predictitve* because we are computing the distribution of the data, $\tilde Y$, given the observed data, $Y$. Or in other words predictions. And *distribution* because we are not computing a single value, but a distribution of values. 
 
-In practice we are not going to directly compute this integral, but we will approximate it by sampling in two steps:
+In practice, we are not going to directly compute this integral, but we will approximate it by sampling in two steps:
 
 1. We sample a value of $\theta$ from the posterior $p(\theta \mid Y)$,
 2. We feed that value of to the likelihood $p(Y \mid \theta)$
 
-This will generate one sample from $p(\tilde Y)$, we keep doing this many times. The resulting samples will be distruted as the posterior predictive distribution.
+This will generate one sample from $p(\tilde Y)$, we keep doing this many times. The resulting samples will be distributed as the posterior predictive distribution.
 
 
 :::{.callout-note}
-The posterior predictive distribution combines two sources of uncertainty: the parameters uncertainty; as captured by the posterior; and the sampling uncertainty; as captured by the likelihood
+The posterior predictive distribution combines two sources of uncertainty: the uncertainty of the parameters; as captured by the posterior; and the sampling uncertainty; as captured by the likelihood
 :::
 
-<!-- show how to sample using PreliZ and then show how to do it using PyMC -->
+ show how to sample using PreliZ and then show how to do it using PyMC -->
