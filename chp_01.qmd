@@ -190,7 +190,7 @@ you will get an interactive plot that will update every time you move the slider
 On the x-axis we have the support of this distribution, i.e. the values it can take, $x \in \{0, 1, 2, 3, 4, 5\}$. On the y-axis, the probabilities are associated with each of those values. Listed, they will be:
 
 | x value | probability |
-|---------|-------------|
+|:-------:|------------:|
 | 0       | 0.047       |
 | 1       | 0.168       |
 | 2       | 0.285       |

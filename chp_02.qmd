@@ -3,7 +3,7 @@
 > "Our golems rarely have a physical form, but they too are often made of clay living in silicon as computer code." - Richard McElreath
 
 
-Now that we have a very basic understanding of probability theory and Bayesian statistics, we are going to learn how to build probabilistic models using computational tools. Specifically, we are going to learn about probabilistic programming with PyMC. The basic idea is that we use code to specify statistical models and then PyMC will solve those models for us. We will not need to write Bayes' theorem in explicit form. This is a good strategy for two reasons. First, many models do not lead to an analytic closed form, and thus we can only solve those models using numerical techniques.  Second, modern Bayesian statistics is mainly done by writing code. We will be able to see that probabilistic programming offers an effective way to build and solve complex models and allows us to focus more on model design, evaluation, and interpretation, and less on mathematical or computational details. In this chapter, we will cover the following topics:  
+Now that we have a very basic understanding of probability theory and Bayesian statistics, we are going to learn how to build probabilistic models using computational tools. Specifically, we are going to learn about probabilistic programming with PyMC. The basic idea is that we use code to specify statistical models and then PyMC will solve those models for us. We will not need to write Bayes' theorem in explicit form. This is a good strategy for two reasons. First, many models do not lead to an analytic closed form, and thus we can only solve those models using numerical techniques.  Second, modern Bayesian statistics is mainly done by writing code. We will be able to see that probabilistic programming offers an effective way to build and solve complex models and allows us to focus more on model design, evaluation, and interpretation, and less on mathematical or computational details. In this chapter, we will cover the following topics:
 
 * Probabilistic programming
 * A PyMC primer
@@ -15,7 +15,7 @@ Now that we have a very basic understanding of probability theory and Bayesian s
 
 ## Probabilistic programming
 
-Bayesian statistics is conceptually very simple; we have the *knows* and the *unknowns*; we use Bayes' theorem to condition the latter on the former. If we are lucky, this process will reduce the uncertainty about the *unknowns*. Generally, we refer to the *knowns* as **data** and treat it like a constant, and the *unknowns* as parameters and treat them as *random variables*. Although conceptually simple, fully probabilistic models often lead to analytically intractable expressions. For many years, this was a real problem and was one of the main issues that hindered the wide adoption of Bayesian methods. The arrival of the computational era and the development of numerical methods that, at least in principle, can be used to solve any inference problem, have dramatically transformed the Bayesian data analysis practice. We can think of these numerical methods as *universal inference engines*. The possibility of automating the inference process has led to the development of probabilistic programming languages (PPLs), which allows for a clear separation between model creation and inference. In the PPL framework, users specify a full probabilistic model by writing a few lines of code, and then inference follows automatically. It is expected that probabilistic programming will have a major impact on data science and other disciplines by enabling practitioners to build complex probabilistic models in a less time-consuming and less error-prone way. I think one good analogy for the impact that programming languages can have on scientific computing is the introduction of the Fortran programming language more than six decades ago. While nowadays Fortran has lost its shine [^fortran], at one time, it was considered to be very revolutionary. For the first time, scientists moved away from computational details and began focusing on building numerical methods, models, and simulations more naturally. 
+Bayesian statistics is conceptually very simple; we have the *knows* and the *unknowns*; we use Bayes' theorem to condition the latter on the former. If we are lucky, this process will reduce the uncertainty about the *unknowns*. Generally, we refer to the *knowns* as **data** and treat it like a constant, and the *unknowns* as parameters and treat them as *random variables*. Although conceptually simple, fully probabilistic models often lead to analytically intractable expressions. For many years, this was a real problem and was one of the main issues that hindered the wide adoption of Bayesian methods. The arrival of the computational era and the development of numerical methods that, at least in principle, can be used to solve any inference problem, have dramatically transformed the Bayesian data analysis practice. We can think of these numerical methods as *universal inference engines*. The possibility of automating the inference process has led to the development of probabilistic programming languages (PPLs), which allows for a clear separation between model creation and inference. In the PPL framework, users specify a full probabilistic model by writing a few lines of code, and then inference follows automatically. It is expected that probabilistic programming will have a major impact on data science and other disciplines by enabling practitioners to build complex probabilistic models in a less time-consuming and less error-prone way. I think one good analogy for the impact that programming languages can have on scientific computing is the introduction of the Fortran programming language more than six decades ago. While nowadays Fortran has lost its shine [^fortran], at one time, it was considered to be very revolutionary. For the first time, scientists moved away from computational details and began focusing on building numerical methods, models, and simulations more naturally.
 
 [^fortran]: Some folks are working on making Fortran cool again <https://fortran-lang.org/en/>
 
@@ -100,9 +100,9 @@ ArviZ provides several other plots to help interpret the posterior, and we will 
 az.summary(idata, kind="stats").round(2)
 ```
 
-|   |   mean |   sd |   hdi_3% |   hdi_97% |
-|---|--------|------|----------|-----------|
-|θ	|  0.34  | 0.18 |	   0.03|       0.66|
+|          |   mean |   sd |  hdi_3% |  hdi_97% |
+|:--------:|-------:|-----:|-------- |----------|
+| $\theta$ |  0.34  | 0.18 |  0.03   |  0.66    |
 
 
 The first column is the name of the variable, the second column is the mean of the posterior, the third column is the standard deviation of the posterior, and the last two columns are the lower and upper boundaries of the 94% highest density interval. Thus, according to our model and data, we think the value of $\theta$ is likely to be 0.34 with a 94% probability that it is actually between 0.03 and 0.66. We can report a similar summary using the standard deviation. The advantage of the standard deviation over the HDI is that it is a more popular statistic. As a disadvantage, we have to be more careful interpreting it, otherwise, it can lead to meaningless results. For example, if we compute the mean $\pm$ 2 standard deviation we will get the intervals (-0.02, 0.7) the upper value is not that far from 0.66, which we got from the HDI, but the lower bound is actually outside the possible values of $\theta$, which is between 0 and 1.
@@ -153,7 +153,7 @@ Strictly speaking, the chance of observing exactly 0.5 (that is, with infinite t
 
 If we choose the ROPE to match the support of a parameter, like [0, 1] for the coin-flipping example, we will always say we have a fair coin. Notice that we do not need to collect data to perform any type of inference.
 
-The choice of ROPE is completely arbitrary we can choose any value we want. Of course, some choices are not very useful. If for the coin-flipping example, we choose the ROPE to be [0, 1], then we will always say the coin is fair. Even more, we don't need to collect data or perform any analysis to reach this conclusion. Of course, this is a trivial example. More worrisome is to pick the ROPE after performing the analysis. This is problematic because we can accommodate the results to say whatever we want them to say, again why do we even bother to do an analysis, if we are going to accomodate the result to our expectations? The ROPE should be informed from domain knowledge. 
+The choice of ROPE is completely arbitrary we can choose any value we want. Of course, some choices are not very useful. If for the coin-flipping example, we choose the ROPE to be [0, 1], then we will always say the coin is fair. Even more, we don't need to collect data or perform any analysis to reach this conclusion. Of course, this is a trivial example. More worrisome is to pick the ROPE after performing the analysis. This is problematic because we can accommodate the results to say whatever we want them to say, again why do we even bother to do an analysis, if we are going to accomodate the result to our expectations? The ROPE should be informed from domain knowledge.
 
 We can use the plot_posterior function to plot the posterior with the HDI interval and the ROPE. The ROPE appears as a semi-transparent thick (gray) line:
 
@@ -199,11 +199,11 @@ for lossf, c in zip([lossf_a, lossf_b], ['C0', 'C1']):
 
 As we can see, the result looks somewhat similar for the absolute (black) and quadratic (gray) loss functions. What is interesting from this result is that the first value is equal to the median of the posterior and the last value is equal to the mean of the posterior. You can check this for yourself by computing `np.mean(θ_pos)`, `np.median(θ_pos)`. This is no coincidence, different loss functions are related to different point estimates. The mean is the point estimates that minimizes the quadratic loss, the median the absolute loss, the mode de 1-0 loss.
 
-If we want to be formal and we want to compute a single-point estimate, we must decide which loss function we want. Conversely, if we choose one point estimate, we are implicitly (and maybe unconsciously) assuming a loss function. 
+If we want to be formal and we want to compute a single-point estimate, we must decide which loss function we want. Conversely, if we choose one point estimate, we are implicitly (and maybe unconsciously) assuming a loss function.
 
-The advantage of explicitly choosing a loss function is that we can tailor the function to our problem, instead of using a predefined rule. It is very common to observe that the cost of making a decision is asymmetric; for example, vaccines can cost overreaction of the immune system or other problems but the benefit to the vaccinated persons and even non-vaccinated persons overcomes the risk usually by many orders of magnitude. Thus, if our problem demands it, we can construct an asymmetric loss function. 
+The advantage of explicitly choosing a loss function is that we can tailor the function to our problem, instead of using a predefined rule. It is very common to observe that the cost of making a decision is asymmetric; for example, vaccines can cost overreaction of the immune system or other problems but the benefit to the vaccinated persons and even non-vaccinated persons overcomes the risk usually by many orders of magnitude. Thus, if our problem demands it, we can construct an asymmetric loss function.
 
-It is also important to notice that, as the posterior is in the form of numerical samples, we can compute complex loss functions that don't need to be restricted by mathematical convenience or mere simplicity. The following code, and @fig-idata_loss2 generated from it, is just a silly example of this:
+It is also important to notice that, as the posterior is in the form of numerical samples, we can compute complex loss functions that don't need to be restricted by mathematical convenience or mere simplicity. The following code, and @fig-idata_loss2 generated from is just a silly example of this:
 
 ```python
 lossf = []
@@ -221,17 +221,17 @@ for i in grid:
 ## Gaussians all the way down
 
  We introduced the main Bayesian notions using the beta-binomial model mainly because of its simplicity. Another very simple model is the Gaussian or normal model. Gaussians are very appealing from a mathematical point of view because working with them is easy; for example, we know that the conjugate prior of the Gaussian mean is the Gaussian itself. Besides, many phenomena can be nicely approximated using Gaussians; essentially, almost every time that we measure the average of something, using a *big enough* sample size, that average will be distributed as a Gaussian. The details of when this is true, when this is not true, and when this is more or less true, are elaborated in the **central limit theorem** (CLT); you may want to stop reading now and search about this really *central* statistical concept (very bad pun intended).
- 
- Well, we were saying that many phenomena are indeed averages. Just to follow a cliché, the height (and almost any other trait of a person, for that matter) is the result of many environmental factors and many genetic factors, and hence we get a nice Gaussian distribution for the height of adult people. Well, indeed we get a mixture of two Gaussians, which is the result of overlapping the distribution of heights of women and men, but you get the idea. In summary, Gaussians are easy to work with and they are abundant in natural phenomena, and hence many of the statistical methods you may already know, assume normality. Thus, it is important to learn how to build these models, and then it is also equally important to learn how to relax the normality assumptions, something surprisingly easy in a Bayesian framework and with modern computational tools such as PyMC. 
- 
- 
+
+ Well, we were saying that many phenomena are indeed averages. Just to follow a cliché, the height (and almost any other trait of a person, for that matter) is the result of many environmental factors and many genetic factors, and hence we get a nice Gaussian distribution for the height of adult people. Well, indeed we get a mixture of two Gaussians, which is the result of overlapping the distribution of heights of women and men, but you get the idea. In summary, Gaussians are easy to work with and they are abundant in natural phenomena, and hence many of the statistical methods you may already know, assume normality. Thus, it is important to learn how to build these models, and then it is also equally important to learn how to relax the normality assumptions, something surprisingly easy in a Bayesian framework and with modern computational tools such as PyMC.
+
+
  ### Gaussian inferences
- 
- 
+
+
  **Nuclear magnetic resonance** (NMR) is a powerful technique used to study molecules and also living things such as humans, sunflowers and yeast (because, after all, *we are just a bunch of molecules*). NMR allows you to measure different kinds of observable quantities that are related to unobservable and interesting molecular properties. One of these observables is known as **chemical shift**; we can only get chemical shifts for the nuclei of certain types of atoms. The details belong to quantum chemistry and are irrelevant to this discussion. For all we care at the moment, we could have been measuring the height of a group of people, the average time to travel back home, the weight of bags of oranges, or the number of sexual partners of Bonobos. Even when this last example the variable is discrete it may be a good approximation because our cousins are very promiscuous. For this example, we have 48 chemical shift values Represented in a boxplot in @fig-boxplot, we can see that the median (the line inside the box) is around 53 and the interquartile range (the box) is around  52 and 55. We can see that there are two values far away from the rest of the data (empty circles).
 
  ![Boxplot of the 48 chemical shift values. We observed two values above 60, far away from the rest of the data](/fig/boxplot.png){#fig-boxplot width="80%"}
- 
+
 
 Let's forget about those two points for a moment and assume that a Gaussian distribution is a good description of the data. Since we do not know the mean or the standard deviation, we must set priors for both of them. Therefore, a reasonable model could be:
 
@@ -266,26 +266,75 @@ Let's see what the posterior looks like, @fig-idata_g_trace was generated with t
 ![Posterior from `model_g` ploted using `az.plot_pair(idata_g, kind='kde', marginals=True)`](/fig/idata_g_pair.png){#fig-idata_g_pair width="80%"}
 
 
-<!-- ::: callout-note
-Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
+We are going to print the summary for later use, we use the code:
+
+```python
+az.summary(idata_g, kind="stats").round(2)
+```
+
+And we get the following table as output:
+
+|          |   mean |   sd |   hdi_3% |   hdi_97% |
+|:--------:|-------:|-----:|---------:|----------:|
+| $\mu$	   |  53.50 | 0.52 |  52.51   | 54.44     |
+| $\sigma$ |   3.52 | 0.38 |   2.86   |  4.25     |
 
 
-
-
-
-
-
-<!--
 ## Posterior predictive checks
 
-One of the nice elements of the Bayesian toolkit is that once we have a posterior $\p(\theta \mid Y)$, it is
+One of the nice elements of the Bayesian toolkit is that once we have a posterior $p(\theta \mid Y)$, it is
 possible to use it to generate predictions, $p(\tilde Y)$. Mathematically this can be done by computing:
 
 $$
 p(\tilde Y \mid Y) = \int p(\tilde Y \mid \theta) p(\theta \mid Y) d\theta
 $$
 
-This is the **posterior predictive distribution**. *Posterior* because we are taking the values of $\theta$ according to the posterior distribution, *Predictitve* because we are computing the distribution of the data, $\tilde Y$, given the observed data, $Y$. Or in other words predictions. And *distribution* because we are not computing a single value, but a distribution of values. 
+This distribution is known as the **posterior predictive distribution**. *Predictive* because it is used to make predictions about future data, and *posterior* because it is computed using the posterior distribution. So we can think of this as the distribution of future data given the observed data and model.
+
+Using PyMC is easy to get posterior predictive samples, we don't need to compute any integral. We just need to call the `sample_posterior_predictive` function, and pass the `InferenceData` object as the first argument. We also need to pass the model object, and we can use the `extend_inferencedata` argument to add the posterior predictive samples to the `InferenceData` object. The code is:
+
+```python
+pm.sample_posterior_predictive(idata_g,
+                              model=model_g,
+                              extend_inferencedata=True)
+```
+
+One common use of the posterior predictive distribution is to perform posterior predictive checks. These are a set of tests that can be used to check if the model is a good fit for the data. We can use the `plot_ppc` function from ArviZ to visualize the posterior predictive distribution and the observed data. The code is:
+
+```python
+az.plot_ppc(idata_g, figsize=(12, 6))
+```
+
+![Posterior predictive check for `model_g` ploted using `az.plot_ppc`](/fig/idata_g_ppc.png){#fig-idata_g_ppc width="80%"}
+
+
+<!-- ::: callout-note
+Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
+
+
+
+## InferenceData
+
+<!-- If you want to get access to the values for any of the parameters stored in a trace object,
+you can index the trace with the name of the parameter in question. As a result, you will get
+a NumPy array. Try doing trace_g['σ'] or az.plot_kde(trace_g['σ']). By the way,
+using Jupyter Notebook/lab, you can get characters such as by writing \sigma in a code
+cell and then hitting the Tab key. -->
+
+
+
+
+<!-- 
+## Posterior predictive checks
+
+One of the nice elements of the Bayesian toolkit is that once we have a posterior $p(\theta \mid Y)$, it is
+possible to use it to generate predictions, $p(\tilde Y)$. Mathematically this can be done by computing:
+
+$$
+p(\tilde Y \mid Y) = \int p(\tilde Y \mid \theta) p(\theta \mid Y) d\theta
+$$
+
+This is the **posterior predictive distribution**. *Posterior* because we are taking the values of $\theta$ according to the posterior distribution, *Predictitve* because we are computing the distribution of the data, $\tilde Y$, given the observed data, $Y$. Or in other words predictions. And *distribution* because we are not computing a single value, but a distribution of values.
 
 In practice, we are not going to directly compute this integral, but we will approximate it by sampling in two steps:
 
