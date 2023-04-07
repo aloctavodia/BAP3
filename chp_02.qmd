@@ -291,7 +291,7 @@ $$
 
 This distribution is known as the **posterior predictive distribution**. *Predictive* because it is used to make predictions about future data, and *posterior* because it is computed using the posterior distribution. So we can think of this as the distribution of future data given the observed data and model.
 
-Using PyMC is easy to get posterior predictive samples, we don't need to compute any integral. We just need to call the `sample_posterior_predictive` function, and pass the `InferenceData` object as the first argument. We also need to pass the model object, and we can use the `extend_inferencedata` argument to add the posterior predictive samples to the `InferenceData` object. The code is:
+Using PyMC is easy to get posterior predictive samples, we don't need to compute any integral. We just need to call the `sample_posterior_predictive` function and pass the `InferenceData` object as the first argument. We also need to pass the model object, and we can use the `extend_inferencedata` argument to add the posterior predictive samples to the `InferenceData` object. The code is:
 
 ```python
 pm.sample_posterior_predictive(idata_g,
@@ -302,14 +302,52 @@ pm.sample_posterior_predictive(idata_g,
 One common use of the posterior predictive distribution is to perform posterior predictive checks. These are a set of tests that can be used to check if the model is a good fit for the data. We can use the `plot_ppc` function from ArviZ to visualize the posterior predictive distribution and the observed data. The code is:
 
 ```python
-az.plot_ppc(idata_g, figsize=(12, 6))
+az.plot_ppc(idata_g, num_pp_samples=100)
 ```
 
 ![Posterior predictive check for `model_g` ploted using `az.plot_ppc`](/fig/idata_g_ppc.png){#fig-idata_g_ppc width="80%"}
 
 
-<!-- ::: callout-note
-Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
+In @fig-idata_g_ppc, the black line is a KDE of the data and the gray lines are KDEs computed from each one of the 100 posterior predictive samples. The gray lines reflect the uncertainty we have about the distribution of the predicted data. The plots look hairy or wonky, this will happen when you have very few data points. By default, the KDEs in ArviZ are estimated within the actual range of the data and assumed to be zero outside. While some could reckon this as a bug, I think it's a feature, since it's reflecting a property of the data instead of over-smoothing it.
+
+From @fig-idata_g_ppc we can see that the mean of the simulated data is slightly displaced to the right and that the variance seems to be larger for the simulated data than for the actual data. The source of this discrepancy can be attributed to the combination of our choice of likelihood and the two observations away from the bulk of the data (the empty dots in @fig-boxplot). How can we interpret this plot? Is the model wrong or right? Can we use it or do we need a different model? Well, it depends. The interpretation of a model and its evaluation and criticism is always context-dependent. Based on my experience with this kind of measurement I would say this model is a reasonable enough representation of the data and a useful one for most of my analysis. Nevertheless, it is important to keep in mind that we could find other models that accommodate better the whole dataset, including the two observations that are far from the bulk of the data. Let's see how we can do that.
+
+## Robust inferences
+
+One objection we may have with `model_g` is that we are assuming a normal distribution, but we have two data points away from the bulk of the data. By using a normal distribution for the likelihood we are indirectly assuming that we are not expecting to see a lot of data points far away from the bulk. @fig-idata_g_ppc shows the result of combining these assumptions with the data. Since the tails of the normal distribution fall quickly as we move away from the mean, the normal distribution (at least an anthropomorphized one) is surprised by seeing those two points and reacts by moving itself toward those points and increasing its standard deviation. We can imagine those points as having an excessive weight determining the parameters of the normal distribution.
+
+So, what can we do? One option is to check for errors in the data, if we retrace our steps we may find an error in the code while cleaning or preprocessing the data, or we can relate the putative anomalous values to the malfunction of the measuring equipment. Unfortunately, this is not always an option, many times the data was collected by others and we don't have a good register of how it was collected, measured or processed. Anyway, inspecting the data before modeling is always a good idea, that's a good practice in general.
+
+Another option is to declare those points outliers and remove them from the data. Two common rules of thumb for identifying outliers in a dataset are:
+
+1. Using the interquartile range (IQR): Any data point that falls below 1.5 times the IQR from the lower quartile, or above 1.5 times the IQR from the upper quartile, is considered an outlier.
+
+2. Using the standard deviation: Any data point that falls below or above $N$ times the standard deviation of the data is considered an outlier. With $N$ usually being 2 or 3. 
+
+However, it's important to note that these rules of thumb are not perfect and may result in discarding valid data points. Like any automatic method, these rules of thumb are not perfect and they may discard valid data points.
+
+From a modeling perspective, instead of blaming the data we can blame the model and change it, as explained in the next section.
+   
+
+## Degrees of normality 
+
+As a general rule, Bayesians prefer to encode assumptions directly into the model by using different priors and likelihoods rather than through ad hoc heuristics such as outlier removal rules.
+
+There is one distribution that looks very similar to a normal distribution, it has three parameters: a location parameter $\mu$, a scale parameter $\sigma$ and a normality parameter $\nu$ [^np]. This distribution's name is Student's T distribution, @fig-student_t shows members of this family. When $\nu= \infty$ the distribution is the Normal distribution, $\mu$ is the mean and $\sigma$ is the standard deviation. When $\nu=1$ we get the Cauchy or Lorentz distribution. $\nu$ can go from 0 to $\infty$, the lower this number the heavier their tails, we can also say the higher the kurtosis, with the kurtosis being the fourth moment as you may remember from the previous chapter. By heavy tails, we mean that it is more probable to find values away from the mean compared to a Normal, or in other words values are not as concentrated around the mean as in a lighter tail distribution like the Normal. For example, 95% of the values from a Student's T($\mu=0, \sigma=1, \nu=1$) are found between -12.7 and 12.7. Instead, for a Normal($\mu=0, \sigma=1, \nu=\infty$), this occurs between -1.96 and 1.96.
+
+![The Student's t-distribution.](/fig/student_t.png){#fig-student_t width=80%}
+
+A very curious feature of the Student's t-distribution is that it has no defined mean when. Of course, in practice, any finite sample from a Student's t-distribution is just a bunch of numbers from which it is always possible to compute an empirical mean. Is the theoretical distribution itself the one without a defined mean. Intuitively, this can be understood as follows: the tails of the distribution
+are so heavy that at any moment we might get a sampled value from almost anywhere from the real line, so if we keep getting numbers, we will never approach a fixed value. Instead, the estimate will keep wandering around. 
+
+
+[^np]: The normality parameter is most commonly known as degrees of freedom. But I preferred Kruschke's suggestion of the normality parameter because it is more descriptive of the parameter's role in the distribution.
+
+
+Similarly, the variance of this distribution is only defined for values of $\nu > 2$. So, be careful that the scale of the Student's t-distribution is not the same as the standard deviation. The scale and the standard deviation become closer and closer as $\nu$ approaches infinity:
+
+
+## A robust model for normal data
 
 
 
@@ -320,6 +358,14 @@ you can index the trace with the name of the parameter in question. As a result,
 a NumPy array. Try doing trace_g['σ'] or az.plot_kde(trace_g['σ']). By the way,
 using Jupyter Notebook/lab, you can get characters such as by writing \sigma in a code
 cell and then hitting the Tab key. -->
+
+
+
+
+
+<!-- ::: callout-note
+Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
+
 
 
 
