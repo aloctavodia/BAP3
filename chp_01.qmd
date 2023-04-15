@@ -152,15 +152,15 @@ Using the frequentist definition of probability we can get the empirical probabi
 
 Empirical distributions are very useful, and we are going to extensively use them. But instead of rolling dice by hand we are going to use advanced computational methods to make the hard work for us, this will not only save us time and boredness by it will allow us to get samples from really complicated distributions effortlessly. But we are getting ahead of ourselves. We know what to focus on theoretical distributions, which are central in statistics among other reasons because they allow the construction of probabilistic models.
 
-As we saw, there is nothing random or mysterious with random variables, they are just a type of mathematical function. The same goes for theoretical probability distributions. I like to compare probability distributions with circles. Because we are all familiar with circles even before we get into school, we are not afraid of them and they don't look mysterious to us. We can define a circle as the geometric space of points on a plane that is equidistant from another point called the center. We can go further and provide a mathematical expression for this definition. In a $x-y$ Cartesian coordinate system, the circle with radius $r$ is the set of all points $(x, y)$ such that
+As we saw, there is nothing random or mysterious with random variables, they are just a type of mathematical function. The same goes for theoretical probability distributions. I like to compare probability distributions with circles. Because we are all familiar with circles even before we get into school, we are not afraid of them and they don't look mysterious to us. We can define a circle as the geometric space of points on a plane that is equidistant from another point called the center. We can define a circle as the geometric space of points on a plane that is equidistant from another point called the center. We can go further and provide a mathematical expression for this definition. If we assume the location of the center is irrelevant, then the circle of radius $r$ can simply be described as the set of all points $(x, y)$ such that:
 
 $$
 x^2 + y^2 = r^2
 $$
 
-We are omitting here the fact that we can move the circle around the coordinate system. We don't care about that.
+From this expression we can see that given the **parameter** $r$ the circle is completely defined. This is all we need to plot it and all we need to compute properties such as the perimeter, which is $2\pi r$. 
 
-Given the **parameter** $r$ the circle is completely defined. It is all that we need to plot it and all that we need to compute properties such as the perimeter, which is $2\pi r$. Because all circles are essentially very similar objects, we can think of them as The Family of Circles, where each member is set apart from the rest precisely by the value of $r$.
+Now notice that all circles looks very similar to each other and than any two circles with the same value of $r$ are essentially the same objects. Thus we can think of The Family of Circles, where each member is set apart from the rest precisely by the value of $r$.
 
 So far, so good, but why are we talking about circles? Because all this can be directly applied to probability distributions. They also have mathematical expressions that define them, and these expressions have parameters, that we can change to define all members of a family of probability distributions. @fig-dice_distribution shows four members of one probability distribution known as beta-binomial.
 

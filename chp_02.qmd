@@ -51,7 +51,7 @@ with pm.Model() as our_first_model:
 
 The first line of the code creates a container for our model. Everything inside the with-block will be automatically added to our_first_model. You can think of this as syntactic sugar to ease model specification as we do not need to manually assign variables to the model. The second line specifies the prior. As you can see, the syntax follows the mathematical notation closely. The third line specifies the likelihood, the syntax is almost the same as for the prior, except that we pass the data using the `observed` argument. The observed values can be passed as a Python list, a tuple, a NumPy array, or a pandas DataFrame. Now, we are finished with the model specification! Pretty neat, right?
 
-We still have one more line of code to explain. The last line is where the magic happens. Behind this innocent line, PyMC has hundreds of oompa loompas singing and baking a delicious Bayesian inference just for you! Well, not exactly, but PyMC is automating a lot of tasks. For the time being, we are going to treat that line as a black box that will give us the correct result. What is important to understand is that under the hood we will be using numerical methods to compute the posterior distribution. In principle, these numerical methods are capable of solving any model we can write. The cost we pay for this generality is that the solution is going to take the form of samples from the posterior. The samples are stored in the `idata` object and we will use the samples to summarize the posterior distribution. Later we will be able to corroborate that these samples come from a Beta distribution, as we learn from the previous chapter. Because the numerical methods are stochastic, the samples will vary every time we run them. However, if the inference process works as expected, the samples will be representative of the posterior distribution and thus we will obtain the same conclusion from any of those samples. The details of what happens under the hood and how to check if the samples are indeed trustworthy will be explained in Chapter 8, Inference Engines.
+We still have one more line of code to explain. The last line is where the magic happens. Behind this innocent line, PyMC has hundreds of *oompa loompas* singing and baking a delicious Bayesian inference just for you! Well, not exactly, but PyMC is automating a lot of tasks. For the time being, we are going to treat that line as a black box that will give us the correct result. What is important to understand is that under the hood we will be using numerical methods to compute the posterior distribution. In principle, these numerical methods are capable of solving any model we can write. The cost we pay for this generality is that the solution is going to take the form of samples from the posterior. The samples are stored in the `idata` object and we will use the samples to summarize the posterior distribution. Later we will be able to corroborate that these samples come from a Beta distribution, as we learn from the previous chapter. Because the numerical methods are stochastic, the samples will vary every time we run them. However, if the inference process works as expected, the samples will be representative of the posterior distribution and thus we will obtain the same conclusion from any of those samples. The details of what happens under the hood and how to check if the samples are indeed trustworthy will be explained in Chapter 8, Inference Engines.
 
 OK, so on the last line, we are asking for 1,000 samples from the posterior. If you run the code, you will get a message like this:
 
@@ -61,7 +61,7 @@ Initializing NUTS using jitter+adapt_diag...
 Multiprocess sampling (4 chains in 4 jobs)
 NUTS: [θ]
 Sampling 4 chains for 1_000 tune and 1_000 draw iterations
-(4_000 + 4_000 draws total) took 1 seconds.
+(4_000 + 4_000 draws total) took 1 second.
 ```
 
 The first and second lines tell us that PyMC has automatically assigned the NUTS sampler (one inference engine that works very well for continuous variables), and has used a method to initialize that sampler (these methods need some initial guess of where to start sampling). The third line says that PyMC will run four chains in parallel, thus we will get four independent samples from the posterior. As PyMC attempt to parallelize these chains across the available processors in your machine, we will get the four for the price of one. The exact number of chains is computed taking into account the number of processors in your machine, you can change it using the `chains` argument for the `sample` function. The next line is telling us which variables are being sampled by which sampler. For this particular case, this line is not adding new information, because NUTS is used to sample the only variable we have $\theta$. However, this is not always the case as PyMC can assign different samplers to different variables. PyMC has rules to ensure that each variable is associated with the best possible sampler. Users can manually assign samplers using the `step` argument of the `sample` function, you will hardly need to do that.
@@ -80,7 +80,7 @@ az.plot_trace(idata)
 ![A trace plot for the posterior of `our_first_model`](/fig/idata_trace.png){#fig-idata_trace}
 
 
-@fig-idata_trace shows the default result when calling `az.plot_trace`, we get two subplots for each unobserved variable. The only unobserved variable in our model is $\theta$. Notice that $y$ is an observed variable representing the data; we do not need to sample that because we already know those values. Thus we only get two subplots. On the left, we have a Kernel Density Estimation (KDE) plot; this is like the smooth version of the histogram. Ideally, we want all chains to have a very similar KDE, like in @fig-idata_trace. On the right, we get the individual values at each sampling step, we got as many lines as chains. Ideally, we want to be something that looks noisy, with no clear pattern, and we should have a hard time identifying one chain from the others. In Chapter 9, Inference Engines we give more details on how to interpret these plots. The gist is that if we ran many samples, like four, and there are practically indistinguishable from each other. The sampler did a good job and we can trust the samples.
+@fig-idata_trace shows the default result when calling `az.plot_trace`, we get two subplots for each unobserved variable. The only unobserved variable in our model is $\theta$. Notice that $y$ is an observed variable representing the data; we do not need to sample that because we already know those values. Thus we only get two subplots. On the left, we have a Kernel Density Estimation (KDE) plot; this is like the smooth version of the histogram. Ideally, we want all chains to have a very similar KDE, like in @fig-idata_trace. On the right, we get the individual values at each sampling step, we got as many lines as chains. Ideally, we want to be something that looks noisy, with no clear pattern, and we should have a hard time identifying one chain from the others. In Chapter 9, Inference Engines we give more details on how to interpret these plots. The gist is that if we ran many samples, like four, there are practically indistinguishable from each other. The sampler did a good job and we can trust the samples.
 
 As with other ArviZ functions `az.plot_trace` has many options. For instance, we can run the function with the `combined` argument set to `True` to get a single KDE plot for all chains and with `kind=rank_bars` to get a **rank plot**
 
@@ -92,7 +92,7 @@ az.plot_trace(idata, kind="rank_bars", combined=True, rank_kwargs={"colors": "k"
 ![A trace plot for the posterior of `our_first_model`, using the options `kind="rank_bars"`, `combined=True`](/fig/idata_rank.png){#fig-idata_rank}
 
 
-A rank plot is another way to check if we can trust the samples, for this plot we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In Chapter 9, Inference Engines, we provide further details on how to interpret rank plots and how they are constructed.
+A rank plot is another way to check if we can trust the samples, for this plot, we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In Chapter 9, Inference Engines, we provide further details on how to interpret rank plots and how they are constructed.
 
 ArviZ provides several other plots to help interpret the posterior, and we will see them in the following pages. We may also want to have a numerical summary of the posterior. We can get that using `az.summary`, which will return a pandas DataFrame:
 
@@ -105,7 +105,7 @@ az.summary(idata, kind="stats").round(2)
 | $\theta$ |  0.34  | 0.18 |  0.03   |  0.66    |
 
 
-The first column is the name of the variable, the second column is the mean of the posterior, the third column is the standard deviation of the posterior, and the last two columns are the lower and upper boundaries of the 94% highest density interval. Thus, according to our model and data, we think the value of $\theta$ is likely to be 0.34 with a 94% probability that it is actually between 0.03 and 0.66. We can report a similar summary using the standard deviation. The advantage of the standard deviation over the HDI is that it is a more popular statistic. As a disadvantage, we have to be more careful interpreting it, otherwise, it can lead to meaningless results. For example, if we compute the mean $\pm$ 2 standard deviation we will get the intervals (-0.02, 0.7) the upper value is not that far from 0.66, which we got from the HDI, but the lower bound is actually outside the possible values of $\theta$, which is between 0 and 1.
+The first column is the name of the variable, the second column is the mean of the posterior, the third column is the standard deviation of the posterior, and the last two columns are the lower and upper boundaries of the 94% highest density interval. Thus, according to our model and data, we think the value of $\theta$ is likely to be 0.34 with a 94% probability that it is actually between 0.03 and 0.66. We can report a similar summary using the standard deviation. The advantage of the standard deviation over the HDI is that it is a more popular statistic. As a disadvantage, we have to be more careful interpreting it, otherwise, it can lead to meaningless results. For example, if we compute the mean $\pm$ 2 standard deviations we will get the intervals (-0.02, 0.7) the upper value is not that far from 0.66, which we got from the HDI, but the lower bound is actually outside the possible values of $\theta$, which is between 0 and 1.
 
 Another way to visually summarize the posterior is to use the `az.plot_posterior` function that comes with ArviZ. We have already used this distribution in the previous chapter for a fake posterior. We are going to use it now for a real posterior. By default, plot_posterior shows a histogram for discrete variables and KDEs for continuous variables. We also get the mean of the distribution (we can ask for the median or mode using the `point_estimate` argument) and the 94% HDI as a black line at the bottom of the plot. Different interval values can be set for the HDI with the credible_interval argument. This type of plot was introduced by John K. Kruschke in his great book Doing Bayesian Data Analysis [@kruschke_2014]:
 
@@ -153,7 +153,7 @@ Strictly speaking, the chance of observing exactly 0.5 (that is, with infinite t
 
 If we choose the ROPE to match the support of a parameter, like [0, 1] for the coin-flipping example, we will always say we have a fair coin. Notice that we do not need to collect data to perform any type of inference.
 
-The choice of ROPE is completely arbitrary we can choose any value we want. Of course, some choices are not very useful. If for the coin-flipping example, we choose the ROPE to be [0, 1], then we will always say the coin is fair. Even more, we don't need to collect data or perform any analysis to reach this conclusion. Of course, this is a trivial example. More worrisome is to pick the ROPE after performing the analysis. This is problematic because we can accommodate the results to say whatever we want them to say, again why do we even bother to do an analysis, if we are going to accomodate the result to our expectations? The ROPE should be informed from domain knowledge.
+The choice of ROPE is completely arbitrary we can choose any value we want. Of course, some choices are not very useful. If for the coin-flipping example, we choose the ROPE to be [0, 1], then we will always say the coin is fair. Even more, we don't need to collect data or perform any analysis to reach this conclusion. Of course, this is a trivial example. More worrisome is to pick the ROPE after performing the analysis. This is problematic because we can accommodate the results to say whatever we want them to say, again why do we even bother to do an analysis, if we are going to accommodate the result to our expectations? The ROPE should be informed from domain knowledge.
 
 We can use the plot_posterior function to plot the posterior with the HDI interval and the ROPE. The ROPE appears as a semi-transparent thick (gray) line:
 
@@ -197,13 +197,13 @@ for lossf, c in zip([lossf_a, lossf_b], ['C0', 'C1']):
 ![The absolute (black) and quadratic (gray) loss functions applied to the posterior from `our_first_model`](/fig/idata_loss.png){/fig/idata_loss width="80%"}
 
 
-As we can see, the result looks somewhat similar for the absolute (black) and quadratic (gray) loss functions. What is interesting from this result is that the first value is equal to the median of the posterior and the last value is equal to the mean of the posterior. You can check this for yourself by computing `np.mean(θ_pos)`, `np.median(θ_pos)`. This is no coincidence, different loss functions are related to different point estimates. The mean is the point estimates that minimizes the quadratic loss, the median the absolute loss, the mode de 1-0 loss.
+As we can see, the result looks somewhat similar for the absolute (black) and quadratic (gray) loss functions. What is interesting from this result is that the first value is equal to the median of the posterior and the last value is equal to the mean of the posterior. You can check this for yourself by computing `np.mean(θ_pos)`, `np.median(θ_pos)`. This is no coincidence, different loss functions are related to different point estimates. The mean is the point estimates that minimizes the quadratic loss, the median, the absolute loss, and the mode, the 1-0 loss.
 
 If we want to be formal and we want to compute a single-point estimate, we must decide which loss function we want. Conversely, if we choose one point estimate, we are implicitly (and maybe unconsciously) assuming a loss function.
 
 The advantage of explicitly choosing a loss function is that we can tailor the function to our problem, instead of using a predefined rule. It is very common to observe that the cost of making a decision is asymmetric; for example, vaccines can cost overreaction of the immune system or other problems but the benefit to the vaccinated persons and even non-vaccinated persons overcomes the risk usually by many orders of magnitude. Thus, if our problem demands it, we can construct an asymmetric loss function.
 
-It is also important to notice that, as the posterior is in the form of numerical samples, we can compute complex loss functions that don't need to be restricted by mathematical convenience or mere simplicity. The following code, and @fig-idata_loss2 generated from is just a silly example of this:
+It is also important to notice that, as the posterior is in the form of numerical samples, we can compute complex loss functions that don't need to be restricted by mathematical convenience or mere simplicity. The following code, and @fig-idata_loss2 generated from it, is just a silly example of this:
 
 ```python
 lossf = []
@@ -220,7 +220,7 @@ for i in grid:
 
 ## Gaussians all the way down
 
- We introduced the main Bayesian notions using the beta-binomial model mainly because of its simplicity. Another very simple model is the Gaussian or normal model. Gaussians are very appealing from a mathematical point of view because working with them is easy; for example, we know that the conjugate prior of the Gaussian mean is the Gaussian itself. Besides, many phenomena can be nicely approximated using Gaussians; essentially, almost every time that we measure the average of something, using a *big enough* sample size, that average will be distributed as a Gaussian. The details of when this is true, when this is not true, and when this is more or less true, are elaborated in the **central limit theorem** (CLT); you may want to stop reading now and search about this really *central* statistical concept (very bad pun intended).
+ We introduced the main Bayesian notions using the beta-binomial model mainly because of its simplicity. Another very simple model is the Gaussian or normal model. Gaussians are very appealing from a mathematical point of view, working with them is relatively easy and many operations applied to Guassians return another Gaussian. Additionally, many natural phenomena can be nicely approximated using Gaussians; essentially, almost every time that we measure the average of something, using a *big enough* sample size, that average will be distributed as a Gaussian. The details of when this is true, when this is not true, and when this is more or less true, are elaborated in the **central limit theorem** (CLT); you may want to stop reading now and search about this really *central* statistical concept (very bad pun intended).
 
  Well, we were saying that many phenomena are indeed averages. Just to follow a cliché, the height (and almost any other trait of a person, for that matter) is the result of many environmental factors and many genetic factors, and hence we get a nice Gaussian distribution for the height of adult people. Well, indeed we get a mixture of two Gaussians, which is the result of overlapping the distribution of heights of women and men, but you get the idea. In summary, Gaussians are easy to work with and they are abundant in natural phenomena, and hence many of the statistical methods you may already know, assume normality. Thus, it is important to learn how to build these models, and then it is also equally important to learn how to relax the normality assumptions, something surprisingly easy in a Bayesian framework and with modern computational tools such as PyMC.
 
@@ -228,7 +228,7 @@ for i in grid:
  ### Gaussian inferences
 
 
- **Nuclear magnetic resonance** (NMR) is a powerful technique used to study molecules and also living things such as humans, sunflowers and yeast (because, after all, *we are just a bunch of molecules*). NMR allows you to measure different kinds of observable quantities that are related to unobservable and interesting molecular properties. One of these observables is known as **chemical shift**; we can only get chemical shifts for the nuclei of certain types of atoms. The details belong to quantum chemistry and are irrelevant to this discussion. For all we care at the moment, we could have been measuring the height of a group of people, the average time to travel back home, the weight of bags of oranges, or the number of sexual partners of Bonobos. Even when this last example the variable is discrete it may be a good approximation because our cousins are very promiscuous. For this example, we have 48 chemical shift values Represented in a boxplot in @fig-boxplot, we can see that the median (the line inside the box) is around 53 and the interquartile range (the box) is around  52 and 55. We can see that there are two values far away from the rest of the data (empty circles).
+ **Nuclear magnetic resonance** (NMR) is a powerful technique used to study molecules and also living things such as humans, sunflowers and yeast (because, after all, *we are just a bunch of molecules*). NMR allows you to measure different kinds of observable quantities that are related to unobservable and interesting molecular properties. One of these observables is known as **chemical shift**; we can only get chemical shifts for the nuclei of certain types of atoms. The details belong to quantum chemistry and are irrelevant to this discussion. For all we care at the moment, we could have been measuring the height of a group of people, the average time to travel back home, the weight of bags of oranges, or the number of sexual partners of Bonobos. Even when this last example the variable is discrete it may be a good approximation because our cousins are very promiscuous. For this example, we have 48 chemical shift values Represented in a boxplot in @fig-boxplot, we can see that the median (the line inside the box) is around 53 and the interquartile range (the box) is around 52 and 55. We can see that there are two values far away from the rest of the data (empty circles).
 
  ![Boxplot of the 48 chemical shift values. We observed two values above 60, far away from the rest of the data](/fig/boxplot.png){#fig-boxplot width="80%"}
 
@@ -245,6 +245,10 @@ $$
 
 
 where $\mathcal{U}(l, h)$ is the uniform distribution between $l$ and $h$, $\text{HalfNormal}(\sigma_{\sigma})$ is the half-normal distribution with standard deviation $\sigma_{\sigma}$, and $\mathcal{N}(\mu, \sigma)$ is the Gaussian distribution with mean $\mu$ and standard deviation $\sigma$. A half-Normal distribution is similar to a Normal distribution but restricted to positive values (including zero).
+
+@fig-model_g_graph shows the graphical representation of this model.
+
+![Graphical representation of `model_g`](/fig/model_g_graph.png){#fig-model_g_graph width="30%"}
 
 If we do not know the possible values of $\mu$ and $\sigma$, we can set priors reflecting our ignorance. One option is to set the boundaries of the uniform distribution to be $l=40$, $h=75$, which is a range larger than the range of the data. Alternatively, we can choose a range based on our previous knowledge. For instance, we may know that this is not physically possible to have values below 0 or above 100 for this type of measurement. And thus use those values as the boundaries of the uniform distribution. For the HalfNormal, and in the absence of more information, we can choose a large value compared to the scale of the data. Using PyMC, we can write the model as follows:
 
@@ -337,8 +341,7 @@ There is one distribution that looks very similar to a normal distribution, it h
 
 ![The Student's t-distribution.](/fig/student_t.png){#fig-student_t width=80%}
 
-A very curious feature of the Student's t-distribution is that it has no defined mean when. Of course, in practice, any finite sample from a Student's t-distribution is just a bunch of numbers from which it is always possible to compute an empirical mean. Is the theoretical distribution itself the one without a defined mean. Intuitively, this can be understood as follows: the tails of the distribution
-are so heavy that at any moment we might get a sampled value from almost anywhere from the real line, so if we keep getting numbers, we will never approach a fixed value. Instead, the estimate will keep wandering around. 
+A very curious feature of the Student's t-distribution is that it has no defined mean value when $\nu \le 1$. Of course, any finite sample from a Student's t-distribution is just a bunch of numbers from which it is always possible to compute an empirical mean. The theoretical distribution itself is the one without a defined value for the mean. Intuitively, this can be understood as follows: the tails of the distribution are so heavy that at any moment we might get a sampled value from almost anywhere from the real line, so if we keep getting numbers, we will never approach a fixed value. Instead, the estimate will keep wandering around. 
 
 
 [^np]: The normality parameter is most commonly known as degrees of freedom. But I preferred Kruschke's suggestion of the normality parameter because it is more descriptive of the parameter's role in the distribution.
@@ -349,19 +352,123 @@ Similarly, the variance of this distribution is only defined for values of $\nu 
 
 ## A robust model for normal data
 
+We are going to rewrite the previous model (`model_g`) by replacing the Gaussian distribution with the Student's t-distribution:
+
+
+$$
+\begin{aligned}
+\mu &\sim \mathcal{U}(l, h) \\
+\sigma &\sim \text{HalfNormal}(\sigma_{\sigma}) \\
+\nu &\sim \text{Exp}(\lambda) \\
+Y &\sim \mathcal{T}(\nu, \mu, \sigma)
+\end{aligned}
+$$
+
+Because the Student's t-distribution has one more parameter ($\nu$) than the Gaussian, we need to specify one more prior. We are going to set $\nu$ as an exponential distribution with a mean of 30. From Figure 2.12, we can see that a Student's t-distribution with $\nu = 30$ looks pretty similar to a Gaussian (even when it is not). In fact, from the same diagram, we can see that *most of the action* happens for relatively small values of $\nu$. Hence, we can say that the exponential prior with a mean of 30 is a weakly informative prior telling the model we more or less think should be around 30, but can move to smaller and larger values with ease. In many problems, estimating $\nu$ is of not direct interest.
+
+@fig-model_t_graph shows the graphical representation of this model.
+
+![Graphical representation of `model_t`](/fig/model_g_graph.png){#fig-model_t_graph width="30%"}
+
+
+As usual, PyMC allows us to (re)write models just by specifying a few lines. The only cautionary word here is that the exponential in PyMC is parameterized with the inverse of the mean:
+
+```python
+with pm.Model() as model_t:
+    μ = pm.Uniform('μ', 40, 75)
+    σ = pm.HalfNormal('σ', sigma=10)
+    ν = pm.Exponential('ν', 1/30)
+    y = pm.StudentT('y', nu=ν, mu=μ, sigma=σ, observed=data)
+    idata_t = pm.sample()
+```
+
+Compare the trace from `model_g` (@fig-idata_g_trace) with the trace of `model_t` (@fig-idata_t_trace). Now, print the summary of `model_t` and compare it with the one from `model_g`. Before you keep reading, take a moment to spot the difference between both results. Did you notice something interesting?
+
+![Posterior from `model_t` ploted using `az.plot_trace(idata_t)`](/fig/idata_t_trace.png){#fig-idata_t_trace}
+
+And we get the following table as output:
+
+|          |   mean |   sd |   hdi_3% |   hdi_97% |
+|:--------:|-------:|-----:|---------:|----------:|
+| $\mu$	   |  53.02 | 0.39 |  52.27   | 53.71     |
+| $\sigma$ |   2.21 | 0.42 |   1.46   |  3.01     |
+| $\nu$    |   4.94 | 5.45 |   1.07   | 10.10     |
+
+<!-- 
+|          |   mean |   sd |   hdi_3% |   hdi_97% |
+|:--------:|-------:|-----:|---------:|----------:|
+| $\mu$	   |  53.50 | 0.52 |  52.51   | 54.44     |
+| $\sigma$ |   3.52 | 0.38 |   2.86   |  4.25     | -->
+
+
+
+The estimation of $\mu$ between both models is similar, with a difference of $\approx0.5$. The estimation of $\sigma$ is $\approx 3.5$ for `model_g` and $\approx 2.2$ for `model_t`. This is a consequence of the Student's t-distribution allocating less weight to values away from the mean. Loosely speaking, the Student's t-distribution is *less surprised* by values away from the mean. We can also see that the mean of $\nu$ is $\approx 5$, meaning that we have heavy-tailed distribution and not Gaussian-like distribution.
+
+@fig-idata_t_ppc shows a posterior predictive check for `model_t`. Let's compare it with the one form `model_g` (@fig-idata_g_ppc). Using the Student's t-distribution in our model leads to predictive samples that seem to better fit the data in terms of the location of the peak of the distribution and also its spread. Notice how the samples extend far away from the bulk of the data, and how a few of the predictive samples look very flat. This is a direct consequence of the Student's t-distribution expecting to see data points far away from the mean or bulk of the data. If you check the code used to generate @fig-idata_t_ppc you will see that we have used `ax.set_xlim(40, 70)`.
+
+
+![Posterior predictive check for `model_t`](/fig/idata_t_ppc.png){#fig-idata_t_ppc width="80%"}
+
+The Student's t-distribution allows us to have a more **robust estimation** of the mean and standard deviation, because the outliers have the effect of decreasing $\nu$, instead of pulling the mean or increasing the standard deviation. Thus, the mean and the scale are estimated by weighting the data points close to the bulk more than those apart from it.  As a rule of thumb, for values of $\nu > 2$ and *not too small*, we can consider the scale of a Student's t-distribution as a reasonable practical proxy for the standard deviation of the data after removing outliers. This is a rule of thumb because we know that the scale is not the standard deviation
 
 
 ## InferenceData
 
-<!-- If you want to get access to the values for any of the parameters stored in a trace object,
-you can index the trace with the name of the parameter in question. As a result, you will get
-a NumPy array. Try doing trace_g['σ'] or az.plot_kde(trace_g['σ']). By the way,
-using Jupyter Notebook/lab, you can get characters such as by writing \sigma in a code
-cell and then hitting the Tab key. -->
+InferenData is a rich container for the results of Bayesian inference. A modern Bayesian analysis potentially generates many sets of data for instance posterior samples, and posterior predictive samples. But we also have observed data, samples from the prior and even statistics generated by the sampler. All this data, and more, can be stored in an InferenceData object. To help keep all this information organized each one of these sets of data has it own group. For instance, the posterior samples are stored in the `posterior` group. The observed data is stored in the `observed_data` group. @fig-idata shows and HMTL representation of the inferencedata for `model_g`. We can see 4 groups `posterior`, `posterior_predictce`, `sample_stats` and `observed_data`. All of them are collapsed except for `posterior`. We can see we have two coordinates `chain` and `draw` of dimensions 4 and 1000 respectively. We also have 2 variables $\mu$ and $\sigma$  
+
+![InferenceData object for `model_g`](/fig/idata.png){#fig-idata width="80%"}
 
 
+So far PyMC has generated an InferenceData object and ArviZ has used that to generate plots or numerical summaries. But we can also manipulate an InferenceData object. Some common operations are to access specific groups, for instance, to access the posterior group we can write:
+
+```python
+posterior = idata_g.posterior
+```
+
+This will return a xarray Dataset. If you are not familiar with xarray [@xarray_2017] [^xarray], imagine NumPy multidimensional arrays but with labels! This makes many operations easier as you don't have to remember the order of the dimensions. For example
+
+```python
+posterior.sel(draw=0, chain=[0, 2])
+```
+
+Will return the first draws of chain 0 and 2. We can also use the `sel` method to select a range of values. For example
+
+```python
+posterior.sel(draw=slice(0, 100))
+```
+
+returns the first 100 draws from all chains
+
+```python
+posterior.mean()
+```
+
+returns the mean for $\mu$ and $\sigma$ computed over all draws and chains, while
+
+```python
+posterior.mean("draw")
+```
+
+returns the mean over the draws, i.e. this returns four values for $\mu$ and four values for $\sigma$, one per chain.
+
+More often than not we don't care about chains and draws, we just want to get the posterior samples. In those cases we can use the `az.extract` function:
+
+```python
+stacked = az.extract(idata_g)
+```
+
+This combines the `chain` and `draw` into a `sample` coordinate which can make further operations easier. By default `az.extract` works on the posterior, but you can specify other groups with the `group` argument. You can also use `az.extract` to get a random sample of the posterior:
+
+```python
+az.extract(idata_g, num_samples=100)
+```
+
+We are going to use InferenceData object all the time in this book, so you will have the time to get familiar with it and learn more about it. For now, we will just move to the next topic.
 
 
+[^xarray]: <https://docs.xarray.dev/en/stable/>
+
+## Groups comparison
 
 <!-- ::: callout-note
 Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
