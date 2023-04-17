@@ -126,7 +126,8 @@ Sometimes, describing the posterior is not enough. Sometimes, we need to make de
 One way to evaluate how much support the posterior provides for a given value is to compare the ratio of the posterior and prior densities at that value. This is called the Savage-Dickey density ratio and we can compute it with ArviZ using the `az.plot_bf` function
 
 ```python
-az.plot_bf(idata, var_name="θ", prior=np.random.uniform(0, 1, 10000), ref_val=0.5);
+az.plot_bf(idata, var_name="θ",
+           prior=np.random.uniform(0, 1, 10000), ref_val=0.5);
 ```
 
 ![The plot shows the prior and posterior for `our_first_model` the black dots represent their values evaluated at the reference value 0.5](/fig/idata_bf.png){#fig-idata_bf width="80%"}
@@ -169,7 +170,7 @@ Another tool we can use to help us make a decision is to compare the posterior a
 az.plot_posterior(idata, ref_val=0.5)
 ```
 
-![The plot shows the posterior distribution of $\theta$ and the 94% HDI. The reference value is shown as a gray vertical line. ](/fig/idata_posterior_ref.png){#fig-idata_posterior_ref width="80%"}
+![The plot shows the posterior distribution of $\theta$ and the 94% HDI. The reference value is shown as a gray vertical line.](/fig/idata_posterior_ref.png){#fig-idata_posterior_ref width="80%"}
 
 For a more detailed discussion on the use of the ROPE you could read Chapter 12 Doing Bayesian Data Analysis by John Kruschke [@kruschke_2014]. That chapter also discusses how to perform hypothesis testing in a Bayesian framework and the caveats of hypothesis testing, whether in a Bayesian or non-Bayesian setting.
 
@@ -193,8 +194,7 @@ for lossf, c in zip([lossf_a, lossf_b], ['C0', 'C1']):
     ...
 ```
 
-
-![The absolute (black) and quadratic (gray) loss functions applied to the posterior from `our_first_model`](/fig/idata_loss.png){/fig/idata_loss width="80%"}
+![The absolute (black) and quadratic (gray) loss functions applied to the posterior from `our_first_model`](/fig/idata_loss.png){#fig-idata_loss width="80%"}
 
 
 As we can see, the result looks somewhat similar for the absolute (black) and quadratic (gray) loss functions. What is interesting from this result is that the first value is equal to the median of the posterior and the last value is equal to the mean of the posterior. You can check this for yourself by computing `np.mean(θ_pos)`, `np.median(θ_pos)`. This is no coincidence, different loss functions are related to different point estimates. The mean is the point estimates that minimizes the quadratic loss, the median, the absolute loss, and the mode, the 1-0 loss.
@@ -364,7 +364,7 @@ Y &\sim \mathcal{T}(\nu, \mu, \sigma)
 \end{aligned}
 $$
 
-Because the Student's t-distribution has one more parameter ($\nu$) than the Gaussian, we need to specify one more prior. We are going to set $\nu$ as an exponential distribution with a mean of 30. From Figure 2.12, we can see that a Student's t-distribution with $\nu = 30$ looks pretty similar to a Gaussian (even when it is not). In fact, from the same diagram, we can see that *most of the action* happens for relatively small values of $\nu$. Hence, we can say that the exponential prior with a mean of 30 is a weakly informative prior telling the model we more or less think should be around 30, but can move to smaller and larger values with ease. In many problems, estimating $\nu$ is of not direct interest.
+Because the Student's t-distribution has one more parameter ($\nu$) than the Gaussian, we need to specify one more prior. We are going to set $\nu$ as an exponential distribution with a mean of 30. From Figure 2.12, we can see that a Student's t-distribution with $\nu = 30$ looks pretty similar to a Gaussian (even when it is not). In fact, from the same diagram, we can see that *most of the action* happens for relatively small values of $\nu$. Hence, we can say that the exponential prior with a mean of 30 is a weakly informative prior telling the model we more or less think should be around 30 but can move to smaller and larger values with ease. In many problems, estimating $\nu$ is of no direct interest.
 
 @fig-model_t_graph shows the graphical representation of this model.
 
@@ -394,12 +394,6 @@ And we get the following table as output:
 | $\sigma$ |   2.21 | 0.42 |   1.46   |  3.01     |
 | $\nu$    |   4.94 | 5.45 |   1.07   | 10.10     |
 
-<!-- 
-|          |   mean |   sd |   hdi_3% |   hdi_97% |
-|:--------:|-------:|-----:|---------:|----------:|
-| $\mu$	   |  53.50 | 0.52 |  52.51   | 54.44     |
-| $\sigma$ |   3.52 | 0.38 |   2.86   |  4.25     | -->
-
 
 
 The estimation of $\mu$ between both models is similar, with a difference of $\approx0.5$. The estimation of $\sigma$ is $\approx 3.5$ for `model_g` and $\approx 2.2$ for `model_t`. This is a consequence of the Student's t-distribution allocating less weight to values away from the mean. Loosely speaking, the Student's t-distribution is *less surprised* by values away from the mean. We can also see that the mean of $\nu$ is $\approx 5$, meaning that we have heavy-tailed distribution and not Gaussian-like distribution.
@@ -414,9 +408,9 @@ The Student's t-distribution allows us to have a more **robust estimation** of t
 
 ## InferenceData
 
-InferenData is a rich container for the results of Bayesian inference. A modern Bayesian analysis potentially generates many sets of data for instance posterior samples, and posterior predictive samples. But we also have observed data, samples from the prior and even statistics generated by the sampler. All this data, and more, can be stored in an InferenceData object. To help keep all this information organized each one of these sets of data has it own group. For instance, the posterior samples are stored in the `posterior` group. The observed data is stored in the `observed_data` group. @fig-idata shows and HMTL representation of the inferencedata for `model_g`. We can see 4 groups `posterior`, `posterior_predictce`, `sample_stats` and `observed_data`. All of them are collapsed except for `posterior`. We can see we have two coordinates `chain` and `draw` of dimensions 4 and 1000 respectively. We also have 2 variables $\mu$ and $\sigma$  
+InferenData is a rich container for the results of Bayesian inference. A modern Bayesian analysis potentially generates many sets of data for instance posterior samples, and posterior predictive samples. But we also have observed data, samples from the prior and even statistics generated by the sampler. All this data, and more, can be stored in an InferenceData object. To help keep all this information organized each one of these sets of data has its group. For instance, the posterior samples are stored in the `posterior` group. The observed data is stored in the `observed_data` group. @fig-idata shows an HMTL representation of the InferenceData for `model_g`. We can see 4 groups `posterior`, `posterior_predictce`, `sample_stats` and `observed_data`. All of them are collapsed except for `posterior`. We can see we have two coordinates `chain` and `draw` of dimensions 4 and 1000 respectively. We also have 2 variables $\mu$ and $\sigma$  
 
-![InferenceData object for `model_g`](/fig/idata.png){#fig-idata width="80%"}
+![InferenceData object for `model_g`](/fig/idata.png){#fig-idata}
 
 
 So far PyMC has generated an InferenceData object and ArviZ has used that to generate plots or numerical summaries. But we can also manipulate an InferenceData object. Some common operations are to access specific groups, for instance, to access the posterior group we can write:
@@ -431,7 +425,7 @@ This will return a xarray Dataset. If you are not familiar with xarray [@xarray_
 posterior.sel(draw=0, chain=[0, 2])
 ```
 
-Will return the first draws of chain 0 and 2. We can also use the `sel` method to select a range of values. For example
+Will return the first draw from chain 0 and chain 2. We can also use the `sel` method to select a range of values. For example
 
 ```python
 posterior.sel(draw=slice(0, 100))
@@ -469,6 +463,189 @@ We are going to use InferenceData object all the time in this book, so you will 
 [^xarray]: <https://docs.xarray.dev/en/stable/>
 
 ## Groups comparison
+
+One pretty common statistical analysis is group comparison. We may be interested in how well patients respond to a certain drug, the reduction of car accidents by the introduction of new traffic regulations, student performance under different teaching approaches, and so on. Sometimes, this type of question is framed under the hypothesis testing scenario and the goal is to declare a result *statistically significant*. Relying only on statistical significance can be problematic for many reasons: on the one hand, statistical significance is not equivalent to practical significance; on the other hand, a really small effect can be declared significant just by collecting enough data. The idea of hypothesis testing is connected to the concept of p-values. This is not a fundamental connection but a cultural one; people are used to thinking that way mostly because that's what they learn in most introductory statistical courses. There is a long record of studies and essays showing that, more often than not, p-values are used and interpreted the wrong way, even by people who are using them daily. Instead of doing hypothesis testing, we are going to take a different route and we are going to focus on estimating the effect size, that is, quantifying the difference between two groups. One advantage of thinking in terms of effect size is that we move away from the yes-no questions like; Does it work? or Is there any effect? into the more nuanced type of question like; How well does it work? How large is the effect?
+
+
+Sometimes, when comparing groups, people talk about a control group and a treatment group. For example, when we want to test a new drug, we want to compare the new drug (the treatment) against a placebo (the control group). The placebo effect is a psychological phenomenon where a patient experiences perceived improvements in their symptoms or condition after receiving an inactive substance or treatment. By comparing the effects of the drug with a placebo group in clinical trials, researchers can discern whether the drug is genuinely effective. The placebo effect is an example of the broader challenge in experimental design and statistical analysis of the difficulty of accounting for all factors in an experiment. 
+
+One interesting alternative to this design is to compare the new drug with the commercially available most popular or efficient drug to treat that illness. In such a case, the control group cannot be a placebo; it should be the other drug. Bogus control groups are a splendid way to lie using statistics.
+
+For example, imagine you work for a dairy product company that wants to sell overly sugared yogurts to kids by telling their dads and moms that this particular yogurt boosts the immune system or helps their kids grow stronger. One way to cheat with data is by using milk or even water as a control group, instead of another cheaper, less sugary, less marketed yogurt. It may sound silly when I put it this way, but I am describing actual experiments published in actual scientific journals. When someone says something is harder, better, faster, or stronger, remember to ask what the baseline used for the comparison was.
+
+
+### The tips dataset
+
+To explore the subject matter of this section, we are going to use the tips dataset [@bryant_1995].  We want to study the effect of the day of the week on the tips earned at a restaurant. For this example, the different groups are the days. Notice there is no control group or treatment group. If we wish, we can arbitrarily establish one day, for example, Thursday, as the reference or control. For now, let's start the analysis by loading the dataset as a pandas DataFrame using just one line of code. If you are not familiar with pandas, the tail  command is used to show the last rows of a DataFrame (you can also try using head):
+
+```python
+tips = pd.read_csv("data/tips.csv")
+tips.tail()
+```
+
+|     | total_bill | tip | sex | smoker | day | time | size |
+|-----|------------|-----|-----|--------|-----|------|------|
+| 239 | 29.03 | 5.92 | Male | No | Sat | Dinner | 3 |
+| 240 | 27.18 | 2.00 | Female | Yes | Sat | Dinner | 2 |
+| 241 | 22.67 | 2.00 | Male | Yes | Sat | Dinner | 2 |
+| 242 | 17.82 | 1.75 | Male | No | Sat | Dinner | 2 |
+| 243 | 18.78 | 3.00 | Female | No | Thurs | Dinner | 2 |
+
+
+From this DataFrame, we are only going to use the day and tip columns.@fig-tips_ridgeplot shows the distributions of this data using ridge plots. This figure was done with ArviZ. Even though ArviZ is designed for Bayesian model analysis, some of its functions can be useful for data analysis.
+
+
+![Distribution of tips by day)`](/fig/tips_ridgeplot.png){#fig-tips_ridgeplot.png}
+
+We are going to some small preprocessing to the data. First, we are going to create the variable `tip` representing the tips in dollars. Then we create the `idx` variable, a categorical dummy variable encoding the days with numbers,  that is, `[0, 1, 2, 3]` instead of `['Thur', 'Fri', 'Sat', 'Sun']`.
+
+```python
+categories = np.array(["Thur", "Fri", "Sat", "Sun"])
+
+tip = tips["tip"].values
+idx = pd.Categorical(tips["day"], categories=categories).codes
+```
+
+The model for this problem is almost the same as `model_g`; the only difference is that now $\u$ and $\sigma$ are going to be vectors instead of scalars. PyMC syntax is extremely helpful for this situation: instead of writing for loops, we can write our model in a vectorized way.
+
+```python
+    with pm.Model() as comparing_groups:
+        μ = pm.Normal("μ", mu=0, sigma=10, shape=4)
+        σ = pm.HalfNormal("σ", sigma=10, shape=4)
+
+        y = pm.Normal("y", mu=μ[idx], sigma=σ[idx], observed=tip)
+```
+
+Notice how we passed a `shape` argument for the prior distribution. For $\mu$ this means that we are specifying four independent $\mathcal{N}(0, 10)$ and for $\sigma$ four independent $\mathbfcal{HN}(10)$. Also, notice how we use the `idx` variable to properly index the values of $\mu$ and $\sigma$ we pass to the likelihood.
+
+PyMC provides an alternative syntax, which consists of specifying coordinates and dimensions. The advantage of this alternative is that it allows better integration with ArviZ.
+
+Let's see, in this example, we have 4 values for the means and 4 for the standard deviations, and that's why we use `shape=4`. The InferenceData will have 4 indices `0, 1, 2, 3` mapping to each of the 4 days. But it is the user's job to associate those numerical indices with the days. By using coordinates and dimensions we, and ArviZ, can use the labels `"Thur", "Fri", "Sat", "Sun"` to easily maps parameters to their associated days.
+
+We are going to specify two coordinates, `"days"` with the dimensions `"Thur", "Fri", "Sat", "Sun"` and `"days_flat"` that will contain the same labels but repeated according to the order and length that corresponds to each observation. `"days_flat"` will be useful later, for posterior predictive tests.
+
+```python
+coords = {"days": categories, "days_flat":categories[idx]}
+
+with pm.Model(coords=coords) as comparing_groups:
+    μ = pm.HalfNormal("μ", sigma=5, dims="days")
+    σ = pm.HalfNormal("σ", sigma=1, dims="days")
+
+    y = pm.Gamma("y", mu=μ[idx], sigma=σ[idx], observed=tip, dims="days_flat")
+
+    idata_cg = pm.sample()
+    idata_cg.extend(pm.sample_posterior_predictive(idata_cg))
+```
+
+
+Once the posterior distribution is computed, we can do all the analyzes that we believe are pertinent. Let's do a posterior predictive test, by calling `az.plot_ppc`, we use the `coords` and `flatten` parameters to get one subplot per day.
+
+```python
+_, axes = plt.subplots(2, 2)
+az.plot_ppc(idata_cg, num_pp_samples=100, coords={"days_flat":[categories]}, flatten=[], ax=axes);
+```
+
+
+![Posterior predictive checks for the tips dataset](/fig/ppc_tips.png){#fig-ppc_tips}
+
+From @fig-ppc_tips we can see that the model can capture the general shape of the distributions, still, some details are elusive. This may be due to the relatively small sample size, factors other than day influencing the tips, or a combination of both. 
+
+
+For now, we are going to consider that the model is good enough for us and move to explore the posterior. @fig-tips_posterior is quite informative, for instance, we see that the average values of tips are a few cents and that for Sundays the value is slightly higher than for the rest of the days analyzed. But perhaps we consider that it may be better to display the data in another way. For example, we may want to express the results in terms of differences of posterior means. In addition, we might want to use some measure of effect size that is popular with our audiences, such as the probability of superiority or Cohen's d.
+
+
+### Cohen's d
+
+A common way to measure the effect size is Cohen's d, which is defined as follows:
+$$
+\frac{\mu_2 - \mu_1}{\sqrt{\frac{\sigma_1^2 + \sigma_2^2}{2}}}
+$$
+
+Because we have a posterior distribution we can compute a distribution of Cohen's d, and if we want a single value we can compute the mean or median of that distribution. 
+
+This expression tells us that the effect size is the difference between the means scaled by the pooled standard deviation of both groups. By taking the pooled standard deviation we are standardizing the differences of means by considering the pooled standard deviation, this is important as a difference of 1 when you have a standard deviation of 0.1 is larger that the same difference when the standard deviation is 10. A Cohen's d can be interpreted as a Z-score (a standard score). A Z-score is the signed number of standard deviations by which a value differs from the mean value of what is being observed or measured. Thus, a Cohen's d of 0.5 could be interpreted as a difference of 0.5 standard deviations of one group with respect to the other.
+
+Even when the differences of means are standardized, we may still need to calibrate ourselves based on the context of a given problem to be able to say if a given value is big, small, medium, and so on. For instance, if we are used to performing several analyses for the same or similar problems we can get used to a Cohen's d of say 1, so when we get a Cohen's d of say 2, we know we have something important (or someone made a mistake somewhere!). If you do not have this practice yet, you can ask a domain expert for their valuable input. A very nice web page to explore what different values of Cohen's d look like is <http://rpsychologist.com/d3/cohend>. On that page, you will also find other ways to express an effect size; some of them could be more intuitive, such as the probability of superiority, which we will discuss next.
+
+### Probability of superiority
+
+This is another way to report the effect size, and this is defined as the probability that a data point taken at random from one group has a larger value than one also taken at random from the other group. If we assume that the data we are using is distributed as a normal, we can compute the probability of superiority from Cohen's d using the following expression:
+
+$$
+\text{ps} = \Phi \left( \frac{\delta}{\sqrt{2}} \right)
+$$
+
+where $\Phi$ is the cumulative normal distribution and $\delta$ is the Cohen's d. 
+
+If we are OK with the normality assumption, we can use this formula to get the probability of superiority from the value of Cohen's d. Otherwise, we can compute the probability of superiority directly from the posterior samples just by taking random samples from two groups and counting how many times one value is larger than the other. To do that we don't need Cohen's d or assume normality (see the Exercises section). This is an example of an advantage of using Markov chain Monte Carlo (MCMC) methods; once we get samples from the posterior, we can compute many quantities from it often in ways that are easier than with other methods.
+
+### Posterior analysis of mean differences
+
+Let's wrap up all the previous discussion by computing the posterior distributions of the differences of means, the Cohends d and the probability of superiority and put all of that into a single plot. @fig-tips_posterior has a lot of information. Depending on the audience, the plot may be overloaded, or too crowded. Perhaps it is useful for a discussion within your team, but for the general public, it may be convenient to remove elements or distribute the information between a figure and a table or two figures. Anyway, here we show it precisely so you can compare different ways of presenting the same information, so take some time to ponder this figure. 
+
+![Posterior distributions of the differences of means, Cohen's d and the probability of superiority for the tips dataset](/fig/tips_posterior.png){#fig-tips_posterior}
+
+
+One way to read @fig-tips_posterior is by comparing the reference value, of zero difference, with the HDI interval. We have only one case when the 94% HDI excludes the reference value, that is, the difference in tips between Thursday and Sunday. For all the other comparisons, we cannot rule out a difference of zero, at least according to the HDI-reference-value-overlap criteria. But even for that case, the average difference is $\approx 0.5$ dollars. Is that difference large enough? Is that difference enough to accept working on Sunday and missing the opportunity to spend time with family or friends? Is that difference enough to justify averaging the tips over the four days and giving every waitress and waiter the same amount of tip money? The short answer is that those kinds of questions cannot be answered by statistics; they can only be informed by statistics. I hope you don't feel cheated by that answer, but we can not get automatic answers unless we include in the analysis all the values that are important to the stakeholders. Formally, that requires the definition of a loss function or at least the definition of some threshold value for the effect size, which should be informed by those values.
+
+
+
+
+## Exercises
+
+
+<!-- 
+0. tell about model graphviz and ask them to use it to see the model
+0. Do some InferenceData operation
+0. Do some plotting operation
+
+
+1. Using PyMC3, change the parameters of the prior beta distribution
+in our_first_model to match those of the previous chapter. Compare the
+results to the previous chapter. Replace the beta distribution with a uniform one
+in the interval [0,1]. Are the results equivalent to the
+? Is the
+sampling slower, faster, or the same? What about using a larger interval such as
+[-1, 2]? Does the model run? What errors do you get?
+2. Read about the coal mining disaster model that is part of the PyMC3
+documentation: http:/​/​pymc-​devs.​github.​io/​pymc3/​notebooks/​getting_
+started.​html#Case-​study-​2:-​Coal-​mining-​disasters. Try to implement and
+run this model by yourself.
+3. Modify model_g, change the prior for the mean to a Gaussian distribution
+centered at the empirical mean, and play with a couple of reasonable values for
+the standard deviation of this prior. How robust/sensitive are the inferences to
+these changes? What do you think of using a Gaussian, which is an unbounded
+distribution (goes from -∞ to ∞), to model bounded data such as this? Remember
+that we said it is not possible to get values below 0 or above 100.
+4. Using the data in the chemical_shifts.csv file, compute the empirical mean
+and the standard deviation with and without outliers. Compare those results to
+the Bayesian estimation using the Gaussian and Student's t-distribution. Repeat
+the exercise by adding more outliers.
+5. Modify the tips example to make it robust to outliers. Try with one shared for
+all groups and also with one per group. Run posterior predictive checks to
+assess these three models.
+6. Compute the probability of superiority directly from the posterior (without
+computing Cohen's d first). You can use the
+pm.sample_posterior_predictive() function to take a sample from each
+group. Is it really different from the calculation assuming normality? Can you
+explain the result?
+7. Repeat the exercise we did with model_h. This time, without hierarchical
+structure, use a flat prior such as
+. Compare the results of both
+models.
+8. Create a hierarchical version of the tips example by partially pooling across the
+days of the week. Compare the results to those obtained without the hierarchical
+structure.
+9. PyMC3 can create directed acyclic graphs (DAGs) from models that are very
+similar to Kruschke's diagrams. You can obtain them using the
+pm.model_to_graphviz() function. Generate a DAG for each model in this
+chapter. -->
+
+
+
+
+
+
 
 <!-- ::: callout-note
 Two important things to note. See that we use the name $\theta$ twice, first as a Python variable and then as a string for the first argument of the Beta function (and the same goes for $y$); using the same name is a good practice to avoid confusion. The $\theta$ variable is a random variable; it is not a number, but an object representing a probability distribution from which we can compute random numbers and probability densities. -->
