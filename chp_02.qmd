@@ -1,4 +1,4 @@
-# Programming Probabilistically
+# Programming Probabilistically {#chp-programming_probabilistically}
 
 > "Our golems rarely have a physical form, but they too are often made of clay living in silicon as computer code." - Richard McElreath
 
@@ -20,7 +20,7 @@ Bayesian statistics is conceptually very simple; we have the *knows* and the *un
 
 ## Flipping coins the PyMC way
 
-Let's revisit the coin-flipping problem from Chapter 1, Thinking Probabilistically, but this time using PyMC. We will use the same synthetic data we used in that chapter. Since we are generating the data, we know the true value of $\theta$, called `theta_real`, in the following block of code. Of course, for a real dataset, we will not have this knowledge:
+Let's revisit the coin-flipping problem from @chp-thinking_probabilistically, Thinking Probabilistically, but this time using PyMC. We will use the same synthetic data we used in that chapter. Since we are generating the data, we know the true value of $\theta$, called `theta_real`, in the following block of code. Of course, for a real dataset, we will not have this knowledge:
 
 ```python
 np.random.seed(123)
@@ -50,11 +50,11 @@ with pm.Model() as our_first_model:
 
 The first line of the code creates a container for our model. Everything inside the with-block will be automatically added to our_first_model. You can think of this as syntactic sugar to ease model specification as we do not need to manually assign variables to the model. The second line specifies the prior. As you can see, the syntax follows the mathematical notation closely. The third line specifies the likelihood, the syntax is almost the same as for the prior, except that we pass the data using the `observed` argument. The observed values can be passed as a Python list, a tuple, a NumPy array, or a pandas DataFrame. Now, we are finished with the model specification! Pretty neat, right?
 
-We still have one more line of code to explain. The last line is where the magic happens. Behind this innocent line, PyMC has hundreds of *oompa loompas* singing and baking a delicious Bayesian inference just for you! Well, not exactly, but PyMC is automating a lot of tasks. For the time being, we are going to treat that line as a black box that will give us the correct result. What is important to understand is that under the hood we will be using numerical methods to compute the posterior distribution. In principle, these numerical methods are capable of solving any model we can write. The cost we pay for this generality is that the solution is going to take the form of samples from the posterior. The samples are stored in the `idata` object and we will use the samples to summarize the posterior distribution. Later we will be able to corroborate that these samples come from a Beta distribution, as we learn from the previous chapter. Because the numerical methods are stochastic, the samples will vary every time we run them. However, if the inference process works as expected, the samples will be representative of the posterior distribution and thus we will obtain the same conclusion from any of those samples. The details of what happens under the hood and how to check if the samples are indeed trustworthy will be explained in Chapter 8, Inference Engines.
+We still have one more line of code to explain. The last line is where the magic happens. Behind this innocent line, PyMC has hundreds of *oompa loompas* singing and baking a delicious Bayesian inference just for you! Well, not exactly, but PyMC is automating a lot of tasks. For the time being, we are going to treat that line as a black box that will give us the correct result. What is important to understand is that under the hood we will be using numerical methods to compute the posterior distribution. In principle, these numerical methods are capable of solving any model we can write. The cost we pay for this generality is that the solution is going to take the form of samples from the posterior. The samples are stored in the `idata` object and we will use the samples to summarize the posterior distribution. Later we will be able to corroborate that these samples come from a Beta distribution, as we learn from the previous chapter. Because the numerical methods are stochastic, the samples will vary every time we run them. However, if the inference process works as expected, the samples will be representative of the posterior distribution and thus we will obtain the same conclusion from any of those samples. The details of what happens under the hood and how to check if the samples are indeed trustworthy will be explained in @chp-inference_engines.
 
 OK, so on the last line, we are asking for 1,000 samples from the posterior. If you run the code, you will get a message like this:
 
-```
+```text
 Auto-assigning NUTS sampler...
 Initializing NUTS using jitter+adapt_diag...
 Multiprocess sampling (4 chains in 4 jobs)
@@ -79,7 +79,7 @@ az.plot_trace(idata)
 ![A trace plot for the posterior of `our_first_model`](/fig/idata_trace.png){#fig-idata_trace}
 
 
-@fig-idata_trace shows the default result when calling `az.plot_trace`, we get two subplots for each unobserved variable. The only unobserved variable in our model is $\theta$. Notice that $y$ is an observed variable representing the data; we do not need to sample that because we already know those values. Thus we only get two subplots. On the left, we have a Kernel Density Estimation (KDE) plot; this is like the smooth version of the histogram. Ideally, we want all chains to have a very similar KDE, like in @fig-idata_trace. On the right, we get the individual values at each sampling step, we got as many lines as chains. Ideally, we want to be something that looks noisy, with no clear pattern, and we should have a hard time identifying one chain from the others. In Chapter 9, Inference Engines we give more details on how to interpret these plots. The gist is that if we ran many samples, like four, there are practically indistinguishable from each other. The sampler did a good job and we can trust the samples.
+@fig-idata_trace shows the default result when calling `az.plot_trace`, we get two subplots for each unobserved variable. The only unobserved variable in our model is $\theta$. Notice that $y$ is an observed variable representing the data; we do not need to sample that because we already know those values. Thus we only get two subplots. On the left, we have a Kernel Density Estimation (KDE) plot; this is like the smooth version of the histogram. Ideally, we want all chains to have a very similar KDE, like in @fig-idata_trace. On the right, we get the individual values at each sampling step, we got as many lines as chains. Ideally, we want to be something that looks noisy, with no clear pattern, and we should have a hard time identifying one chain from the others. In @chp-inference_engines we give more details on how to interpret these plots. The gist is that if we ran many samples, like four, there are practically indistinguishable from each other. The sampler did a good job and we can trust the samples.
 
 As with other ArviZ functions `az.plot_trace` has many options. For instance, we can run the function with the `combined` argument set to `True` to get a single KDE plot for all chains and with `kind=rank_bars` to get a **rank plot**
 
@@ -91,7 +91,7 @@ az.plot_trace(idata, kind="rank_bars", combined=True, rank_kwargs={"colors": "k"
 ![A trace plot for the posterior of `our_first_model`, using the options `kind="rank_bars"`, `combined=True`](/fig/idata_rank.png){#fig-idata_rank}
 
 
-A rank plot is another way to check if we can trust the samples, for this plot, we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In Chapter 9, Inference Engines, we provide further details on how to interpret rank plots and how they are constructed.
+A rank plot is another way to check if we can trust the samples, for this plot, we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In @chp-inferece_engines, we provide further details on how to interpret rank plots and how they are constructed.
 
 ArviZ provides several other plots to help interpret the posterior, and we will see them in the following pages. We may also want to have a numerical summary of the posterior. We can get that using `az.summary`, which will return a pandas DataFrame:
 
@@ -112,7 +112,7 @@ Another way to visually summarize the posterior is to use the `az.plot_posterior
 az.plot_posterior(idata)
 ```
 
-![The plot shows the posterior distribution of $\theta$ and the 94% HDI. ](/fig/idata_posterior.png){#fig-idata_posterior}
+![The plot shows the posterior distribution of $\theta$ and the 94% HDI.](/fig/idata_posterior.png){#fig-idata_posterior}
 
 
 ## Posterior-based decisions
@@ -141,7 +141,7 @@ From @fig-idata_bf we can see that the value of BF_01 is 1.3, which means that t
 | 10 to 100    | Strong         |
 | > 100 	   | Decisive       |
 
-The Savage-Dickey density ratio is a particular way to compute what is called Bayes Factor. We will learn more about Bayes Factors, and their caveats, in Chapter 5, Model Comparison.
+The Savage-Dickey density ratio is a particular way to compute what is called Bayes Factor. We will learn more about Bayes Factors, and their caveats, in @chp-model_comparison.
 
 ### Region of Practical Equivalence
 
@@ -245,9 +245,9 @@ $$
 
 where $\mathcal{U}(l, h)$ is the uniform distribution between $l$ and $h$, $\text{HalfNormal}(\sigma_{\sigma})$ is the half-normal distribution with standard deviation $\sigma_{\sigma}$, and $\mathcal{N}(\mu, \sigma)$ is the Gaussian distribution with mean $\mu$ and standard deviation $\sigma$. A half-Normal distribution is similar to a Normal distribution but restricted to positive values (including zero).
 
-@fig-model_g_graph shows the graphical representation of this model.
+@fig-model_g_dag shows the graphical representation of this model.
 
-![Graphical representation of `model_g`](/fig/model_g_graph.png){#fig-model_g_graph width="30%"}
+![Graphical representation of `model_g`](/fig/model_g_dag.png){#fig-model_g_dag width="30%"}
 
 If we do not know the possible values of $\mu$ and $\sigma$, we can set priors reflecting our ignorance. One option is to set the boundaries of the uniform distribution to be $l=40$, $h=75$, which is a range larger than the range of the data. Alternatively, we can choose a range based on our previous knowledge. For instance, we may know that this is not physically possible to have values below 0 or above 100 for this type of measurement. And thus use those values as the boundaries of the uniform distribution. For the HalfNormal, and in the absence of more information, we can choose a large value compared to the scale of the data. Using PyMC, we can write the model as follows:
 
@@ -365,9 +365,9 @@ $$
 
 Because the Student's t-distribution has one more parameter ($\nu$) than the Gaussian, we need to specify one more prior. We are going to set $\nu$ as an exponential distribution with a mean of 30. From Figure 2.12, we can see that a Student's t-distribution with $\nu = 30$ looks pretty similar to a Gaussian (even when it is not). In fact, from the same diagram, we can see that *most of the action* happens for relatively small values of $\nu$. Hence, we can say that the exponential prior with a mean of 30 is a weakly informative prior telling the model we more or less think should be around 30 but can move to smaller and larger values with ease. In many problems, estimating $\nu$ is of no direct interest.
 
-@fig-model_t_graph shows the graphical representation of this model.
+@fig-model_t_dag shows the graphical representation of this model.
 
-![Graphical representation of `model_t`](/fig/model_g_graph.png){#fig-model_t_graph width="30%"}
+![Graphical representation of `model_t`](/fig/model_g_dag.png){#fig-model_t_dag width="30%"}
 
 
 As usual, PyMC allows us to (re)write models just by specifying a few lines. The only cautionary word here is that the exponential in PyMC is parameterized with the inverse of the mean:
@@ -496,7 +496,7 @@ From this DataFrame, we are only going to use the day and tip columns.@fig-tips_
 
 ![Distribution of tips by day)`](/fig/tips_ridgeplot.png){#fig-tips_ridgeplot.png}
 
-We are going to some small preprocessing to the data. First, we are going to create the variable `tip` representing the tips in dollars. Then we create the `idx` variable, a categorical dummy variable encoding the days with numbers,  that is, `[0, 1, 2, 3]` instead of `['Thur', 'Fri', 'Sat', 'Sun']`.
+We are going to do some small preprocessing of the data. First, we are going to create the variable `tip` representing the tips in dollars. Then we create the `idx` variable, a categorical dummy variable encoding the days with numbers,  that is, `[0, 1, 2, 3]` instead of `['Thur', 'Fri', 'Sat', 'Sun']`.
 
 ```python
 categories = np.array(["Thur", "Fri", "Sat", "Sun"])
@@ -548,7 +548,7 @@ az.plot_ppc(idata_cg, num_pp_samples=100,
 
 From @fig-ppc_tips we can see that the model can capture the general shape of the distributions, still, some details are elusive. This may be due to the relatively small sample size, factors other than day influencing the tips, or a combination of both. 
 
-For now, we are going to consider that the model is good enough for us and move to explore the posterior. @fig-tips_posterior is quite informative, for instance, we see that the average values of tips are a few cents and that for Sundays the value is slightly higher than for the rest of the days analyzed. But perhaps we consider that it may be better to display the data in another way. For example, we may want to express the results in terms of differences of posterior means. In addition, we might want to use some measure of effect size that is popular with our audiences, such as the probability of superiority or Cohen's d.
+For now, we are going to consider that the model is good enough for us and move to explore the posterior. @fig-tips_posterior is quite informative, for instance, we see that the average values of tips are a few cents and that for Sundays the value is slightly higher than for the rest of the days analyzed. But perhaps we consider that it may be better to display the data in another way. For example, we may want to express the results in terms of differences in posterior means. In addition, we might want to use some measure of effect size that is popular with our audiences, such as the probability of superiority or Cohen's d.
 
 ### Cohen's d
 
@@ -559,13 +559,13 @@ $$
 
 Because we have a posterior distribution we can compute a distribution of Cohen's d, and if we want a single value we can compute the mean or median of that distribution. 
 
-This expression tells us that the effect size is the difference between the means scaled by the pooled standard deviation of both groups. By taking the pooled standard deviation we are standardizing the differences of means by considering the pooled standard deviation, this is important as a difference of 1 when you have a standard deviation of 0.1 is larger that the same difference when the standard deviation is 10. A Cohen's d can be interpreted as a Z-score (a standard score). A Z-score is the signed number of standard deviations by which a value differs from the mean value of what is being observed or measured. Thus, a Cohen's d of 0.5 could be interpreted as a difference of 0.5 standard deviations of one group with respect to the other.
+This expression tells us that the effect size is the difference between the means scaled by the pooled standard deviation of both groups. By taking the pooled standard deviation we are standardizing the differences of means by considering the pooled standard deviation, this is important as a difference of 1 when you have a standard deviation of 0.1 is larger that the same difference when the standard deviation is 10. A Cohen's d can be interpreted as a Z-score (a standard score). A Z-score is the signed number of standard deviations by which a value differs from the mean value of what is being observed or measured. Thus, a value of 0.5 Cohen's d could be interpreted as a difference of 0.5 standard deviations from one group to the other.
 
 Even when the differences of means are standardized, we may still need to calibrate ourselves based on the context of a given problem to be able to say if a given value is big, small, medium, and so on. For instance, if we are used to performing several analyses for the same or similar problems we can get used to a Cohen's d of say 1, so when we get a Cohen's d of say 2, we know we have something important (or someone made a mistake somewhere!). If you do not have this practice yet, you can ask a domain expert for their valuable input. A very nice web page to explore what different values of Cohen's d look like is <http://rpsychologist.com/d3/cohend>. On that page, you will also find other ways to express an effect size; some of them could be more intuitive, such as the probability of superiority, which we will discuss next.
 
 ### Probability of superiority
 
-This is another way to report the effect size, and this is defined as the probability that a data point taken at random from one group has a larger value than one also taken at random from the other group. If we assume that the data we are using is distributed as a normal, we can compute the probability of superiority from Cohen's d using the following expression:
+This is another way to report the effect size, and this is defined as the probability that a data point taken at random from one group has a larger value than one also taken at random from the other group. If we assume that the data we are using is normally distributed, we can compute the probability of superiority from Cohen's d using the following expression:
 
 $$
 \text{ps} = \Phi \left( \frac{\delta}{\sqrt{2}} \right)

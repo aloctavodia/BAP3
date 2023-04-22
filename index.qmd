@@ -4,13 +4,13 @@ Bayesian statistics has been developing for more than 250 years. During this tim
 
 In this book, our focus will be on a practical approach to Bayesian statistics and we will not delve into discussions about the frequentist approach or its connection to Bayesian statistics. This decision is made to maintain a clear and concise focus on the subject matter. If you are interested in that perspective Doing Bayesian Data Analysis may be the book for you [@kruschke_2014]. This book aims to be a practical guide to Bayesian data analysis; philosophical discussions are interesting, but they have already been undertaken elsewhere in a richer way which is simply outside the scope of these pages [see for example @clayton_2021].
 We will take a modeling approach to statistics, learn how to think in terms of probabilistic models and apply Bayes' theorem to derive the logical consequences of our models and
-data. The approach will also be computational; models will be coded using PyMC and Bambi. These are libraries for Bayesian statistics that hide most of the mathematical details and computations from the user. We will then use ArviZ, a Python package for exploratory analysis of Bayesian models. We will also be assisted by other libraries in the Python ecosystem, including PreliZ for prior elicitation, Kulprit for variable selection, PyMC-BART for flexible regression. And of course, we will also use common tools from the standard Python Data stack, like NumPy, matplotlib, Pandas etc.
+data. The approach will also be computational; models will be coded using PyMC and Bambi. These are libraries for Bayesian statistics that hide most of the mathematical details and computations from the user. We will then use ArviZ, a Python package for exploratory analysis of Bayesian models. We will also be assisted by other libraries in the Python ecosystem, including PreliZ for prior elicitation, Kulprit for variable selection, PyMC-BART for flexible regression. And of course, we will also use common tools from the standard Python Data stack, like NumPy, matplotlib, Pandas, etc.
 
 Bayesian methods are theoretically grounded in probability theory, and so it's no wonder that many books about Bayesian statistics are full of mathematical formulas requiring a certain level of mathematical sophistication. Learning the mathematical foundations of statistics will certainly help you build better models and gain intuition about problems, models, and results. Nevertheless, libraries such as PyMC allow us to learn and do Bayesian statistics with only a modest amount of mathematical knowledge, as you will be able to verify yourself throughout this book.
 
 ## Who this book is for
 
-If you are a student, data scientist, a researcher in the natural or social sciences, or developer looking to get started with Bayesian data analysis and probabilistic programming, this book is for you. The book is introductory, so no previous statistical knowledge is required. Although the book assumes you have experience with Python or familiarity with libraries like NumPy, matplotlib is expected.
+If you are a student, data scientist, a researcher in the natural or social sciences, or developer looking to get started with Bayesian data analysis and probabilistic programming, this book is for you. The book is introductory, so no previous statistical knowledge is required. Although the book assumes you have experience with Python and familiarity with libraries like NumPy and matplotlib.
 
 
 ## What this book covers
@@ -37,7 +37,7 @@ If you are a student, data scientist, a researcher in the natural or social scie
 
 ## To get the most out of this book
 
-The code in the book was written using Python version 3.10. To install Python and Python libraries, I recommend using Anaconda, a scientific computing distribution. You can read more about Anaconda and download it at <https://www.anaconda.com/products/distribution>​. This will install many useful Python packages on your system. You will need to install some packages. To install the necessary package please use:
+The code in the book was written using Python version 3.10. To install Python and Python libraries, I recommend using Anaconda, a scientific computing distribution. You can read more about Anaconda and download it at <https://www.anaconda.com/products/distribution>​. This will install many useful Python packages on your system. You will need to install some packages. To do it please use:
 
 ```
 conda install -c conda-forge pymc=x.x arviz=x.x bambi=x.x pymc-bart=x.x kulprit=x.x
@@ -49,7 +49,7 @@ or if you prefer to use pip:
 pip install pymc==x.x arviz==x.x bambi==x.x pymc-bart==x.x kulprit==x.x
 ```
 
-An alternative way to install the necessary packages, once Anaconda is installed in your system, is to go to <https://github.com/aloctavodia/BAP3> and download the environment file named bap3.yml. Using it, you can install all the necessary packages by doing the following:
+An alternative way to install the necessary packages, once Anaconda is installed in your system, is to go to <https://github.com/aloctavodia/BAP3> and download the environment file named bap3.yml. With it, you can install all the necessary packages using the following command:
 
 
 
@@ -71,7 +71,7 @@ The Python packages used to write this book are listed here:
 
 
 The code presented in each chapter assumes that you have imported at least some of these packages. Instead of copying and pasting the code from the book, I recommend downloading the code from <https://github.com/aloctavodia/BAP3> and running it using Jupyter Notebook (or Jupyter Lab). I will keep this repository updated for new releases of PyMC or ArviZ. If you find a technical problem running the code in this book, a typo in the text, or any other mistake, please fill in the issue in that repository and I will try to solve it as soon as possible.
-Most figures in this book are generated using code, but not the code is not always shown in the book. A common pattern you will find in this book is the following: a block of code immediately followed by a figure (generated from
+Most figures in this book are generated using code, but the code is not always shown in the book. A common pattern you will find in this book is the following: a block of code immediately followed by a figure (generated from
 that code). I hope this pattern will look familiar to those of you using Jupyter Notebook/Lab, and I hope it does not appear annoying or confusing to anyone.
 
 
@@ -82,10 +82,10 @@ There are several text conventions used throughout this book.
 
 A block of code is set as follows:
 
-```Python
+```python
 μ = 0.
 σ = 1.
-X = stats.norm(μ, σ)
+X = pz.Normal(μ, σ)
 x = X.rvs(3)
 ```
 

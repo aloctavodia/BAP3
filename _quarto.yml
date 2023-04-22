@@ -5,12 +5,12 @@ book:
   title: "Bayesian Analysis with Python"
   subtitle: "An introduction to probabilistic modeling"
   author: "Osvaldo Martin"
-  date: "16/03/2023"
   chapters:
     - index.qmd
-    # - chp_01.qmd
+    - chp_01.qmd
     - chp_02.qmd
-    - references.qmd
+    - chp_03.qmd
+    #- references.qmd
 
 bibliography: references.bib
 
@@ -21,9 +21,10 @@ format:
   pdf:
     toc: true
     documentclass: scrreprt
-    include-in-header: 
-      text: |
-        \usepackage{epsdice}
+    include-in-header: preamble.tex
+    code-block-bg: "#f5f5f5"
+    monofont: Roboto
   epub:
     cover-image: cover.png
     toc: true
+    
