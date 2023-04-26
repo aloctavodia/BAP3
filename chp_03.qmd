@@ -21,7 +21,7 @@ Suppose we want to compare a theoretical method to compute chemical shifts again
 Let's take a moment to think about which option is the best. If we combine all the data our estimates are going to be more accurate, but we will not be able to get information from individual groups (amino acids). On the contrary, if we treat them as separate groups we will be losing accuracy. What we should do?
 
 
-When in doubt, everything![^all], well kind of. We can do something better, we can fit a model that allows estimates at the group level, but assuming they all belong to a larger group or population. So, how do we build a hierarchical model? Well, in a nutshell, instead of fixing the parameters of our priors to some constant numbers, we estimate them directly from the data by placing shared priors over them. These higher-level priors are often called hyper- priors, and their parameters hyperparameters; hyper means over in Greek.@fig-hierarchical_diagram shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as partial-pooled model.
+When in doubt, everything![^all], well kind of. We can do something better, we can fit a model that allows estimates at the group level, but assuming they all belong to a larger group or population. So, how do we build a hierarchical model? Well, in a nutshell, instead of fixing the parameters of our priors to some constant numbers, we estimate them directly from the data by placing shared priors over them. These higher-level priors are often called hyper-priors, hyper means over in Greek. @fig-hierarchical_diagram shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model.
 
 
 [^all]: Not sure this is good general advice for your life, but I like the song  <https://www.youtube.com/watch?v=1di09XZUlIw>
@@ -66,7 +66,7 @@ with pm.Model(coords=coords) as cs_h:
     idata_cs_h = pm.sample()
 ```
 
-We are going to compare the results using ArviZ's plot_forest function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh We have a plot for the 40 estimated means, one per amino acid (20) multiplied by two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dasehd line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken with respect to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
+We are going to compare the results using ArviZ's plot_forest function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh We have a plot for the 40 estimated means, one per amino acid (20) multiplied by two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dashed line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken with respect to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
 
 ![Chemical shift differences for the hierarchical and non-hierarchical models.](fig/csh_vs_csnh.png){#fig-csh_vs_csnh}
 
@@ -128,7 +128,22 @@ with pm.Model() as model_h:
 
 
 
+<!-- ##  I want my hierarchies with many levels. SUBJECTS WITHIN CATEGORIES
 
+If you, like me, are not a big sports fan and do not really care about the ability of
+some guy to hit a ball with a stick, then translate the situation into something you do
+care about. Instead of opportunities at bat, think of opportunities to cure a disease, for
+treatments categorized into types. We are interested in estimating the probability of cure
+for each treatment and each type of treatment and overall across treatments. Or think
+of opportunities for students to graduate from high school, with schools categorized by
+districts. We are interested in estimating the probability of graduation for each school
+and each district and overall. Or, if that’s boring for you, keep thinking about guys
+swinging sticks.
+
+https://github.com/JWarmenhoven/DBDA-python/blob/master/Notebooks/data/BattingAverage.csv
+
+https://github.com/JWarmenhoven/DBDA-python/blob/master/Notebooks/Chapter%209.ipynb
+ -->
 
 
 

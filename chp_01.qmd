@@ -601,7 +601,7 @@ c. Are events $A$ and $B$ mutually exclusive? Why or why not?
 
 7. Following the example in @fig-moments use PreliZ to compute the moments for the SkewNormal distribution for a different combination of parameters. Generate random samples of different sizes, like 10, 100, 1000 and see if you can recover the values of the first two moments (mean and variance) from the samples. What do you observe?
 
-8. Repeat the previous exercise for the StudentT distribution. Try numbers of nu like 2, 3, 500.  What do you observe?
+8. Repeat the previous exercise for the Student's T distribution. Try numbers of nu like 2, 3, 500.  What do you observe?
 
 
 9. In the following definition of a probabilistic model identify the prior and the likelihood:
