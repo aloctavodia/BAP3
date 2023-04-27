@@ -1,4 +1,4 @@
-## Inference Engines {#chp-inference-engines}
+## Inference Engines {#sec-inference-engines}
 
 <!-- PyMC's base code is written using Python, and the computationally demanding parts are written using NumPy and PyTensor.
 PyTensor is a Python library that was originally developed for deep learning and allows us

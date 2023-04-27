@@ -1,41 +1,43 @@
-# Hierarchical Models {#chp-hierarchical}
+# Hierarchical Models {#sec-hierarchical}
 
 > "Something, something" - some one
 
-
-Something something something
+In @sec-programming_probabilistically we saw the tips example where we had multiple groups in our data, one for each of four days, Thursday, Friday, Saturday, and Sunday. We decided to model each group separately. That's sometimes fine, but we should be aware of our assumptions. By modeling each group independently we assumed the groups as unrelated. In other words, we are assuming that knowing the tip for one day does not give us any information about the tip for another day. That could be a too strong assumption. Would it be possible to build a model that allows us to share information between groups? That's not only possible, that's the main topic of this chapter, Lucky you! In this chapter, we will cover the following topics:
 
 * Hierarchical models
 * Partial pooling
-* Shinkage
+* Shrinkage
 
 
-## Hierarchical models
+## Sharing information, sharing priors
 
-## Chemical shifts
+Hierarchical models are also known as multilevel models, mixed-effects models, random-effects models, or nested models. They are particularly useful when dealing with data that can be described as grouped or having different levels, like data nested within geographic regions (like cities belonging to a province and provinces belonging to a country), or with a hierarchical structure (e.g., students nested within schools, or patients nested within hospitals) or repeated measurements on the same individuals.
 
-Proteins are molecules formed by 20 units, called amino acids, each amino acid can appear in a protein 0 or more times. Just as a melody is defined by a sequence of musical notes, a protein is defined by a sequence of amino acids. Some note variations can result in small variations of the melody, other variations can result in completely different melodies. Something similar happens with proteins. One way to study proteins is by using nuclear magnetic resonance (the same technique used for medical imaging). This technique allows us to measure various quantities, one of which is called a chemical shift. You may remember we already saw an example using chemical shifts in @Chp-programming_probabilistically. 
-
-Suppose we want to compare a theoretical method to compute chemical shifts against the experimental observations, among other reasons to evaluate the ability of the theoretical method to reproduce the experimental values. Luckily for us, someone already performed the experiments and the theoretical calculations and we just need to compare them. How we should proceed? One option is to take the empirical differences and fit a Gaussian or maybe Student's T model. Because amino acids are a family of chemical compounds it would make sense to assume they are all the same and thus estimate a single Gaussian for all the differences. But you may object that at the beginning of this section, we mentioned they are 20 different kinds of amino acids, each one with different chemical properties. So it also makes sense to assume they are different and thus fit 20 separated Gaussians. What we should do?
-
-Let's take a moment to think about which option is the best. If we combine all the data our estimates are going to be more accurate, but we will not be able to get information from individual groups (amino acids). On the contrary, if we treat them as separate groups we will be losing accuracy. What we should do?
+Hierarchical models are a natural way to share information between groups. In a hierarchical model, the parameters of the prior distributions are themselves given a prior distribution. These higher-level priors are often called hyper-priors, hyper means over in Greek. Having hyperpriors allows the model to share information between groups, while still allowing differences between groups. In other words, we can think of the parameters of the prior distributions as belonging to a common population of parameters. @fig-hierarchical_model shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model. 
 
 
-When in doubt, everything![^all], well kind of. We can do something better, we can fit a model that allows estimates at the group level, but assuming they all belong to a larger group or population. So, how do we build a hierarchical model? Well, in a nutshell, instead of fixing the parameters of our priors to some constant numbers, we estimate them directly from the data by placing shared priors over them. These higher-level priors are often called hyper-priors, hyper means over in Greek. @fig-hierarchical_diagram shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model.
+![Diagram showing the differences between a pooled model, an unpooled model, and a hierarchical model.](fig/hierarchical_model.pdf){#fig-hierarchical_model width=80%}
 
+## Hierarchical shifts
 
-[^all]: Not sure this is good general advice for your life, but I like the song  <https://www.youtube.com/watch?v=1di09XZUlIw>
+Proteins are molecules formed by 20 units, called amino acids, each amino acid can appear in a protein 0 or more times. Just as a melody is defined by a sequence of musical notes, a protein is defined by a sequence of amino acids. Some musical note variations can result in small variations of the melody and other variations in completely different melodies. Something similar happens with proteins. One way to study proteins is by using nuclear magnetic resonance (the same technique used for medical imaging). This technique allows us to measure various quantities, one of which is called a chemical shift. You may remember we already saw an example using chemical shifts in @sec-programming_probabilistically. 
 
-
-The following data set contains chemical shift values for a set of proteins. If you inspect the DataFrame `cs_data` you will see that it has 4 columns:
+Suppose we want to compare a theoretical method to compute chemical shifts against the experimental observations, among other reasons to evaluate the ability of the theoretical method to reproduce the experimental values. Luckily for us, someone already performed the experiments and the theoretical calculations and we just need to compare them. The following data set contains chemical shift values for a set of proteins. If you inspect the DataFrame `cs_data` you will see that it has 4 columns:
 
 1. The first is a code that identifies the protein (you can get a lot of information about that protein by entering that code at https://www.rcsb.org/.).
 2. The second column has the name of the amino acid (can you verify that there are only 20 unique names).
 3. The third contains theoretical values of chemical shifts (calculated using quantum methods).
 4. The fourth has experimental values.
 
+Now that we have the data, how we should proceed? One option is to take the empirical differences and fit a Gaussian or maybe Student's T model. Because amino acids are a family of chemical compounds it would make sense to assume they are all the same and estimate a single Gaussian for all the differences. But you may object there are 20 different kinds of amino acids, each one with different chemical properties and hence a better choice is to fit 20 separated Gaussians. What we should do?
 
-To see the difference between a non-hierarchical (un-pooled) model and a hierarchical one, we are going to build two models. The first one is essentially the same as the `comparing_groups` model from @Chp-programming_probabilistically.
+Let's take a moment to think about which option is the best. If we combine all the data our estimates are going to be more accurate, but we will not be able to get information from individual groups (amino acids). On the contrary, if we treat them as separate groups we will get a much more detailed analysis but with less accuracy. What we should do?
+
+When in doubt, everything![^all], well kind of. We can build a hierarchical model, in that way we allow estimates at the group level, but with the restriction that they all belong to a larger group or population. To better understand this, let's build a hierarchical model for the chemical shift data.
+
+[^all]: Not sure this is good general advice for your life, but I like the song  <https://www.youtube.com/watch?v=1di09XZUlIw>
+
+To see the difference between a non-hierarchical (un-pooled) model and a hierarchical one, we are going to build two models. The first one is essentially the same as the `comparing_groups` model from @sec-programming_probabilistically.
 
 
 ```python
@@ -48,7 +50,7 @@ with pm.Model(coords=coords) as cs_nh:
     idata_cs_nh = pm.sample()
 ```
 
-Now, we will build the hierarchical version of the model. We are adding two hyper-priors, one for the mean of and one for the standard deviation of $\mu$. We are leaving $\sigma$ without hyper-priors. This is just a model choice; I am assuming that the variance between observed and theoretical values should be the same. You may face a problem where this seems unacceptable and you may consider it necessary to add a hyper-prior for $\sigma$; feel free to do that.
+Now, we will build the hierarchical version of the model. We are adding two hyper-priors, one for the mean of $\mu$ and one for the standard deviation of $\mu$. We are leaving $\sigma$ without hyper-priors. This is just a model choice; I am assuming that the variance between observed and theoretical values should be the same. You may face a problem where this seems unacceptable and you may consider it necessary to add a hyper-prior for $\sigma$; feel free to do that.
 
 ```python
 with pm.Model(coords=coords) as cs_h:
@@ -66,7 +68,7 @@ with pm.Model(coords=coords) as cs_h:
     idata_cs_h = pm.sample()
 ```
 
-We are going to compare the results using ArviZ's plot_forest function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh We have a plot for the 40 estimated means, one per amino acid (20) multiplied by two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dashed line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken with respect to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
+We are going to compare the results using ArviZ's `plot_forest` function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh We have a plot for the 40 estimated means, one per amino acid (20) multiplied by two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dashed line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken with respect to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
 
 ![Chemical shift differences for the hierarchical and non-hierarchical models.](fig/csh_vs_csnh.png){#fig-csh_vs_csnh}
 
@@ -109,7 +111,7 @@ $$
 
 Notice we are using the subindex $i$ to indicate that the model has groups with different values for some of the parameters. That is, not all parameters are shared between the groups. Using Kruschke diagrams (see @fig-beta_binomial_hierarchical_dag), we can see that the new model has one additional level compared to the one from @fig-beta_binomial_dag:
 
-![Hierarchical model](/fig/beta_binomial_hierarchical_dag.png){#fig-beta_binomial_hierarchical_dag width=30%}
+![Hierarchical model](/fig/beta_binomial_hierarchical_dag.pdf){#fig-beta_binomial_hierarchical_dag width=40%}
 
 Let's write the model in PyMC:
 
@@ -126,7 +128,7 @@ with pm.Model() as model_h:
     idata_h = pm.sample()
 ```
 
-
+## Hierarchies all the way up
 
 <!-- ##  I want my hierarchies with many levels. SUBJECTS WITHIN CATEGORIES
 
@@ -154,15 +156,17 @@ https://github.com/JWarmenhoven/DBDA-python/blob/master/Notebooks/Chapter%209.ip
 
 ## Summary
 
-In this chapter we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect from this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is know as shrinkage, and in general is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup inform the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level. We will see more examples of hierarchical models in the following chapters. Each example will help us better understand them from a slightly different perspective.
+In this chapter we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level. We will see more examples of hierarchical models in the following chapters. Each example will help us better understand them from a slightly different perspective.
 
-Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea—let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @chp-model_comparion. In @chp-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
+Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea—let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparion. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
 
 
 
 ## Exercises
+
+
 <!-- 
-7. Repeat the exercise we did with model_h. This time, without hierarchical
+7. Repeat the exercise we did with model_h. This time, without a hierarchical
 structure, use a flat prior such as
 . Compare the results of both
 models.
