@@ -1,21 +1,2 @@
-## Inference Engines {#sec-inference-engines}
-
-<!-- PyMC's base code is written using Python, and the computationally demanding parts are written using NumPy and PyTensor.
-PyTensor is a Python library that was originally developed for deep learning and allows us
-to define, optimize, and evaluate mathematical expressions involving multidimensional
-arrays efficiently. The main reason PyMC3 uses Theano is because some of the sampling
-methods, such as NUTS, need gradients to be computed, and Theano knows how to
-compute gradients using what is known as automatic differentiation. Also, Theano
-compiles Python code to C code, and hence PyMC3 is really fast. This is all the information
-about Theano we need to have to use PyMC3. If you still want to learn more about it, start
-reading the official Theano tutorial
-at http://deeplearning.net/software/theano/tutorial/index.html#tutorial.
-You may have heard that Theano is no longer developed, but that's no
-reason to worry. PyMC devs will take over Theano maintenance, ensuring
-that Theano will keep serving PyMC3 for several years to come. At the
-same time, PyMC devs are moving quickly to create the successor to
-PyMC3. This will probably be based on TensorFlow as a backend,
-although other options are being analyzed as well. You can read more
-about this at the following blog post: https:/​/​medium.​com/​@pymc_​devs/
-theano-​tensorflow-​and-​the-​future-​of-​pymc-​6c9987bb19d5. -->
+# Modeling with trees {#sec-BART}
 

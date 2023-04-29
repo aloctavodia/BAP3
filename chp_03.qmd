@@ -13,7 +13,7 @@ In @sec-programming_probabilistically we saw the tips example where we had multi
 
 Hierarchical models are also known as multilevel models, mixed-effects models, random-effects models, or nested models. They are particularly useful when dealing with data that can be described as grouped or having different levels, like data nested within geographic regions (like cities belonging to a province and provinces belonging to a country), or with a hierarchical structure (e.g., students nested within schools, or patients nested within hospitals) or repeated measurements on the same individuals.
 
-Hierarchical models are a natural way to share information between groups. In a hierarchical model, the parameters of the prior distributions are themselves given a prior distribution. These higher-level priors are often called hyper-priors, hyper means over in Greek. Having hyperpriors allows the model to share information between groups, while still allowing differences between groups. In other words, we can think of the parameters of the prior distributions as belonging to a common population of parameters. @fig-hierarchical_model shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model. 
+Hierarchical models are a natural way to share information between groups. In a hierarchical model, the parameters of the prior distributions are themselves given a prior distribution. These higher-level priors are often called hyper-priors, hyper means over in Greek. Having hyper-priors allows the model to share information between groups, while still allowing differences between groups. In other words, we can think of the parameters of the prior distributions as belonging to a common population of parameters. @fig-hierarchical_model shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model. 
 
 
 ![Diagram showing the differences between a pooled model, an unpooled model, and a hierarchical model.](fig/hierarchical_model.pdf){#fig-hierarchical_model width=80%}
@@ -50,7 +50,7 @@ with pm.Model(coords=coords) as cs_nh:
     idata_cs_nh = pm.sample()
 ```
 
-Now, we will build the hierarchical version of the model. We are adding two hyper-priors, one for the mean of $\mu$ and one for the standard deviation of $\mu$. We are leaving $\sigma$ without hyper-priors. This is just a model choice; I am assuming that the variance between observed and theoretical values should be the same. You may face a problem where this seems unacceptable and you may consider it necessary to add a hyper-prior for $\sigma$; feel free to do that.
+Now, we will build the hierarchical version of the model. We are adding two hyper-priors, one for the mean of $\mu$ and one for the standard deviation of $\mu$. We are leaving $\sigma$ without hyper-priors, in other words, we are assuming the variance between observed and theoretical values should be the same for all groups This is a modeling choice, you may face a problem where this seems unacceptable and you may consider it necessary to add a hyper-prior for $\sigma$; feel free to do that.
 
 ```python
 with pm.Model(coords=coords) as cs_h:
@@ -68,7 +68,7 @@ with pm.Model(coords=coords) as cs_h:
     idata_cs_h = pm.sample()
 ```
 
-We are going to compare the results using ArviZ's `plot_forest` function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh We have a plot for the 40 estimated means, one per amino acid (20) multiplied by two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dashed line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken with respect to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
+We are going to compare the results using ArviZ's `plot_forest` function. We can pass more than one model to this function. This is useful when we want to compare the values of parameters from different models such as with the present example. On @fig-csh_vs_csnh we have a plot for the 40 estimated means, one per amino acid (20) times the two models. We also have their 94% HDI and the inter-quantile range (the central 50% of the distribution). The vertical dashed line is the global mean according to the hierarchical model. This value is close to zero, as expected for theoretical values faithfully reproducing experimental ones. The most relevant part of this plot is that the estimates from the hierarchical model are pulled toward the partially-pooled mean, or equivalently they are shrunken in comparison to the un-pooled estimates. You will also notice that the effect is more notorious for those groups farther away from the mean (such as `PRO`) and that the uncertainty is on par or smaller than that from the non-hierarchical model. The estimates are partially pooled because we have one estimate for each group, but estimates for individual groups restrict each other through the hyper-prior. Therefore, we get an intermediate situation between having a single group, all chemical shifts together, and having 20 separated groups, one per amino acid. And that is ladies, gentlemen, and non-binary-gender-fluid people, the beauty of hierarchical models.
 
 ![Chemical shift differences for the hierarchical and non-hierarchical models.](fig/csh_vs_csnh.png){#fig-csh_vs_csnh}
 
@@ -79,9 +79,9 @@ Suppose we want to analyze the quality of water in a city, so we take samples by
 * Study each neighborhood as a separate entity
 * Pool all the data together and estimate the water quality of the city as a single big group
 
-Probably you already noticed the pattern here. We can justify the first option by saying we obtain a more detailed view of the problem, which otherwise could become invisible or less evident if we average the data. The second option can be justified by saying that if we pool the data, we obtain a bigger sample size and hence a more accurate estimation. But we already know we can do a hierarchical model.
+Probably you already noticed the pattern here. We can justify the first option by saying we obtain a more detailed view of the problem, which otherwise could become invisible or less evident if we average the data. The second option can be justified by saying that if we pool the data, we obtain a bigger sample size and hence a more accurate estimation. But we already know we have a third option, we can do a hierarchical model!
 
-For this example, we are going to use synthetic data. I love using synthetic data because it allows me to control the data generation process and I can be sure that the results I get are not due to some peculiarity of the data. There are endless possibilities to generate synthetic data. Here we are going to imagine we have collected water samples from three different regions of the same city and we have measured the lead content of water; samples with concentrations of lead above recommendations from the World Health Organization (WHO) are marked with zero and samples with values below the recommendations are marked with one. This is a very simple scenario, in a more realistic example, we would have a continuous measurement of lead concentration and probably many more groups. Nevertheless, for our current purposes, this example is good enough to uncover the details of hierarchical models. We can generate the synthetic data with the following code:
+For this example, we are going to use synthetic data. I love using synthetic data, it is a great way to understand things. If you don't understand something simulate it! There are many uses for synthetic data. Here we are going to imagine we have collected water samples from three different regions of the same city and we have measured the lead content of water; samples with concentrations of lead above recommendations from the World Health Organization (WHO) are marked with zero and samples with values below the recommendations are marked with one. This is a very simple scenario, in a more realistic example, we would have a continuous measurement of lead concentration and probably many more groups. Nevertheless, for our current purposes, this example is good enough to uncover the details of hierarchical models. We can generate the synthetic data with the following code:
 
 ```python
 N_samples = [30, 30, 30]
@@ -109,7 +109,7 @@ y_i &\sim \text{Bernoulli}(\theta_i)
 $$
 
 
-Notice we are using the subindex $i$ to indicate that the model has groups with different values for some of the parameters. That is, not all parameters are shared between the groups. Using Kruschke diagrams (see @fig-beta_binomial_hierarchical_dag), we can see that the new model has one additional level compared to the one from @fig-beta_binomial_dag:
+Notice we are using the subindex $i$ to indicate that the model has groups with different values for some of the parameters. That is, not all parameters are shared between the groups. Using Kruschke diagrams (see @fig-beta_binomial_hierarchical_dag), we can see that the new model has one additional level compared to the one from @fig-beta_binomial_dag. Notice also that for this model we are parametrizing the Beta prior distribution in terms of $\mu$ and $\nu$ instead of $\alpha$ and $\beta$. This is a common practice in Bayesian statistics, and it is done because $\mu$ and $\nu$ are more intuitive parameters than $\alpha$ and $\beta$. 
 
 ![Hierarchical model](/fig/beta_binomial_hierarchical_dag.pdf){#fig-beta_binomial_hierarchical_dag width=40%}
 
@@ -127,6 +127,35 @@ with pm.Model() as model_h:
 
     idata_h = pm.sample()
 ```
+
+### Shrinkage
+
+To show you one of the main consequences of hierarchical models, I will require your assistance, so please join me in a brief experiment. I will need you to print and save the summary computed with `az.summary(idata_h)`. Then, I want you to re-run the model two more
+times after making small changes to the synthetic data. Remember to save the summary after each run. In total, we will have three runs:
+
+* One run setting all the elements of G_samples to 18
+* One run setting all the elements of G_samples to 3
+* One last run setting one element to 18 and the other two to 3
+
+Before continuing, please take a moment to think about the outcome of this experiment. Focus on the estimated mean value of $\theta$ in each experiment. Based on the first two runs of the model, could you predict the outcome for the third case?
+
+If we put the result in a table, we get something more or less like this; remember that small variations could occur due to the stochastic nature of the sampling process:
+
+| G_samples  |        Mean      |
+|------------|------------------|
+| 18, 18, 18 |  0.6,  0.6,  0.6 |
+|  3,  3,  3 | 0.11, 0.11, 0.11 |
+| 18,  3,  3 | 0.55, 0.13, 0.13 |
+
+In the first row, we can see that for a dataset of 18 good samples out of 30 we get a mean value for $\theta$ of 0.6; remember that now the mean of $\theta$ is a vector of three elements, one per group. Then, on the second row, we have only 3 good samples out of 30 and the mean of $\theta$ is 0.11. These results should not be surprising, our estimates are practically the same as the empirical means. The interesting part comes in the third row. Instead of getting a mix of the mean estimates of $\theta$ from the other two rows, such as
+0.6, 0.11, and 0.11, we get different values, namely 0.55, 0.13, and 0.13.
+
+What on Earth happened? Did we make a mistake somewhere? Nothing like that. What we are seen is that the estimates shrunk toward the common mean. This is totally OK, indeed this is just a consequence of our model; by using hyper-priors, we are estimating the parameters of the Beta prior distribution from the data. Each group is informing the rest, and each group is informed by the estimation of the others. 
+
+::: callout-note
+In a hierarchical model groups sharing a common hyper-prior are effectively sharing information through the hyper-prior. This results in shrinkage, that is individual estimates are shrunk toward the common mean. By partially pooling the data; we are modeling the groups as some middle between the groups being independent from each other and being a single big group.
+:::
+
 
 ## Hierarchies all the way up
 
@@ -148,17 +177,17 @@ https://github.com/JWarmenhoven/DBDA-python/blob/master/Notebooks/Chapter%209.ip
  -->
 
 
-
- Of course, is also possible to put priors over the hyper-priors and create as many levels as we want; the problem is that the model rapidly becomes difficult to understand and unless the problem really demands more structure, adding more levels than necessary does not help to make better inferences. On the contrary, we end up entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them, partially spoiling the advantages of model-based statistics. After all, the main idea of building models is to make sense of data, and thus models should reflect (and take advantage of) the structure in the data.
-
+::: callout-note
+Of course, is also possible to put priors over the hyper-priors and create as many levels as we want. But unless the problem necessitates additional structure, adding more levels than required does not enhance the quality of our model or inferences. Instead, we will get entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them. The goal of building models is to make sense of data, and thus models should reflect, and take advantage of, the structure of the data.
+:::
 
 
 
 ## Summary
 
-In this chapter we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level. We will see more examples of hierarchical models in the following chapters. Each example will help us better understand them from a slightly different perspective.
+In this chapter we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level.
 
-Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea—let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparion. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
+Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea—let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparison. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
 
 
 

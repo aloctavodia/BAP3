@@ -93,7 +93,7 @@ az.plot_trace(idata, kind="rank_bars", combined=True, rank_kwargs={"colors": "k"
 ![A trace plot for the posterior of `our_first_model`, using the options `kind="rank_bars"`, `combined=True`](/fig/idata_rank.png){#fig-idata_rank}
 
 
-A rank plot is another way to check if we can trust the samples, for this plot, we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In @sec-inferece_engines, we provide further details on how to interpret rank plots and how they are constructed.
+A rank plot is another way to check if we can trust the samples, for this plot, we get one histogram per chain and we want all of them to be as uniform as possible, like in  @fig-idata_rank. Some small deviations for uniformity are expected due to random sampling, but large deviations from uniformity are a signal that chains are exploring different regions of the posteriors. Ideally, we want all chains to explore the entire posterior. In @sec-inference_engines, we provide further details on how to interpret rank plots and how they are constructed.
 
 ArviZ provides several other plots to help interpret the posterior, and we will see them in the following pages. We may also want to have a numerical summary of the posterior. We can get that using `az.summary`, which will return a pandas DataFrame:
 
@@ -507,7 +507,7 @@ tip = tips["tip"].values
 idx = pd.Categorical(tips["day"], categories=categories).codes
 ```
 
-The model for this problem is almost the same as `model_g`; the only difference is that now $\u$ and $\sigma$ are going to be vectors instead of scalars. PyMC syntax is extremely helpful for this situation: instead of writing for loops, we can write our model in a vectorized way.
+The model for this problem is almost the same as `model_g`; the only difference is that now $\mu$ and $\sigma$ are going to be vectors instead of scalars. PyMC syntax is extremely helpful for this situation: instead of writing for loops, we can write our model in a vectorized way.
 
 ```python
     with pm.Model() as comparing_groups:
