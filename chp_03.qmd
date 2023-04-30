@@ -160,36 +160,17 @@ What on Earth happened? Did we make a mistake somewhere? Nothing like that. What
 In a hierarchical model groups sharing a common hyper-prior are effectively sharing information through the hyper-prior. This results in shrinkage, that is individual estimates are shrunk toward the common mean. By partially pooling the data; we are modeling the groups as some middle between the groups being independent from each other and being a single big group.
 :::
 
-Why is shrinkage desirable? Because it contributes to more stable inferences. This is,
-in many ways, similar to what we saw with the Student's t-distribution and the outliers,
-where we used heavy tail distribution results in a model that is more robust or less
-responsive to data points away from the mean. Introducing hyper-priors and hence
-inferences at a higher level results in a more conservative model (probably the first time I've
-used conservative in a flattering way), one that is less responsive to extreme values in
-individual groups. To illustrate this, imagine that the samples size are different from each
-neighborhood, some small, some larger; the smaller the sample size, the easier it is to get
-bogus results. At an extreme, if you take only one sample in a given neighborhood, you
-may just hit the only really old lead pipe in the whole neighborhood or, on the contrary, the
-only one made out of PVC. In one case, you will overestimate the bad quality and in the
-other underestimate it. Under a hierarchical model, the miss-estimation of one group will
-be ameliorated by the information provided by the other groups. Of course, a larger sample
-size will also do the trick but, more often than not, that is not an option.
-The amount of shrinkage depends, of course, on the data; a group with more data will pull
-the estimate of the other groups harder than a group with fewer data points. If several
-groups are similar and one group is different, the similar groups are going to inform the
-others of their similarity and reinforce a common estimation, while they are going to pull
-toward them the estimation for the less similar group; this is exactly what we saw in the
-previous example.
-The hyper-priors also have a part in modulating the amount of shrinkage. We can
-effectively use an informative prior to shrink our estimate to some reasonable value if we
-have trustworthy information about the group-level distribution. Nothing prevents us from
-building a hierarchical model with just two groups—but we would prefer to have several
-groups. Intuitively, the reason is that getting shrinkage is like assuming each group is a
-data point, and we are estimating the standard deviation at the group level. Generally, we
-do not trust an estimation with too few data points unless we have a strong prior to inform
-our estimation. Something similar is true for a hierarchical model.
-We may also be interested in seeing what the estimated prior looks like. One way to do this
-is as follows:
+@fig-idata_h_posterior shows the posterior estimates of $\mu$ and $\nu$ pluged into a Beta distribution. In other words, this is the posterior distribution of the inferred Beta "prior" distribution.
+
+![Posterior distribution of the inferred Beta "prior" distribution](/fig/idata_h_posterior.png){#fig-idata_h_posterior width=80%}
+
+
+Why is shrinkage desirable? Because it contributes to more stable inferences. This is, in many ways, similar to what we saw with the Student's t-distribution and the outliers, using a heavy-tailed distribution results in a more robust model to data points away from the mean. Introducing hyper-priors results in a more conservative model (probably the first time I've used "conservative" in a flattering way), one that is less responsive to extreme values in individual groups. Imagine that the samples size are different from each neighborhood, some small, some larger; the smaller the sample size, the easier it is to get bogus results. At an extreme, if you take only one sample in a given neighborhood, you may just hit the only really old lead pipe in the whole neighborhood or, on the contrary, the only one made out of PVC. In one case, you will overestimate the bad quality and in the other underestimate it. Under a hierarchical model, the miss-estimation of one group will be ameliorated by the information provided by the other groups. A larger sample size will also do the trick but, more often than not, that is not an option.
+
+The amount of shrinkage depends on the data; a group with more data will pull the estimate of the other groups harder than a group with fewer data points. If several groups are similar and one group is different, the similar groups are going to inform the others of their similarity and reinforce a common estimation, while they are going to pull toward them the estimation for the less similar group; this is exactly what we saw in the previous example. The hyper-priors also have a part in modulating the amount of shrinkage. We can effectively use an informative prior to shrink our estimate to some reasonable value if we have trustworthy information about the group-level distribution.
+
+Nothing prevents us from building a hierarchical model with just two groups—but we would prefer to have several groups. Intuitively, the reason is that getting shrinkage is like assuming each group is a data point, and we are estimating the standard deviation at the group level. Generally, we do not trust an estimation with too few data points unless we have a strong prior to inform our estimation. Something similar is true for a hierarchical model. 
+
 
 
 ## Hierarchies all the way up
