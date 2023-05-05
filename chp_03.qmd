@@ -175,16 +175,68 @@ Nothing prevents us from building a hierarchical model with just two groups—bu
 
 ## Hierarchies all the way up
 
+Various data structures lend themselves to hierarchical descriptions that can encompass multiple levels. For example, consider professional football (soccer) players. As in many other sports, players have different fielding positions. We may be interested in estimating some skill metrics for each player, for the positions, and for the overall group of professional football players. This kind of hierarchical structure can be found in many other domains as well such as:
+
+* Medical research: Suppose we are interested in estimating the effectiveness of different drugs for treating a particular disease. We can categorize patients based on their demographic information, disease severity, and other relevant factors and build a hierarchical model to estimate the probability of cure or treatment success for each subgroup. We can then use the parameters of the subgroup distribution to estimate the overall probability of cure or treatment success for the entire patient population.
+
+* Environmental science: Suppose we are interested in estimating the impact of a certain pollutant on a particular ecosystem. We can categorize different habitats within the ecosystem (e.g., rivers, lakes, forests, wetlands) and build a hierarchical model to estimate the distribution of pollutant levels within each habitat. We can then use the parameters of the habitat distribution to estimate the overall distribution of pollutant levels within the ecosystem.
+
+* Market research: Suppose we are interested in understanding the purchasing behavior of consumers for a particular product across different regions. We can categorize consumers based on their demographic information (e.g., age, gender, income, education) and build a hierarchical model to estimate the distribution of purchasing behavior for each subgroup. We can then use the parameters of the subgroup distribution to estimate the distribution of purchasing behavior for the overall group of consumers.
+
+Going back to our football players, We have collected data from the *Premier League*, *Ligue 1*, *Bundesliga*, *Serie A* and *La Liga*, over the course of four years (2017 to 2020). Let's suppose we are interested in the goals-per-shot metric. This is what statisticians usually call a *success rate*, and we can estimate it with a Binomial model where the parameter $n$ is the number of shots and the observations $y$ is the number of goals. This leaves us with an unknown value for $p$, in previous examples we have been calling this parameter $\theta$ and we have used a Beta distribution to model it. We will do the same now, but hierarchically. See @fig-beta_binomial_hierarchical_subjects_dag for a graphical representation of the entire model. $\theta$ represents the "success rate" for each player, and thus it is a vector of size `n_players`. We use a Beta distribution to model $\theta$. The hyperparameters of the Beta distribution will be the vectors $\mu_p$ and $\nu_p$, which are vectors of size 4, representing the four positions in our dataset(defender `DF`, midfielder `MF`, forward `FW` and goalkeeper `GK`). We will need to properly index the vectors $\mu_p$ and $\nu_p$ to match the total number of players. Finally, we will have two global parameters, $\mu$ and $\nu$, representing the professional football players
+
+
+![Hierarchical model for the football players example. Notice how we have one more level than in previous hierarchical models](/fig/beta_binomial_hierarchical_subjects_dag.png){#fig-beta_binomial_hierarchical_subjects_dag width=50%}
+
+
+The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7, 5.8)` was chosen with the help of PreliZ as a prior with 90% of the mass between 0 and 0.5. This is an example of a weakly informative prior, as it is little doubt that a success rate of 0.5 is a high value. Sports statistics are well-studied and there is a lot of prior information that could be used to define stronger priors. For this example, we will settle on this prior. A similar justification can be done for the prior `pm.Gamma('nu', mu=125, sigma=50)`, which we define as the maximum entropy Gamma prior with 90% of the mass between 50 and 200. 
+
+
+```python
+coords = {"pos": pos_codes}
+with pm.Model(coords=coords) as model_football:
+    # Hyper parameters
+    mu = pm.Beta('mu', 1.7, 5.8)  # a maximum entropy prior with 95% of the mass between 0 and 0.5 
+    nu = pm.HalfNormal('nu', 100) # a vague prior for nu (the concentration of the beta distribution)
+    
+    # Parameters for positions
+    mu_p = pm.Beta('mu_p',
+                       mu=mu,
+                       nu=nu,
+                       dims = "pos")
+    
+    nu_p = pm.HalfNormal('nu_p', 100, dims = "pos")
+        
+    # Parameter for players
+    theta = pm.Beta('theta', 
+                    mu=mu_p[pos_idx],
+                    nu=nu_p[pos_idx])
+    
+    _ = pm.Binomial('gs', n=football.shots.values, p=theta, observed=football.goals.values)
+
+    idata_football = pm.sample(draws=5000, target_accept=0.95)
+```
+
+On the top panel of @fig-beta_binomial_hierarchical_subjects_mus we have the posterior distribution for the global parameter $\mu$. The posterior distribution is close to 0.1. Meaning that overall for a professional football player (from a top league), the probability of scoring a goal is on average 10%. This is a reasonable value, as scoring goals is not an easy task and we are not discriminating positions, i.e. we are considering players whose main role is not scoring goals. On the middle panel, we have the estimated $mu_p$ value for the forward position, as expected it is higher than the global parameter $\mu$. On the bottom panel, we have the estimated $mu_p$ value for Lionel Messi, with a value of 0.17, which is higher than the global parameter $\mu$ and the forward position $\mu_p$ value. This is also expected, as Lionel Messi is the best football player in the world, and his main role is scoring goals.
+
+![Posterior distribution for the global parameter $\mu$.](/fig/beta_binomial_hierarchical_subjects_global_mus.png){#fig-beta_binomial_hierarchical_subjects_global_mus width=80%}
+
+
+@fig-beta_binomial_hierarchical_subjects_positions shows a forest plot for the posterior distribution for the parameter $\mu_p$. The posterior distribution for the forward position is centered around 0.13, as we already saw, and is the higher of the four. This makes sense as the role of the players at a forward position is scoring goals as well as assisting them. The lower value of $\mu_p$ is for the goalkeeper position. This is expected, as the main role is to stop the opposing team from scoring, and not to score goals. The interesting aspect is that the uncertainty is very high, this is because we have very few goalkeepers scoring goals in our dataset, 3 to be precise. The posterior distributions for the defender and midfielder positions are somewhat in the middle, being slightly higher for the midfielder. We can explain this as the main role of a midfielder is to defend and attack, and thus the probability of scoring a goal is higher than a defender but lower than a forward. 
+
+
+![Posterior distribution for the parameter $\mu_p$, the mean position](/fig/beta_binomial_hierarchical_subjects_positions.png){#fig-beta_binomial_hierarchical_subjects_positions}
+
 
 ::: callout-note
-Of course, is also possible to put priors over the hyper-priors and create as many levels as we want. But unless the problem necessitates additional structure, adding more levels than required does not enhance the quality of our model or inferences. Instead, we will get entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them. The goal of building models is to make sense of data, and thus models should reflect, and take advantage of, the structure of the data.
+It is possible to create hierarchical models with as many levels as we want. But unless the problem necessitates additional structure, adding more levels than required does not enhance the quality of our model or inferences. Instead, we will get entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them. The goal of building models is to make sense of data, and thus useful models are usually those that reflect, and take advantage of, the structure of the data.
 :::
 
 
 
 ## Summary
 
-In this chapter we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level.
+In this chapter, we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level.
 
 Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea, let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparison. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
 
@@ -193,16 +245,13 @@ Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are o
 ## Exercises
 
 
-<!-- 
-7. Repeat the exercise we did with model_h. This time, without a hierarchical
-structure, use a flat prior such as
-. Compare the results of both
-models.
-8. Create a hierarchical version of the tips example by partially pooling across the
-days of the week. Compare the results to those obtained without the hierarchical
-structure.
-9. PyMC3 can create directed acyclic graphs (DAGs) from models that are very
-similar to Kruschke's diagrams. You can obtain them using the
-pm.model_to_graphviz() function. Generate a DAG for each model in this
-chapter. -->
+1. Repeat the exercise we did with `model_h`. This time, without a hierarchical
+structure, use a flat prior such as $\text{Beta}(\alpha=1, \beta=1)$. Compare the results of both models.
+
+2. Create a hierarchical version of the tips example from @sec-programming_probabilistically by partially pooling across the days of the week. Compare the results to those obtained without the hierarchical structure.
+
+3. Amino acids are usually grouped into the categories like `polar`, `non-polar`, `charged`, and `special`. Build a hierarchical model like `cs_h` but that includes a group effect for the amino acid category. Compare the results to those obtained in this chapter.
+
+4. 
+
 
