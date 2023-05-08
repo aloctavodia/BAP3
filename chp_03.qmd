@@ -13,7 +13,7 @@ In @sec-programming_probabilistically we saw the tips example where we had multi
 
 Hierarchical models are also known as multilevel models, mixed-effects models, random-effects models, or nested models. They are particularly useful when dealing with data that can be described as grouped or having different levels, like data nested within geographic regions (like cities belonging to a province and provinces belonging to a country), or with a hierarchical structure (e.g., students nested within schools, or patients nested within hospitals) or repeated measurements on the same individuals.
 
-Hierarchical models are a natural way to share information between groups. In a hierarchical model, the parameters of the prior distributions are themselves given a prior distribution. These higher-level priors are often called hyper-priors, hyper means over in Greek. Having hyper-priors allows the model to share information between groups, while still allowing differences between groups. In other words, we can think of the parameters of the prior distributions as belonging to a common population of parameters. @fig-hierarchical_model shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partial-pooled model. 
+Hierarchical models are a natural way to share information between groups. In a hierarchical model, the parameters of the prior distributions are themselves given a prior distribution. These higher-level priors are often called hyper-priors, hyper means over in Greek. Having hyper-priors allows the model to share information between groups, while still allowing differences between groups. In other words, we can think of the parameters of the prior distributions as belonging to a common population of parameters. @fig-hierarchical_model shows a diagram with the high-level differences between a pooled model (a single group), an unpooled model (all separated groups) and a hierarchical model, also known as a partially-pooled model. 
 
 
 ![Diagram showing the differences between a pooled model, an unpooled model, and a hierarchical model.](fig/hierarchical_model.pdf){#fig-hierarchical_model width=80%}
@@ -151,7 +151,7 @@ If we put the result in a table, we get something more or less like this; rememb
 |  3,  3,  3 | 0.11, 0.11, 0.11 |
 | 18,  3,  3 | 0.55, 0.13, 0.13 |
 
-In the first row, we can see that for a dataset of 18 good samples out of 30 we get a mean value for $\theta$ of 0.6; remember that now the mean of $\theta$ is a vector of three elements, one per group. Then, on the second row, we have only 3 good samples out of 30 and the mean of $\theta$ is 0.11. These results should not be surprising, our estimates are practically the same as the empirical means. The interesting part comes in the third row. Instead of getting a mix of the mean estimates of $\theta$ from the other two rows, such as
+In the first row, we can see that for a dataset of 18 good samples out of 30, we get a mean value for $\theta$ of 0.6; remember that now the mean of $\theta$ is a vector of three elements, one per group. Then, on the second row, we have only 3 good samples out of 30 and the mean of $\theta$ is 0.11. These results should not be surprising, our estimates are practically the same as the empirical means. The interesting part comes in the third row. Instead of getting a mix of the mean estimates of $\theta$ from the other two rows, such as
 0.6, 0.11, and 0.11, we get different values, namely 0.55, 0.13, and 0.13.
 
 What on Earth happened? Did we make a mistake somewhere? Nothing like that. What we are seen is that the estimates shrunk toward the common mean. This is totally OK, indeed this is just a consequence of our model; by using hyper-priors, we are estimating the parameters of the Beta prior distribution from the data. Each group is informing the rest, and each group is informed by the estimation of the others. 
@@ -167,7 +167,7 @@ In a hierarchical model groups sharing a common hyper-prior are effectively shar
 
 Why is shrinkage desirable? Because it contributes to more stable inferences. This is, in many ways, similar to what we saw with the Student's t-distribution and the outliers, using a heavy-tailed distribution results in a more robust model to data points away from the mean. Introducing hyper-priors results in a more conservative model (probably the first time I've used "conservative" in a flattering way), one that is less responsive to extreme values in individual groups. Imagine that the samples size are different from each neighborhood, some small, some larger; the smaller the sample size, the easier it is to get bogus results. At an extreme, if you take only one sample in a given neighborhood, you may just hit the only really old lead pipe in the whole neighborhood or, on the contrary, the only one made out of PVC. In one case, you will overestimate the bad quality and in the other underestimate it. Under a hierarchical model, the miss-estimation of one group will be ameliorated by the information provided by the other groups. A larger sample size will also do the trick but, more often than not, that is not an option.
 
-The amount of shrinkage depends on the data; a group with more data will pull the estimate of the other groups harder than a group with fewer data points. If several groups are similar and one group is different, the similar groups are going to inform the others of their similarity and reinforce a common estimation, while they are going to pull toward them the estimation for the less similar group; this is exactly what we saw in the previous example. The hyper-priors also have a part in modulating the amount of shrinkage. We can effectively use an informative prior to shrink our estimate to some reasonable value if we have trustworthy information about the group-level distribution.
+The amount of shrinkage depends on the data; a group with more data will pull the estimate of the other groups harder than a group with fewer data points. If several groups are similar and one group is different, the similar groups are going to inform the others of their similarity and reinforce a common estimation, while they are going to pull toward them the estimation for the less similar group; this is exactly what we saw in the previous example. The hyper-priors also have a part in modulating the amount of shrinkage. We can effectively use an informative prior distribution to shrink our estimate to some reasonable value if we have trustworthy information about the group-level distribution.
 
 Nothing prevents us from building a hierarchical model with just two groups—but we would prefer to have several groups. Intuitively, the reason is that getting shrinkage is like assuming each group is a data point, and we are estimating the standard deviation at the group level. Generally, we do not trust an estimation with too few data points unless we have a strong prior to inform our estimation. Something similar is true for a hierarchical model. 
 
@@ -186,7 +186,7 @@ Various data structures lend themselves to hierarchical descriptions that can en
 Going back to our football players, We have collected data from the *Premier League*, *Ligue 1*, *Bundesliga*, *Serie A* and *La Liga*, over the course of four years (2017 to 2020). Let's suppose we are interested in the goals-per-shot metric. This is what statisticians usually call a *success rate*, and we can estimate it with a Binomial model where the parameter $n$ is the number of shots and the observations $y$ is the number of goals. This leaves us with an unknown value for $p$, in previous examples we have been calling this parameter $\theta$ and we have used a Beta distribution to model it. We will do the same now, but hierarchically. See @fig-beta_binomial_hierarchical_subjects_dag for a graphical representation of the entire model. $\theta$ represents the "success rate" for each player, and thus it is a vector of size `n_players`. We use a Beta distribution to model $\theta$. The hyperparameters of the Beta distribution will be the vectors $\mu_p$ and $\nu_p$, which are vectors of size 4, representing the four positions in our dataset(defender `DF`, midfielder `MF`, forward `FW` and goalkeeper `GK`). We will need to properly index the vectors $\mu_p$ and $\nu_p$ to match the total number of players. Finally, we will have two global parameters, $\mu$ and $\nu$, representing the professional football players
 
 
-![Hierarchical model for the football players example. Notice how we have one more level than in previous hierarchical models](/fig/beta_binomial_hierarchical_subjects_dag.png){#fig-beta_binomial_hierarchical_subjects_dag width=50%}
+![Hierarchical model for the football players example. Notice how we have one more level than in previous hierarchical models](/fig/beta_binomial_hierarchical_subjects_dag.png){#fig-beta_binomial_hierarchical_subjects_dag width=40%}
 
 
 The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7, 5.8)` was chosen with the help of PreliZ as a prior with 90% of the mass between 0 and 0.5. This is an example of a weakly informative prior, as it is little doubt that a success rate of 0.5 is a high value. Sports statistics are well-studied and there is a lot of prior information that could be used to define stronger priors. For this example, we will settle on this prior. A similar justification can be done for the prior `pm.Gamma('nu', mu=125, sigma=50)`, which we define as the maximum entropy Gamma prior with 90% of the mass between 50 and 200. 
@@ -196,8 +196,9 @@ The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7
 coords = {"pos": pos_codes}
 with pm.Model(coords=coords) as model_football:
     # Hyper parameters
-    mu = pm.Beta('mu', 1.7, 5.8)  # a maximum entropy prior with 95% of the mass between 0 and 0.5 
-    nu = pm.HalfNormal('nu', 100) # a vague prior for nu (the concentration of the beta distribution)
+    mu = pm.Beta('mu', 1.7, 5.8) 
+    nu = pm.Gamma('nu', mu=125, sigma=50)
+
     
     # Parameters for positions
     mu_p = pm.Beta('mu_p',
@@ -205,8 +206,8 @@ with pm.Model(coords=coords) as model_football:
                        nu=nu,
                        dims = "pos")
     
-    nu_p = pm.HalfNormal('nu_p', 100, dims = "pos")
-        
+    nu_p = pm.Gamma('nu_p', mu=125, sigma=50, dims = "pos")
+ 
     # Parameter for players
     theta = pm.Beta('theta', 
                     mu=mu_p[pos_idx],
@@ -214,7 +215,7 @@ with pm.Model(coords=coords) as model_football:
     
     _ = pm.Binomial('gs', n=football.shots.values, p=theta, observed=football.goals.values)
 
-    idata_football = pm.sample(draws=5000, target_accept=0.95)
+    idata_football = pm.sample()
 ```
 
 On the top panel of @fig-beta_binomial_hierarchical_subjects_mus we have the posterior distribution for the global parameter $\mu$. The posterior distribution is close to 0.1. Meaning that overall for a professional football player (from a top league), the probability of scoring a goal is on average 10%. This is a reasonable value, as scoring goals is not an easy task and we are not discriminating positions, i.e. we are considering players whose main role is not scoring goals. On the middle panel, we have the estimated $mu_p$ value for the forward position, as expected it is higher than the global parameter $\mu$. On the bottom panel, we have the estimated $mu_p$ value for Lionel Messi, with a value of 0.17, which is higher than the global parameter $\mu$ and the forward position $\mu_p$ value. This is also expected, as Lionel Messi is the best football player in the world, and his main role is scoring goals.
@@ -229,7 +230,7 @@ On the top panel of @fig-beta_binomial_hierarchical_subjects_mus we have the pos
 
 
 ::: callout-note
-It is possible to create hierarchical models with as many levels as we want. But unless the problem necessitates additional structure, adding more levels than required does not enhance the quality of our model or inferences. Instead, we will get entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them. The goal of building models is to make sense of data, and thus useful models are usually those that reflect, and take advantage of, the structure of the data.
+It is possible to create hierarchical models with as many levels as we want. But unless the problem necessitates additional structure, adding more levels than required does not enhance the quality of our model or inferences. Instead, we will get entangled in a web of hyper-priors and hyperparameters without the ability to assign any meaningful interpretation to them. The goal of building models is to make sense of data, and thus useful models are usually those that reflect and take advantage of the structure of the data.
 :::
 
 
@@ -238,20 +239,23 @@ It is possible to create hierarchical models with as many levels as we want. But
 
 In this chapter, we have presented one of the most important concepts to learn from this book: hierarchical models. We can build hierarchical models every time we can identify subgroups in our data. In such cases, instead of treating the subgroups as separated entities or ignoring the subgroups and treating them as a single group, we can build a model to partially pool information among groups. The main effect of this partial pooling is that the estimates of each subgroup will be biased by the estimates of the rest of the subgroups. This effect is known as shrinkage, and in general, is a very useful trick that helps to improve inferences by making them more conservative (as each subgroup informs the others by pulling estimates toward it) and more informative. We get estimates at the subgroup level and the group level.
 
-Paraphrasing the Zen of Python, we can certainly say, *hierarchical models are one honking great idea, let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparison. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
-
+Paraphrasing the Zen of Python, we can certainly say *hierarchical models are one honking great idea, let's do more of those!* In the following chapters, we will keep building hierarchical models and learn how to use them to build better models. We will also discuss how hierarchical models are related to the pervasive overfitting/underfitting issue in statistics and machine learning in @sec-model_comparison. In @sec-inference_engines, we will discuss some technical problems that we may find when sampling from hierarchical models and how to diagnose and fix those problems.
 
 
 ## Exercises
 
+1. Using your own words explain the following concepts in two or three sentences:
 
-1. Repeat the exercise we did with `model_h`. This time, without a hierarchical
-structure, use a flat prior such as $\text{Beta}(\alpha=1, \beta=1)$. Compare the results of both models.
+* Complete pooling
+* No pooling
+* Partial pooling
 
-2. Create a hierarchical version of the tips example from @sec-programming_probabilistically by partially pooling across the days of the week. Compare the results to those obtained without the hierarchical structure.
+2. Repeat the exercise we did with `model_h`. This time, without a hierarchical structure, use a flat prior such as $\text{Beta}(\alpha=1, \beta=1)$. Compare the results of both models.
 
-3. Amino acids are usually grouped into the categories like `polar`, `non-polar`, `charged`, and `special`. Build a hierarchical model like `cs_h` but that includes a group effect for the amino acid category. Compare the results to those obtained in this chapter.
+3. Create a hierarchical version of the tips example from @sec-programming_probabilistically by partially pooling across the days of the week. Compare the results to those obtained without the hierarchical structure.
 
-4. 
+4. For each subpanel in @fig-beta_binomial_hierarchical_subjects_global_mus add a reference line representing the empirical mean value, at each level, i.e. the global mean, the forward mean, and Messi's mean. Compare the empirical values to the posterior mean values. What do you observe?
+
+5. Amino acids are usually grouped into the categories like `polar`, `non-polar`, `charged`, and `special`. Build a hierarchical model similar to `cs_h` but including a group effect for the amino acid category. Compare the results to those obtained in this chapter.
 
 
