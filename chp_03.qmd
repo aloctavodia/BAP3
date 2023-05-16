@@ -196,31 +196,31 @@ The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7
 coords = {"pos": pos_codes}
 with pm.Model(coords=coords) as model_football:
     # Hyper parameters
-    mu = pm.Beta('mu', 1.7, 5.8) 
-    nu = pm.Gamma('nu', mu=125, sigma=50)
+    μ = pm.Beta('μ', 1.7, 5.8) 
+    ν = pm.Gamma('ν', mu=125, sigma=50)
 
     
     # Parameters for positions
-    mu_p = pm.Beta('mu_p',
-                       mu=mu,
-                       nu=nu,
+    μ_p = pm.Beta('μ_p',
+                       mu=μ,
+                       nu=ν,
                        dims = "pos")
     
-    nu_p = pm.Gamma('nu_p', mu=125, sigma=50, dims = "pos")
+    ν_p = pm.Gamma('ν_p', mu=125, sigma=50, dims="pos")
  
     # Parameter for players
-    theta = pm.Beta('theta', 
-                    mu=mu_p[pos_idx],
-                    nu=nu_p[pos_idx])
+    θ = pm.Beta('θ', 
+                    mu=μ_p[pos_idx],
+                    nu=ν_p[pos_idx])
     
-    _ = pm.Binomial('gs', n=football.shots.values, p=theta, observed=football.goals.values)
+    _ = pm.Binomial('gs', n=football.shots.values, p=θ, observed=football.goals.values)
 
     idata_football = pm.sample()
 ```
 
 On the top panel of @fig-beta_binomial_hierarchical_subjects_mus we have the posterior distribution for the global parameter $\mu$. The posterior distribution is close to 0.1. Meaning that overall for a professional football player (from a top league), the probability of scoring a goal is on average 10%. This is a reasonable value, as scoring goals is not an easy task and we are not discriminating positions, i.e. we are considering players whose main role is not scoring goals. On the middle panel, we have the estimated $mu_p$ value for the forward position, as expected it is higher than the global parameter $\mu$. On the bottom panel, we have the estimated $mu_p$ value for Lionel Messi, with a value of 0.17, which is higher than the global parameter $\mu$ and the forward position $\mu_p$ value. This is also expected, as Lionel Messi is the best football player in the world, and his main role is scoring goals.
 
-![Posterior distribution for the global parameter $\mu$.](/fig/beta_binomial_hierarchical_subjects_global_mus.png){#fig-beta_binomial_hierarchical_subjects_global_mus width=80%}
+![Posterior distribution for the mean global parameter (top), mean forward position (middle) and $\theta$ parameter for Messi (bottom).](/fig/beta_binomial_hierarchical_subjects_global_mus.png){#fig-beta_binomial_hierarchical_subjects_global_mus width=80%}
 
 
 @fig-beta_binomial_hierarchical_subjects_positions shows a forest plot for the posterior distribution for the parameter $\mu_p$. The posterior distribution for the forward position is centered around 0.13, as we already saw, and is the higher of the four. This makes sense as the role of the players at a forward position is scoring goals as well as assisting them. The lower value of $\mu_p$ is for the goalkeeper position. This is expected, as the main role is to stop the opposing team from scoring, and not to score goals. The interesting aspect is that the uncertainty is very high, this is because we have very few goalkeepers scoring goals in our dataset, 3 to be precise. The posterior distributions for the defender and midfielder positions are somewhat in the middle, being slightly higher for the midfielder. We can explain this as the main role of a midfielder is to defend and attack, and thus the probability of scoring a goal is higher than a defender but lower than a forward. 

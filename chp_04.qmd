@@ -1,1 +1,130 @@
 # Modeling with Lines {#sec-linear}
+
+> "In more than three centuries of science everything has changed except perhaps one thing: the love for the simple." - Jorge Wagensberg
+
+Music---from classical compositions to *Sheena is a Punk Rocker* by The Ramones, passing through the unrecognized *hit* from a garage band and
+Piazzolla\'s Libertango---is made from recurring patterns. The same scales, combinations of chords, riffs, motifs, and so on appear over and over again, giving rise to a wonderful sonic landscape capable of eliciting and modulating the entire range of emotions humans can experience. In a similar fashion, the universe of statistics is built upon recurring patterns, small motifs that appear now and again. In this chapter, we are going to look at one of the most popular and useful of them, the **linear model** (or motif, if you want). This is a very useful model on its own and also the building block of many other models. If you ever took a statistics course, you may have heard of simple and multiple linear regression, logistic regression, ANOVA, ANCOVA, and so on. All these methods are variations of the same underlying motif, the linear regression model. In this chapter, we will cover the following topics:
+
+* Simple linear regression
+* Robust linear regression
+* Hierarchical linear regression
+* Multiple linear regression
+* Variable variance
+* Interactions
+* Polynomial regression
+
+
+## Simple linear regression
+
+Many problems we find in science, engineering, and business are of the following form. We have a variable $X$ and we want to model or predict a variable $Y$. Importantly, these variables are paired like $\{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$. In the most simple scenario, known as simple linear regression, both $X$ and $Y$ are uni-dimensional continuous random variables. By continuous, we mean a variable represented using real numbers. Using NumPy, you will represent these variables as one-dimensional arrays of floats. Usually people call $Y$ the dependent, predicted, or outcome variable, and $X$ the independent, predictor, or input variable.
+
+Some typical situations where linear regression models can be used are: 
+
+* Model the relationship between soil salinity and crop productivity. Then, answer questions such as: is the relationship linear? How strong is this relationship?
+
+* Find a relationship between average chocolate consumption by country and the number of Nobel laureates in that country, and then understand why this relationship could be spurious.
+
+* Predict the gas bill (used for heating and cooking) of your house by using the sun radiation from the local weather report. How accurate is this prediction?
+
+## The core of the linear regression models
+
+In @sec-programming_probabilistically we saw the normal model, that we define as:
+
+$$
+\begin{aligned}
+\mu &\sim \text{some prior} \\
+\sigma &\sim \text{some other prior} \\
+Y &\sim \mathcal{N}(\mu, \sigma)
+\end{aligned}
+$$
+
+The main idea from linear regression is to extend this model, by adding a predictor variable $X$ to the estimation of the mean $\mu$:
+
+$$
+\begin{aligned}
+\alpha &\sim \text{a prior} \\
+\beta &\sim \text{another prior} \\
+\mu &\sim = \alpha + \beta X \\
+\sigma &\sim \text{some other prior} \\
+Y &\sim \mathcal{N}(\mu, \sigma)
+\end{aligned}
+$$
+
+This model says that there is a linear relation between the variable $X$ and the variable $Y$. But that relationship is not deterministic, because of the noise term $\sigma$. Additionally, the model says that the mean of $Y$ is a linear function of $X$, with **intercept** $\alpha$ and **slope** $\beta$. The intercept tell us the value of $Y$ when $X=0$, the slope tell us the change in $Y$ per unit change in $X$. Because we don't know the values of $\alpha$, $\beta$, or $\sigma$ we set priors distribution over them and estimate them from the data.
+
+A common assumption when setting priors for linear models is to assume that they are independent. This assumption greatly simplifies setting priors because we then need to set tree priors instead of one joint prior. At least in principle $\alpha$ and $\beta$ can take any value on the real line, thus it is common to use normal priors for them. And because $\sigma$ is a positive number, it is common to use a half-normal or exponential prior for it.
+
+In general, we do not know where the intercept can be, and its value can vary a lot from one problem to another and for different domain
+knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 10, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Regarding the slope ($\beta$), it may be easier to have an informed guess of what to expect than for the intercept. For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be carefull of using the observed data to guesstimate priors, usually it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knoledge.
+
+ <!-- For instance for a positive slope restricted to be between 0 and 1, we can use a Beta distribution. Or we can use a Gamma The default
+parameterization of the gamma distribution in many packages can be a little bit confusing
+at first, but fortunately PyMC3 allows us to define it using the shape and rate (probably the
+most common parameterization) or the mean and standard deviation (probably a more
+intuitive parameterization, at least for newcomers). -->
+
+
+::: callout-note
+A linear regression model is an extension of the Normal model where the mean is computed as a linear function of a predictor variable 
+:::
+
+ <!-- The machine learning connection
+The core of the linear regression models
+Linear models and high autocorrelation
+Modifying the data before running 
+Interpreting and visualizing the posterior -->
+
+## Linear bikes
+
+We now have a general idea of how a Bayesian linear models looks like. Let's try to cement that idea with an example. We are going to start very simple, we have a record of temperatures and the number of bikes rented in a city. We want to model the relationship between the temperature and the number of bikes rented. We will use the data from the [bike-sharing dataset](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset) from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The original dataset contains 17379 records, each record has 17 variables, but we will a smaller version with only 359 records and we are goint to only use two variables `temperature` and `rented`. The variable `temperature` is the temperature in Celsius and `rented` is the number of bikes rented. @fig-bike_temperature shows a scatter plot of this two varaibles. 
+
+![Bike sharing dataset. Scatter plot of temperature in Celcius vs number of rented bikes](fig/bike_temperature.png){#fig-bike_temperature width=80%}
+
+Let's build a Bayesian linear model for this data. The temperature is going to be our independent variable (our "X") and the number of bikes rented is going to be our dependent variable (our "Y"). We are going to use the following model:
+
+```python
+with pm.Model() as model_lb:
+    α = pm.Normal('α', mu=0, sigma=100)
+    β = pm.Normal('β', mu=0, sigma=10)
+    ϵ = pm.HalfCauchy('ϵ', 10)
+    μ = pm.Deterministic('μ', α + β * bikes.temperature)
+    _ = pm.Normal('y_pred', mu=μ, sigma=ϵ, observed=bikes.rented)
+    idata_lb = pm.sample()
+```
+
+Take a moment to read the code line by line and be sure to understand what is going one, also check @fig-linear_bikes_dag for a visual representation of this model. As we have previously say this is like a normal model, but now the mean is modeled as a linear function of the temperature. The intercept is $\alpha$ and the slope is $\beta$. The noise term is $\epsilon$ and the mean is $\mu$. The only new thing here is the `Deterministic` variable `μ`, this variable is not a random variable, it is a deterministic variable, it is computed from the intercept, the slope and the temperature. We need to specify this variable because we want to save it in the InferenceData for later use. We could have just written `μ = α + β * bikes.temperature` or even `_ = pm.Normal('y_pred', mu=α + β * bikes.temperature, sigma=ϵ, observed=bikes.rented)` and the model will be the same, but we would not have been able to save `μ` in the InferenceData. Notice that `μ` is a vector with the same length as` bikes.temperature`, which is the same as the number of records in the dataset.
+
+To explore the results of our inference, we are going to generate a posterior plot, but omitting the deterministic variable `μ`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude.
+
+```python
+az.plot_posterior(idata_lb, var_names=['~μ'])
+```
+
+![Posterior plot for the bike linear model](fig/linear_bikes_posterior.png){#fig-linear_bikes_posterior width=80%}
+
+From @fig-linear_bikes_posterior we can see that...
+
+
+But we can also explore the posterior in terms of the lines we are fitting.
+
+
+
+## Robust linear regression
+
+## Hierarchical linear regression
+<!-- Correlation, causation, and the messiness of life
+Centered vs Non-centered parameterization -->
+
+## Polynomial regression
+<!-- ○ Interpreting the parameters of a polynomial regression
+○ Polynomial regression – the ultimate model? -->
+
+## Multiple linear regression
+## Generalized Linear Models
+<!-- ○ Logistic regression (The penguins dataset)
+○ Count regressions
+○ Variable variance -->
+
+## Summary
+
+## Exercises
