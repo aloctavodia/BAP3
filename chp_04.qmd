@@ -3,7 +3,7 @@
 > "In more than three centuries of science everything has changed except perhaps one thing: the love for the simple." - Jorge Wagensberg
 
 Music---from classical compositions to *Sheena is a Punk Rocker* by The Ramones, passing through the unrecognized *hit* from a garage band and
-Piazzolla\'s Libertango---is made from recurring patterns. The same scales, combinations of chords, riffs, motifs, and so on appear over and over again, giving rise to a wonderful sonic landscape capable of eliciting and modulating the entire range of emotions humans can experience. In a similar fashion, the universe of statistics is built upon recurring patterns, small motifs that appear now and again. In this chapter, we are going to look at one of the most popular and useful of them, the **linear model** (or motif, if you want). This is a very useful model on its own and also the building block of many other models. If you ever took a statistics course, you may have heard of simple and multiple linear regression, logistic regression, ANOVA, ANCOVA, and so on. All these methods are variations of the same underlying motif, the linear regression model. In this chapter, we will cover the following topics:
+Piazzolla\'s Libertango---is made from recurring patterns. The same scales, combinations of chords, riffs, motifs, and so on appear over and over again, giving rise to a wonderful sonic landscape capable of eliciting and modulating the entire range of emotions humans can experience. Similarly, the universe of statistics is built upon recurring patterns, small motifs that appear now and again. In this chapter, we are going to look at one of the most popular and useful of them, the **linear model** (or motif, if you want). This is a very useful model on its own and also the building block of many other models. If you ever took a statistics course, you may have heard of simple and multiple linear regression, logistic regression, ANOVA, ANCOVA, and so on. All these methods are variations of the same underlying motif, the linear regression model. In this chapter, we will cover the following topics:
 
 * Simple linear regression
 * Robust linear regression
@@ -16,7 +16,7 @@ Piazzolla\'s Libertango---is made from recurring patterns. The same scales, comb
 
 ## Simple linear regression
 
-Many problems we find in science, engineering, and business are of the following form. We have a variable $X$ and we want to model or predict a variable $Y$. Importantly, these variables are paired like $\{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$. In the most simple scenario, known as simple linear regression, both $X$ and $Y$ are uni-dimensional continuous random variables. By continuous, we mean a variable represented using real numbers. Using NumPy, you will represent these variables as one-dimensional arrays of floats. Usually people call $Y$ the dependent, predicted, or outcome variable, and $X$ the independent, predictor, or input variable.
+Many problems we find in science, engineering, and business are of the following form. We have a variable $X$ and we want to model or predict a variable $Y$. Importantly, these variables are paired like $\{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$. In the most simple scenario, known as simple linear regression, both $X$ and $Y$ are uni-dimensional continuous random variables. By continuous, we mean a variable represented using real numbers. Using NumPy, you will represent these variables as one-dimensional arrays of floats. Usually, people call $Y$ the dependent, predicted, or outcome variable, and $X$ the independent, predictor, or input variable.
 
 Some typical situations where linear regression models can be used are: 
 
@@ -28,7 +28,7 @@ Some typical situations where linear regression models can be used are:
 
 ## The core of the linear regression models
 
-In @sec-programming_probabilistically we saw the normal model, that we define as:
+In @sec-programming_probabilistically we saw the normal model, which we define as:
 
 $$
 \begin{aligned}
@@ -44,22 +44,22 @@ $$
 \begin{aligned}
 \alpha &\sim \text{a prior} \\
 \beta &\sim \text{another prior} \\
-\mu &\sim = \alpha + \beta X \\
 \sigma &\sim \text{some other prior} \\
+\mu &\sim = \alpha + \beta X \\
 Y &\sim \mathcal{N}(\mu, \sigma)
 \end{aligned}
 $$
 
-This model says that there is a linear relation between the variable $X$ and the variable $Y$. But that relationship is not deterministic, because of the noise term $\sigma$. Additionally, the model says that the mean of $Y$ is a linear function of $X$, with **intercept** $\alpha$ and **slope** $\beta$. The intercept tell us the value of $Y$ when $X=0$, the slope tell us the change in $Y$ per unit change in $X$. Because we don't know the values of $\alpha$, $\beta$, or $\sigma$ we set priors distribution over them and estimate them from the data.
+This model says that there is a linear relation between the variable $X$ and the variable $Y$. But that relationship is not deterministic, because of the noise term $\sigma$. Additionally, the model says that the mean of $Y$ is a linear function of $X$, with **intercept** $\alpha$ and **slope** $\beta$. The intercept tells us the value of $Y$ when $X=0$, the slope tells us the change in $Y$ per unit change in $X$. Because we don't know the values of $\alpha$, $\beta$, or $\sigma$ we set priors distribution over them and estimate them from the data.
 
 A common assumption when setting priors for linear models is to assume that they are independent. This assumption greatly simplifies setting priors because we then need to set tree priors instead of one joint prior. At least in principle $\alpha$ and $\beta$ can take any value on the real line, thus it is common to use normal priors for them. And because $\sigma$ is a positive number, it is common to use a half-normal or exponential prior for it.
 
 In general, we do not know where the intercept can be, and its value can vary a lot from one problem to another and for different domain
-knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 10, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Regarding the slope ($\beta$), it may be easier to have an informed guess of what to expect than for the intercept. For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be carefull of using the observed data to guesstimate priors, usually it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knoledge.
+knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 10, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Regarding the slope ($\beta$), it may be easier to have an informed guess of what to expect than for the intercept. For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be careful of using the observed data to guesstimate priors, usually, it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knowledge.
 
  <!-- For instance for a positive slope restricted to be between 0 and 1, we can use a Beta distribution. Or we can use a Gamma The default
 parameterization of the gamma distribution in many packages can be a little bit confusing
-at first, but fortunately PyMC3 allows us to define it using the shape and rate (probably the
+at first, but fortunately, PyMC3 allows us to define it using the shape and rate (probably the
 most common parameterization) or the mean and standard deviation (probably a more
 intuitive parameterization, at least for newcomers). -->
 
@@ -92,24 +92,157 @@ with pm.Model() as model_lb:
     idata_lb = pm.sample()
 ```
 
-Take a moment to read the code line by line and be sure to understand what is going one, also check @fig-linear_bikes_dag for a visual representation of this model. As we have previously say this is like a normal model, but now the mean is modeled as a linear function of the temperature. The intercept is $\alpha$ and the slope is $\beta$. The noise term is $\epsilon$ and the mean is $\mu$. The only new thing here is the `Deterministic` variable `μ`, this variable is not a random variable, it is a deterministic variable, it is computed from the intercept, the slope and the temperature. We need to specify this variable because we want to save it in the InferenceData for later use. We could have just written `μ = α + β * bikes.temperature` or even `_ = pm.Normal('y_pred', mu=α + β * bikes.temperature, sigma=ϵ, observed=bikes.rented)` and the model will be the same, but we would not have been able to save `μ` in the InferenceData. Notice that `μ` is a vector with the same length as` bikes.temperature`, which is the same as the number of records in the dataset.
+Take a moment to read the code line by line and be sure to understand what is going one, also check @fig-linear_bikes_dag for a visual representation of this model. As we have previously say this is like a normal model, but now the mean is modeled as a linear function of the temperature. The intercept is $\alpha$ and the slope is $\beta$. The noise term is $\epsilon$ and the mean is $\mu$. The only new thing here is the `Deterministic` variable $μ$, this variable is not a random variable, it is a deterministic variable, it is computed from the intercept, the slope and the temperature. We need to specify this variable because we want to save it in the InferenceData for later use. We could have just written `μ = α + β * bikes.temperature` or even `_ = pm.Normal('y_pred', mu=α + β * bikes.temperature, sigma=ϵ, observed=bikes.rented)` and the model will be the same, but we would not have been able to save $μ$ in the InferenceData.  Notice that $μ$ is a vector with the same length as` bikes.temperature`, which is the same as the number of records in the dataset.
 
-To explore the results of our inference, we are going to generate a posterior plot, but omitting the deterministic variable `μ`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude.
+
+![Bayesian linear model for the bike sharing dataset](fig/linear_bikes_dag.png){#fig-linear_bikes_dag width=50%}
+
+### Interpreting the posterior mean
+
+To explore the results of our inference, we are going to generate a posterior plot, but omitting the deterministic variable `μ`. We ommit it because other wise we would get a lot of plots, one for each value of `temperature`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude as in the following block of code.
 
 ```python
 az.plot_posterior(idata_lb, var_names=['~μ'])
 ```
 
-![Posterior plot for the bike linear model](fig/linear_bikes_posterior.png){#fig-linear_bikes_posterior width=80%}
+![Posterior plot for the bike linear model](fig/linear_bikes_posterior.png){#fig-linear_bikes_posterior}
 
-From @fig-linear_bikes_posterior we can see that...
+From @fig-linear_bikes_posterior we can see the marginal posterior distribution for $\alpha$, $\beta$ and $\sigma$, if we only read the means of each distribution say that $\mu = 69 + 7.9 X$, with this information we can say that the expected value of rented bikes when the temperature is 0 is 69 and for each degree of temperature the number of rented bikes increases by 7.9. So for a temperature of 28 degrees we expect to rent $69 + 7.9 * 28 \approx 278$ bikes. This is our expectation, but the posterior also informs us about the uncertainty around this estimate. For instance, the 94% HDI for $\beta$ is (6.2, 9.9), so for each degree of temperature the number of rented bikes could increase from 7 to about 10. Also even if we omit the posterior uncertainty and we only pay attention to the means, we still have uncertainty about the number of rented bikes, because we have a value of $\sigma$ of 170. So if we say that for a temperature of 28 degrees, we expect to rent 278 bikes, we should not be surprised if the actual number turns to be 100 bikes or 500 bikes.
+
+Now let's create a few plots that will help us to visualize the combined uncertainty of these parameters. Let's start with two plots for the mean (see  @fig-linear_bikes_posterior_lines). Both are plots of the mean number of rented bikes as a function of the temperature. The difference is how we represent the uncertainty. We show two popular ways of doing it. For the left subpanel, we take 50 samples from the posterior and plot them as individual lines, for the right subpanel we, instead, take all the available posterior samples for $μ$ and use it to compute the 94% HDI.
+
+![Posterior plot for the bike linear model](fig/linear_bikes_posterior_lines.png){#fig-linear_bikes_posterior_lines width=80%}
+
+The plots in @fig-linear_bikes_posterior_lines convey essentially the same information, but one represents uncertainty as a set of lines and the other as a shaded area. Notice that if you repeat the code to generate the plot, you will get different lines, because we are sampling from the posterior. The shaded area, however, will be the same, because we are using all the available posterior samples. If we go further and refit the model, we will not only get different lines but the shaded area could also change, but probably the difference between runs is going to be very small, if not probably need to increase the number of draws, or there is something funny about your model and sampling (see @sec-inference_engines for guidance).
+
+Anyway, why are we showing two slightly different plots if they convey the same information? Well, to highlight that there are different ways to represent uncertainty. Which one is better? As usual, that is context-dependent, the shaded area is a good option, it is very common, and it is simple to compute and interpret. Unless we have reasons to show individual posterior samples that may be your choice. But we may want to show individual posterior samples, for instance, most of the lines might span a certain region but we get a few with very high slopes. A shaded area could hide that information. When showing individual samples from the posterior it may be a good idea to animate them if you are showing them in a presentation or a video (see @kale_2018 for more about this).
+
+Another reason to show it is that you can see different ways to extract information from the posterior. Omitting the actual code for plotting the computation we performed for @fig/linear_bikes_posterior_lines as described in the next block of code.
+
+```python
+posterior = az.extract(idata_lb, num_samples=50)
+x_plot = xr.DataArray(np.linspace(bikes.temperature.min(), bikes.temperature.max(), 50), dims="plot_id")
+mean_line = posterior['α'].mean() + posterior['β'].mean() * x_plot
+lines = posterior['α'] + posterior['β'] * x_plot
+hdi_lines = az.hdi(idata_lb.posterior['μ'])
+...
+```
+
+You can see that in the first line we used `az.extract` takes the `chain` and `draw` dimension and stack them in a single `sample` dimension, which can be useful for later processing. Additionally, we use the `num_samples` argument to ask for a subsample from the posterior. By default `az.extract` will operatte on the posterior group, if you want to extract information from another group, you can use the `group` argument. On the second line, we define a DataArray `x_plot`, with equally spaced values ranging from the minimum to the maximum observed temperatures. The reason to create a DataArray is to be able to use Xarray automatic alignment capabilities in the next two lines, if we use a NumPY array we will need to add extra dimensions, which is usually confusing, the best way to fully understand what I mean is to define `x_plot = np.linspace(bikes.temperature.min(), bikes.temperature.max())` and try to redo the plot. In the third line, we compute the mean of the posterior for $\mu$ for each value of `x_plot` and in the fourth line, we compute the individual lines. For these two lines, we could have used `posterior['μ']`, but instead we explicitly rewrite the linear model, we do this to be explicit and with the hope that it will help you to gain more intuition about linear models.
+
+### Interpreting the posterior predictions
+
+What if we are not just interested in the expected (mean) value, but we want to think in terms of predictions, that is in terms of rented bikes? Well for that we can do posterior predictive sampling. After executing the next line of code `idata_lb` will be populated with a new group `posterior_predictive` with a variable `y_pred` representing the posterior predictive samples for the number of rented bikes.
+
+```python
+pm.sample_posterior_predictive(idata_lb, model=model_lb, extend_inferencedata=True)
+```
+
+The black line in @fig-linear_bikes_posterior_predictive is the mean of the number of rented bikes, this is the same as in @fig-linear_bikes_posterior_lines. The new elements are the dark gray band, representing the central 50% (quantiles 0.25 and 0.5) for the rented bikes and the light gray band, representing the central 94% (quantiles 0.03 and 0.97). You may notice that our model is predicting a negative number of bikes, which does not make sense. But upon reflection, this should be expected as we use a Normal distribution for the likelihood in `model_lb`. A very dirty *fix* could be to clip the predictions at values lower than zero, but that's ugly. In the next section, we will see that we can easily improve this model to avoid non-sensical predictions.
+
+![Posterior predictive plot for the bike linear model](fig/linear_bikes_posterior_predictive.png){#fig-linear_bikes_posterior_predictive width=80%}
+
+## Generalizing the linear model
+
+The linear model we have been using is a special case of a more general model, the generalized linear model (GLM). The GLM is a generalization of the linear model that allows us to use different distributions for the likelihood. At a high level we can write a Bayesian GLM like:
+
+$$
+\begin{aligned}
+\alpha &\sim \text{a prior} \\
+\beta &\sim \text{another prior} \\
+\theta &\sim \text{some prior} \\
+\mu &\sim = \alpha + \beta X \\
+Y &\sim \phi(f(\mu), \theta)
+\end{aligned}
+$$
+
+where $\phi$ is an arbitrary distribution some common cases are Normal, Student's T, Gamma, NegativeBinomial, etc. $\theta$ represent any *auxiliary* or *noise* parameter the distribution may have, like $\sigma$ for the Normal. We also have $f$, usually called the inverse link function. When $\phi$ is a Normal, then $f$ is the identity function. For distributions like Gamma and NegativeBinomial $f$ is usually the exponential function. Why do we need $f$? Because $\mu$ will generally be on the real line, but the $\mu$ parameter (or its equivalent) may be defined on a different domain. For instance, the NegativeBinomial is defined on the positive integers, so we need to transform $\mu$ to the positive integers. The exponential function is a good candidate for this transformation. We are going to explore a few GLMs in this book, a good exercise for you is to create a table and every time we see a new one, you add one line indicating what is $phi$, $theta$, $f$ and maybe some notes about when this GLM is used. OK, let's start with our first concrete example of a GLM.
 
 
-But we can also explore the posterior in terms of the lines we are fitting.
+## Generalizing the linear model for count data
+
+How we can change `model_lb` to better accommodate the bikes data? There are two things to note, the number of rented bikes is discrete and it is bounded at zero. This is usually known as count-data. That is data that is the result of counting something. Count-data is sometimes modelled using continuous distribution like a Normal, especially when the number of count is large. But it is often a good idea to use a discrete distribution. Two common choices are the Poisson distribution and the NegativeBinomial. The main difference is that for the Poisson the mean and the variance are the same, but this is not true or even approximatelly true, then the NegativeBinomial may be a better choice as it allows the mean and variance to be different. When in doubt you can fit a Poisson and a NegativeBinomial and see which one provides a better model, we are goign to do that on @sec-model_comparison. But for now we are going to use the NegativeBinomial.
+
+The PyMC model is very similar as before, but with two main differences. First, we use `pm.NegativeBinomial` instead of `pm.Normal` for the likelihood. The NegativeBinomial distribution has two parameters, the mean $\mu$ and a dispersion parameter $\alpha$. The variance of the NegativeBinomial is $\mu + \frac{\mu^2}{\alpha}$. So the larger the value of $\alpha$ the larger the variance. The second difference is that $\mu$ is `pm.math.exp(α + β * bikes.temperature)` instead of just `α + β * bikes.temperature`, as we already explained this is needed to transform the real line to the positive integers.
+
+```python 
+with pm.Model() as model_neg:
+    α = pm.Normal('α', mu=0, sigma=100)
+    β = pm.Normal('β', mu=0, sigma=10)
+    σ = pm.HalfCauchy('σ', 10)
+    μ = pm.Deterministic('μ', pm.math.exp(α + β * bikes.temperature))
+    y_pred = pm.NegativeBinomial('y_pred', mu=μ, alpha=σ, observed=bikes.rented)
+    idata_neg = pm.sample(idata_kwargs={"log_likelihood":True})
+    idata_neg.extend(pm.sample_posterior_predictive(idata_neg))
+```
+
+The posterior predictive distribution for ` model_neg` is shown in @fig-linear_bikes_posterior_predictive_nb. The posterior predictive distribution is also very similar to the one we obtained with the linear model (@fig-linear_bikes_posterior_predictive). The main difference is that now we are not predicting a negative number of rented bikes! We can also see that the variance of the predictions increases with the mean. This is expected as the variance of the NegativeBinomial is $\mu + \frac{\mu^2}{\alpha}$.
+
+![Posterior predictive plot for the bike NegativeBinomial linear model](fig/linear_bikes_posterior_predictive_nb.png){#fig-linear_bikes_posterior_predictive_nb width=80%}
+
+@fig-linear_bikes_posterior_predictive_check shows the posterior predictive check for `model_lb` on the left and `model_neg` on the right. We can see that when using a Normal, the largest mismach is that the model predicts negative number of rented bikes, but even on the positive side we see that the fit is not that good. On the other hand, the NegativeBinomial model seems to be a better fit, although not perfect, see the right tail is heavier for the predictions than observations, but also notice that the probability of this very high demand is low. So overall we restate that the NegativeBinomial model is better than the Normal one. 
+
+![Posterior predictive check for the bike linear model](fig/linear_bikes_posterior_predictive_check.png){#fig-linear_bikes_posterior_predictive_check}
+
+## Robust regression
+
+I was once running a complex simulation of a molecular system. At each step of the simulation I need it to fit a linear regression as an intermediate step. We have theoretical and empirical reasons to think that our "Y" was conditionally Normal given our "Xs", so simple linear regression should do the trick. But from time to time the simulation generated a few values of "Y" way above or below the bulk of the data, this completely ruins our simulation and we had to restart it. Usually, these values very different from the bulk of the data are called outliers. The reason for the failure of our simulations was that the outliers were *pulling* the regression line away from the bulk of the data and when we pass this estimate to the next step in the simulation, the thing just halt. We solve this with the help of our good friend the Student's T distribution, which as we saw in @sec-programming_probabilistically, has heavier tails than the Normal distribution. This means that the outliers have less influence on the regression line. This is an example of a robust regression.
+
+To exemplify the robustness that a Student's t-distribution brings to linear regression, we are going to use a very simple and nice dataset: the third data group from the Anscombe
+quartet. If you do not know what the Anscombe quartet is, remember to check it later at
+Wikipedia (<https://en.wikipedia.org/wiki/Anscombe%27s_quartet>). 
 
 
+Now, we are going to rewrite the previous model (model_g), but this time we are going to
+use a Student's t-distribution instead of a Gaussian. This change also introduces the need to
+specify the value of , the normality parameter. If you do not remember the role of this
+parameter, check Chapter 2, Programming Probabilistically, before continuing.
+In the following model, we are using a shifted exponential to avoid values of close to zero.
+The non-shifted exponential puts too much weight on values close to zero. In my
+experience, this is fine for data with no to moderate outliers, but for data with extreme
+outliers (or data with a few bulk points), like in the Anscombe's third dataset, it is better to
+avoid such low values. Take this, as well as other priors recommendations, with a pinch of
+salt. The defaults are good starting points, but there's no need to stick to them. Other
+common priors for are gamma(2, 0.1) or gamma(mu=20, sd=15):
 
-## Robust linear regression
+
+```python
+with pm.Model() as model_t:
+    α = pm.Normal('α', mu=y_3.mean(), sigma=1)
+    β = pm.Normal('β', mu=0, sigma=1)
+    ϵ = pm.HalfNormal('ϵ', 5)
+    ν_ = pm.Exponential('ν_', 1/29)
+    ν = pm.Deterministic('ν', ν_ + 1)
+    _ = pm.StudentT('y_pred', mu=α + β * x_3, sigma=ϵ, nu=ν, observed=y_3)
+    idata_t = pm.sample(2000)
+```
+
+In @fig-linear_robust_regression we can see the robust fit, according to `model_t`, and the non-robust fit, according to SciPy's `linregress` (this function is doing least-squares regression).
+
+![Robust regression](fig/linear_robust_regression.png){#fig-linear_robust_regression, width="80%"}
+
+While the non-robust fit tries to *compromise* and include all points, the robust Bayesian
+model, `model_t`, automatically *discards* one point and fits a line that passes closer through all the remaining points. I know this is a very peculiar dataset, but the message remains the same for other datasets; a Student's t-distribution, due to its heavier tails, gives less importance to points that are far away from the bulk of the data.
+
+Before moving on, take a moment to contemplate a summary of the posterior. The following table:
+
+|          |   mean |   sd |  hdi_3% |  hdi_97% |
+|:--------:|-------:|-----:|-------- |----------|
+| $\alpha$ |  7.23	| 0.15 |  6.95	 |  7.51    |
+| $\beta$  |  0.33  | 0.05 |  0.24   |  0.43    |
+| $\nu$    |  0.03  | 0.03 |  0.00   |  0.09    |
+| $\sigma$ |  0.43  | 0.23 |  0.15   |  0.83    |
+
+
+![Posterior predictive check for `model_t`](fig/linear_robust_regression_ppc.png){#fig-linear_robust_regression_ppc width="80%"}
+
+For the bulk of the data, we get a very good match. Also notice that our model predicts
+values away from the bulk to both sides and not just above the bulk. For our current
+purposes, this model is performing just fine and it does not need further changes.
+Nevertheless, notice that for some problems, we may want to avoid this. In such a case, we
+should probably go back and change the model to restrict the possible values of y_pred to
+positive values
+
 
 ## Hierarchical linear regression
 <!-- Correlation, causation, and the messiness of life
@@ -128,3 +261,12 @@ Centered vs Non-centered parameterization -->
 ## Summary
 
 ## Exercises
+
+<!-- Redo @fig/linear_bikes_posterior_lines but using posterior['mu'] -->
+<!-- posterior = az.extract(idata_lb, num_samples=50)
+x_plot = xr.DataArray(np.linspace(bikes.temperature.min(), bikes.temperature.max(), 50), dims="plot_id")
+mean_line = posterior['α'].mean() + posterior['β'].mean() * x_plot
+lines = posterior['α'] + posterior['β'] * x_plot
+hdi_lines = az.hdi(idata_lb.posterior['μ']) -->
+
+<!-- 2. Add the best line obtained using model_g to @fig-linear_robust_regression -->

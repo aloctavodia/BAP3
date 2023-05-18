@@ -2,11 +2,16 @@
 
 ## Some general notes
 
-In the second edition we extensively use PyMC and ArviZ. In this new edition we add 3 new libraries to me mix:
+We have used the feedback from readers of the second edition to refine the text and the code in the book for improving clarity and readability. We have also added new examples, new sections and also removed some sections that in retrospective were not that useful. 
 
-* PreliZ a library for prior elicitation
-* Bambi a library for Bayesian regression
-* Kulrprit a library for variable selection
+In the second edition we extensively use PyMC and ArviZ. In this new edition we use the last available version of PyMC (xxx) and ArviZ (xxx) at the moment of writting and we showcase some of its new features.
+
+The PyMC ecosystem has bloom since the previous edition and this new edition reflects that. We added 4 new libraries to me mix:
+
+* PreliZ a library for prior elicitation, we use it from chapter 1 and in many chapters after that.
+* Bambi a library for Bayesian regression models with a very simple interface, we have a dedicated chapter for it.
+* Kulrprit is a very new library for variable selection build on top on Bambi, we show one example of how to use it.
+* pymc-bART is a library that extends PyMC to support Bayesian Additive Regression Trees, we have a dedicated chapter for it.
 
 
 ## Chapter 1
@@ -16,4 +21,14 @@ In the second edition we extensively use PyMC and ArviZ. In this new edition we 
 
 ## Chapter 2
 
-* We discuss the Savage-Dickey density ratio (also in chapter 5). 
+* We discuss the Savage-Dickey density ratio (also in chapter 5).
+* We explaing the InfereceData object from ArviZ and how to use coords and dims with PyMC and ArviZ.
+* We move the section of hierarchical models to it own chapter, Chapter 3.
+
+## Chapter 3
+
+* We refine the discussion of hierarchical models and add a new example of subject within categories, for this example we use a dataset from footbal european leagues.
+
+## Chapter 4
+
+* This chapter has been extensivelly rewrited we use the Bikes dataset to introduce both simple linear regression and Negative Binomial regression.
