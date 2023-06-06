@@ -53,11 +53,11 @@ Models are simplified descriptions of a given system or process that, for some r
 
 In general, we will find ourselves performing these three steps in an iterative non-linear fashion. We will retrace our steps at any given point: maybe we made a silly coding mistake, or we found a way to change the model and improve it, or we realized that we need to add more data or collect a different kind of data.
 
-Bayesian models are also known as **probabilistic models** because they are built using probabilities. Why probabilities? Because probabilities are a very useful tool to model uncertainty, we even have very good arguments to state they are the correct mathematical concept. So let's take a walk through the garden of forking paths [@borges_2018].
+Bayesian models are also known as **probabilistic models** because they are built using probabilities. Why probabilities? Because probabilities are a very useful tool to model uncertainty, we even have very good theoretical arguments to state they are the correct mathematical concept @Jaynes. So let's take a walk through the garden of forking paths [@borges_2018].
 
 ## A Probability primer for Bayesian Practitioners
 
-In this section, we are going to discuss a few general and important concepts that are key for better understanding Bayesian methods. Additional probability-related concepts will be introduced or elaborated on in future chapters, as we need them. For a detailed study of probability theory, I highly recommend the book, Introduction to Probability by Joseph K Blitzstein and Jessica Hwang [@blitzstein_2019]. Those already familiar with the basic elements of probability theory can skip this section or skim it.
+In this section, we are going to discuss a few general and important concepts that are key for better understanding Bayesian methods. Additional probability-related concepts will be introduced or elaborated on in future chapters, as we need them.  For a detailed study of probability theory, however, I highly recommend the book, Introduction to Probability by Joseph K Blitzstein and Jessica Hwang [@blitzstein_2019]. Those already familiar with the basic elements of probability theory can skip this section or skim it.
 
 ### Sample Space and Events
 
@@ -93,13 +93,13 @@ $$
 P(B) = \frac{7}{8} = 0.875
 $$
 
-Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something called the naive definition of probability since it is restrictive and relies on strong assumptions. However, it is still useful if we are cautious when using it. For instance, it is not true that all yes-no questions have a 50-50 chance. What is the probability of seeing a purple horse? The right answer can vary a lot depending if we talking about the natural color of a real horse, a horse from a cartoon, a horse dressed in a parade, etc. Anyway, no matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. We can see that this is true by computing:
+Considering all events equally likely is just a particular case that makes calculating probabilities easier. This is something called the naive definition of probability since it is restrictive and relies on strong assumptions. However, it is still useful if we are cautious when using it. For instance, it is not true that all yes-no questions have a 50-50 chance. What is the probability of seeing a purple horse? The right answer can vary a lot depending if we're talking about the natural color of a real horse, a horse from a cartoon, a horse dressed in a parade, etc. Anyway, no matter if the events are equally likely or not. The probability of the entire sample space is always equal to 1. We can see that this is true by computing:
 
 $$P(S) = \frac{\text{number of outcomes in } S}{\text{total number of outcomes in } S}$$
 
 1 is the highest value a probability can take. Saying that $P(S)=1$ is saying that $S$ is not only very likely, it is certain. If everything that can happen is defined by $S$, then $S$ will happen.
 
-If an event is impossible then its probability is 0, let's define the event $C$ as the event of the three persons saying "banana",
+If an event is impossible then its probability is 0. Let's define the event $C$ as the event of three persons saying "banana":
 
 $C$ = {(banana, banana, banana)}
 
@@ -117,16 +117,16 @@ def P(S, A):
 
 I left for the reader the joy to play with this function.
 
-One useful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. You may object that it can rain during the morning and not rain during the afternoon. That is true, but that's a different sample space!
+One useful way to conceptualize probabilities is as conserved quantities distributed throughout the sample space. This means that if the probability of one event increases, the probability of some other event or events must decrease so that the total probability remains equal to 1. This can be illustrated with a simple example. Suppose we ask one person whether it will rain tomorrow, with possible responses of "yes" and "no". The sample space for possible responses is given by $S$ = {yes, no}. An event that will rain tomorrow is represented by $A$ = {yes}. If $p(A)$, is 0.5, then the probability of the complement of event $A$, denoted by $p(A^c)$, must also be 0.5. If for some reason, $p(A)$ increases to 0.8, then $p(A^c)$ must decrease to 0.2. This property holds for disjoint events, which are events that cannot occur simultaneously. For instance, it cannot rain and not rain at the same time tomorrow. You may object that it can rain during the morning and not rain during the afternoon. That is true, but that's a different sample space! Because we defined the sample space as the possible answers to the question "Will it rain tomorrow?" without making distinctions about the time of the day.
 
-So far we have avoided directly defining probabilities, and instead, we have just shown some of their properties and ways to compute them. A general definition of probability, that works for non-equally likely events is as follows. Given a sample space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms, an axiom is a statement that is taken to be true, and that we use as the starting point in our reasoning.
+So far we have avoided directly defining probabilities, and instead, we have just shown some of their properties and ways to compute them. A general definition of probability, that works for non-equally likely events is as follows. Given a sample space $S$, and the event $A$, which is a subset of $S$, a probability is a function $P$ which takes $A$ as input and returns a real number between 0 and 1, as output. The function $P$ has some restrictions, defined by the following 3 axioms. Keep in mind that an axiom is a statement that is taken to be true, and that we use as the starting point in our reasoning.
 
 
 1.  The probability of an event is a non-negative real number
 2.  $P(S)$ = 1
-3.  If $A1, A2, \dots$ are disjoint events, meaning they cannot occur simultaneously then:
+3.  If $A_1, A_2, \dots$ are disjoint events, meaning they cannot occur simultaneously then:
 
-$$P(A1 , A2 , \dots) = P(A1) + P(A2) +  \dots$$
+$$P(A_1 , A_2 , \dots) = P(A_1) + P(A_2) +  \dots$$
 
 
 If this were a book on probability theory, we would likely dedicate a few pages to demonstrate the consequences of these axioms and provide exercises for manipulating probabilities. That will help us to become proficient in manipulating probabilities. However, our main focus is not on those topics. My motivation to present these axioms is just to show that probabilities are well-defined mathematical concepts with rules that govern their operations. They are a particular type of function, and there is no mystery surrounding them.
