@@ -45,17 +45,16 @@ $$
 \alpha &\sim \text{a prior} \\
 \beta &\sim \text{another prior} \\
 \sigma &\sim \text{some other prior} \\
-\mu &\sim = \alpha + \beta X \\
+\mu &= \alpha + \beta X \\
 Y &\sim \mathcal{N}(\mu, \sigma)
 \end{aligned}
 $$
 
-This model says that there is a linear relation between the variable $X$ and the variable $Y$. But that relationship is not deterministic, because of the noise term $\sigma$. Additionally, the model says that the mean of $Y$ is a linear function of $X$, with **intercept** $\alpha$ and **slope** $\beta$. The intercept tells us the value of $Y$ when $X=0$, the slope tells us the change in $Y$ per unit change in $X$. Because we don't know the values of $\alpha$, $\beta$, or $\sigma$ we set priors distribution over them and estimate them from the data.
+This model says that there is a linear relation between the variable $X$ and the variable $Y$. But that relationship is not deterministic, because of the noise term $\sigma$. Additionally, the model says that the mean of $Y$ is a linear function of $X$, with **intercept** $\alpha$ and **slope** $\beta$. The intercept tells us the value of $Y$ when $X=0$, the slope tells us the change in $Y$ per unit change in $X$. Because we don't know the values of $\alpha$, $\beta$, or $\sigma$ we set priors distribution over them.
 
-A common assumption when setting priors for linear models is to assume that they are independent. This assumption greatly simplifies setting priors because we then need to set tree priors instead of one joint prior. At least in principle $\alpha$ and $\beta$ can take any value on the real line, thus it is common to use normal priors for them. And because $\sigma$ is a positive number, it is common to use a half-normal or exponential prior for it.
+A common assumption when setting priors for linear models is to assume that they are independent. This assumption greatly simplifies setting priors because we then need to set three priors instead of one joint prior. At least in principle $\alpha$ and $\beta$ can take any value on the real line, thus it is common to use normal priors for them. And because $\sigma$ is a positive number, it is common to use a half-normal or exponential prior for it.
 
-In general, we do not know where the intercept can be, and its value can vary a lot from one problem to another and for different domain
-knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 10, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Regarding the slope ($\beta$), it may be easier to have an informed guess of what to expect than for the intercept. For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be careful of using the observed data to guesstimate priors, usually, it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knowledge.
+The values the intercept can take can vary a lot from one problem to another and for different domain knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 1, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Usually, it may be easier to have an informed guess for the slope ($\beta$). For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be careful of using the observed data to guesstimate priors, usually, it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knowledge.
 
  <!-- For instance for a positive slope restricted to be between 0 and 1, we can use a Beta distribution. Or we can use a Gamma The default
 parameterization of the gamma distribution in many packages can be a little bit confusing
@@ -86,9 +85,9 @@ Let's build a Bayesian linear model for this data. The temperature is going to b
 with pm.Model() as model_lb:
     α = pm.Normal('α', mu=0, sigma=100)
     β = pm.Normal('β', mu=0, sigma=10)
-    ϵ = pm.HalfCauchy('ϵ', 10)
+    σ = pm.HalfCauchy('σ', 10)
     μ = pm.Deterministic('μ', α + β * bikes.temperature)
-    _ = pm.Normal('y_pred', mu=μ, sigma=ϵ, observed=bikes.rented)
+    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=bikes.rented)
     idata_lb = pm.sample()
 ```
 
@@ -99,7 +98,7 @@ Take a moment to read the code line by line and be sure to understand what is go
 
 ### Interpreting the posterior mean
 
-To explore the results of our inference, we are going to generate a posterior plot, but omitting the deterministic variable `μ`. We ommit it because other wise we would get a lot of plots, one for each value of `temperature`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude as in the following block of code.
+To explore the results of our inference, we are going to generate a posterior plot, but omit the deterministic variable `μ`. We ommit it because otherwise we would get a lot of plots, one for each value of `temperature`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude as in the following block of code.
 
 ```python
 az.plot_posterior(idata_lb, var_names=['~μ'])
@@ -107,7 +106,7 @@ az.plot_posterior(idata_lb, var_names=['~μ'])
 
 ![Posterior plot for the bike linear model](fig/linear_bikes_posterior.png){#fig-linear_bikes_posterior}
 
-From @fig-linear_bikes_posterior we can see the marginal posterior distribution for $\alpha$, $\beta$ and $\sigma$, if we only read the means of each distribution say that $\mu = 69 + 7.9 X$, with this information we can say that the expected value of rented bikes when the temperature is 0 is 69 and for each degree of temperature the number of rented bikes increases by 7.9. So for a temperature of 28 degrees we expect to rent $69 + 7.9 * 28 \approx 278$ bikes. This is our expectation, but the posterior also informs us about the uncertainty around this estimate. For instance, the 94% HDI for $\beta$ is (6.2, 9.9), so for each degree of temperature the number of rented bikes could increase from 7 to about 10. Also even if we omit the posterior uncertainty and we only pay attention to the means, we still have uncertainty about the number of rented bikes, because we have a value of $\sigma$ of 170. So if we say that for a temperature of 28 degrees, we expect to rent 278 bikes, we should not be surprised if the actual number turns to be 100 bikes or 500 bikes.
+From @fig-linear_bikes_posterior we can see the marginal posterior distribution for $\alpha$, $\beta$ and $\sigma$, if we only read the means of each distribution say that $\mu = 69 + 7.9 X$, with this information we can say that the expected value of rented bikes when the temperature is 0 is 69 and for each degree of temperature the number of rented bikes increases by 7.9. So for a temperature of 28 degrees we expect to rent $69 + 7.9 * 28 \approx 278$ bikes. This is our expectation, but the posterior also informs us about the uncertainty around this estimate. For instance, the 94% HDI for $\beta$ is (6.1, 9.7), so for each degree of temperature the number of rented bikes could increase from 6 to about 10. Also even if we omit the posterior uncertainty and we only pay attention to the means, we still have uncertainty about the number of rented bikes, because we have a value of $\sigma$ of 170. So if we say that for a temperature of 28 degrees, we expect to rent 278 bikes, we should not be surprised if the actual number turns out to be somewhere between 100 and 500 bikes.
 
 Now let's create a few plots that will help us to visualize the combined uncertainty of these parameters. Let's start with two plots for the mean (see  @fig-linear_bikes_posterior_lines). Both are plots of the mean number of rented bikes as a function of the temperature. The difference is how we represent the uncertainty. We show two popular ways of doing it. For the left subpanel, we take 50 samples from the posterior and plot them as individual lines, for the right subpanel we, instead, take all the available posterior samples for $μ$ and use it to compute the 94% HDI.
 
@@ -117,7 +116,7 @@ The plots in @fig-linear_bikes_posterior_lines convey essentially the same infor
 
 Anyway, why are we showing two slightly different plots if they convey the same information? Well, to highlight that there are different ways to represent uncertainty. Which one is better? As usual, that is context-dependent, the shaded area is a good option, it is very common, and it is simple to compute and interpret. Unless we have reasons to show individual posterior samples that may be your choice. But we may want to show individual posterior samples, for instance, most of the lines might span a certain region but we get a few with very high slopes. A shaded area could hide that information. When showing individual samples from the posterior it may be a good idea to animate them if you are showing them in a presentation or a video (see @kale_2018 for more about this).
 
-Another reason to show it is that you can see different ways to extract information from the posterior. Omitting the actual code for plotting the computation we performed for @fig/linear_bikes_posterior_lines as described in the next block of code.
+Another reason to show it is that you can see different ways to extract information from the posterior. Omitting the actual code for plotting the computation we performed for @fig-linear_bikes_posterior_lines as described in the next block of code.
 
 ```python
 posterior = az.extract(idata_lb, num_samples=50)
@@ -128,11 +127,11 @@ hdi_lines = az.hdi(idata_lb.posterior['μ'])
 ...
 ```
 
-You can see that in the first line we used `az.extract` takes the `chain` and `draw` dimension and stack them in a single `sample` dimension, which can be useful for later processing. Additionally, we use the `num_samples` argument to ask for a subsample from the posterior. By default `az.extract` will operatte on the posterior group, if you want to extract information from another group, you can use the `group` argument. On the second line, we define a DataArray `x_plot`, with equally spaced values ranging from the minimum to the maximum observed temperatures. The reason to create a DataArray is to be able to use Xarray automatic alignment capabilities in the next two lines, if we use a NumPY array we will need to add extra dimensions, which is usually confusing, the best way to fully understand what I mean is to define `x_plot = np.linspace(bikes.temperature.min(), bikes.temperature.max())` and try to redo the plot. In the third line, we compute the mean of the posterior for $\mu$ for each value of `x_plot` and in the fourth line, we compute the individual lines. For these two lines, we could have used `posterior['μ']`, but instead we explicitly rewrite the linear model, we do this to be explicit and with the hope that it will help you to gain more intuition about linear models.
+You can see that in the first line, we used `az.extract` takes the `chain` and `draw` dimension and stack them in a single `sample` dimension, which can be useful for later processing. Additionally, we use the `num_samples` argument to ask for a subsample from the posterior. By default `az.extract` will operate on the posterior group, if you want to extract information from another group, you can use the `group` argument. On the second line, we define a DataArray `x_plot`, with equally spaced values ranging from the minimum to the maximum observed temperatures. The reason to create a DataArray is to be able to use Xarray automatic alignment capabilities in the next two lines, if we use a NumPY array we will need to add extra dimensions, which is usually confusing, the best way to fully understand what I mean is to define `x_plot = np.linspace(bikes.temperature.min(), bikes.temperature.max())` and try to redo the plot. In the third line of code, we compute the mean of the posterior for $\mu$ for each value of `x_plot` and in the fourth line, we compute individual values for $\mu$. For these two lines, we could have used `posterior['μ']`, but instead we explicitly rewrite the linear model, we do this with the hope that it will help you to gain more intuition about linear models.
 
 ### Interpreting the posterior predictions
 
-What if we are not just interested in the expected (mean) value, but we want to think in terms of predictions, that is in terms of rented bikes? Well for that we can do posterior predictive sampling. After executing the next line of code `idata_lb` will be populated with a new group `posterior_predictive` with a variable `y_pred` representing the posterior predictive samples for the number of rented bikes.
+What if we are not just interested in the expected (mean) value, but we want to think in terms of predictions, that is in terms of rented bikes? Well for that we can do posterior predictive sampling. After executing the next line of code `idata_lb` will be populated with a new group `posterior_predictive` with a variable `y_pred` representing the posterior predictive distribution for the number of rented bikes.
 
 ```python
 pm.sample_posterior_predictive(idata_lb, model=model_lb, extend_inferencedata=True)
@@ -144,26 +143,26 @@ The black line in @fig-linear_bikes_posterior_predictive is the mean of the numb
 
 ## Generalizing the linear model
 
-The linear model we have been using is a special case of a more general model, the generalized linear model (GLM). The GLM is a generalization of the linear model that allows us to use different distributions for the likelihood. At a high level we can write a Bayesian GLM like:
+The linear model we have been using is a special case of a more general model, the generalized linear model (GLM). The GLM is a generalization of the linear model that allows us to use different distributions for the likelihood. At a high level, we can write a Bayesian GLM like:
 
 $$
 \begin{aligned}
 \alpha &\sim \text{a prior} \\
 \beta &\sim \text{another prior} \\
 \theta &\sim \text{some prior} \\
-\mu &\sim = \alpha + \beta X \\
+\mu &= \alpha + \beta X \\
 Y &\sim \phi(f(\mu), \theta)
 \end{aligned}
 $$
 
-where $\phi$ is an arbitrary distribution some common cases are Normal, Student's T, Gamma, NegativeBinomial, etc. $\theta$ represent any *auxiliary* or *noise* parameter the distribution may have, like $\sigma$ for the Normal. We also have $f$, usually called the inverse link function. When $\phi$ is a Normal, then $f$ is the identity function. For distributions like Gamma and NegativeBinomial $f$ is usually the exponential function. Why do we need $f$? Because $\mu$ will generally be on the real line, but the $\mu$ parameter (or its equivalent) may be defined on a different domain. For instance, the NegativeBinomial is defined on the positive integers, so we need to transform $\mu$ to the positive integers. The exponential function is a good candidate for this transformation. We are going to explore a few GLMs in this book, a good exercise for you is to create a table and every time we see a new one, you add one line indicating what is $phi$, $theta$, $f$ and maybe some notes about when this GLM is used. OK, let's start with our first concrete example of a GLM.
+where $\phi$ is an arbitrary distribution some common cases are Normal, Student's T, Gamma, NegativeBinomial, etc. $\theta$ represent any *auxiliary* or *noise* parameter the distribution may have, like $\sigma$ for the Normal. We also have $f$, usually called the inverse link function. When $\phi$ is a Normal, then $f$ is the identity function. For distributions like Gamma and NegativeBinomial $f$ is usually the exponential function. Why do we need $f$? Because $\mu$ will generally be on the real line, but the $\mu$ parameter (or its equivalent) may be defined on a different domain. For instance, the parameter $\mu$ of the NegativeBinomial is defined for positive values, so we need to transform $\mu$ to the positive integers. The exponential function is a good candidate for this transformation. We are going to explore a few GLMs in this book, a good exercise for you is to create a table and every time we see a new one, you add one line indicating what is $phi$, $theta$, $f$ and maybe some notes about when this GLM is used. OK, let's start with our first concrete example of a GLM.
 
 
 ## Generalizing the linear model for count data
 
-How we can change `model_lb` to better accommodate the bikes data? There are two things to note, the number of rented bikes is discrete and it is bounded at zero. This is usually known as count-data. That is data that is the result of counting something. Count-data is sometimes modelled using continuous distribution like a Normal, especially when the number of count is large. But it is often a good idea to use a discrete distribution. Two common choices are the Poisson distribution and the NegativeBinomial. The main difference is that for the Poisson the mean and the variance are the same, but this is not true or even approximatelly true, then the NegativeBinomial may be a better choice as it allows the mean and variance to be different. When in doubt you can fit a Poisson and a NegativeBinomial and see which one provides a better model, we are goign to do that on @sec-model_comparison. But for now we are going to use the NegativeBinomial.
+How we can change `model_lb` to better accommodate the bikes data? There are two things to note, the number of rented bikes is discrete and it is bounded at zero. This is usually known as count-data. That is data that is the result of counting something. Count-data is sometimes modelled using continuous distribution like a Normal, especially when the number of count is large. But it is often a good idea to use a discrete distribution. Two common choices are the Poisson distribution and the NegativeBinomial. The main difference is that for the Poisson the mean and the variance are the same, but this is not true or even approximatelly true, then the NegativeBinomial may be a better choice as it allows the mean and variance to be different. When in doubt you can fit a Poisson and a NegativeBinomial and see which one provides a better model, we are going to do that on @sec-model_comparison. But for now, we are going to use the NegativeBinomial.
 
-The PyMC model is very similar as before, but with two main differences. First, we use `pm.NegativeBinomial` instead of `pm.Normal` for the likelihood. The NegativeBinomial distribution has two parameters, the mean $\mu$ and a dispersion parameter $\alpha$. The variance of the NegativeBinomial is $\mu + \frac{\mu^2}{\alpha}$. So the larger the value of $\alpha$ the larger the variance. The second difference is that $\mu$ is `pm.math.exp(α + β * bikes.temperature)` instead of just `α + β * bikes.temperature`, as we already explained this is needed to transform the real line to the positive integers.
+The PyMC model is very similar as before but with two main differences. First, we use `pm.NegativeBinomial` instead of `pm.Normal` for the likelihood. The NegativeBinomial distribution has two parameters, the mean $\mu$ and a dispersion parameter $\alpha$. The variance of the NegativeBinomial is $\mu + \frac{\mu^2}{\alpha}$. So the larger the value of $\alpha$ the larger the variance. The second difference is that $\mu$ is `pm.math.exp(α + β * bikes.temperature)` instead of just `α + β * bikes.temperature`, as we already explained this is needed to transform the real line into the positive interval.
 
 ```python 
 with pm.Model() as model_neg:
@@ -180,7 +179,7 @@ The posterior predictive distribution for ` model_neg` is shown in @fig-linear_b
 
 ![Posterior predictive plot for the bike NegativeBinomial linear model](fig/linear_bikes_posterior_predictive_nb.png){#fig-linear_bikes_posterior_predictive_nb width=80%}
 
-@fig-linear_bikes_posterior_predictive_check shows the posterior predictive check for `model_lb` on the left and `model_neg` on the right. We can see that when using a Normal, the largest mismach is that the model predicts negative number of rented bikes, but even on the positive side we see that the fit is not that good. On the other hand, the NegativeBinomial model seems to be a better fit, although not perfect, see the right tail is heavier for the predictions than observations, but also notice that the probability of this very high demand is low. So overall we restate that the NegativeBinomial model is better than the Normal one. 
+@fig-linear_bikes_posterior_predictive_check shows the posterior predictive check for `model_lb` on the left and `model_neg` on the right. We can see that when using a Normal, the largest mismatch is that the model predicts negative number of rented bikes, but even on the positive side we see that the fit is not that good. On the other hand, the NegativeBinomial model seems to be a better fit, although not perfect, see the right tail is heavier for the predictions than observations, but also notice that the probability of this very high demand is low. So overall we restate that the NegativeBinomial model is better than the Normal one. 
 
 ![Posterior predictive check for the bike linear model](fig/linear_bikes_posterior_predictive_check.png){#fig-linear_bikes_posterior_predictive_check}
 
@@ -188,32 +187,21 @@ The posterior predictive distribution for ` model_neg` is shown in @fig-linear_b
 
 I was once running a complex simulation of a molecular system. At each step of the simulation I need it to fit a linear regression as an intermediate step. We have theoretical and empirical reasons to think that our "Y" was conditionally Normal given our "Xs", so simple linear regression should do the trick. But from time to time the simulation generated a few values of "Y" way above or below the bulk of the data, this completely ruins our simulation and we had to restart it. Usually, these values very different from the bulk of the data are called outliers. The reason for the failure of our simulations was that the outliers were *pulling* the regression line away from the bulk of the data and when we pass this estimate to the next step in the simulation, the thing just halt. We solve this with the help of our good friend the Student's T distribution, which as we saw in @sec-programming_probabilistically, has heavier tails than the Normal distribution. This means that the outliers have less influence on the regression line. This is an example of a robust regression.
 
-To exemplify the robustness that a Student's t-distribution brings to linear regression, we are going to use a very simple and nice dataset: the third data group from the Anscombe
-quartet. If you do not know what the Anscombe quartet is, remember to check it later at
+To exemplify the robustness that a Student's t-distribution brings to linear regression, we are going to use a very simple and nice dataset: the third data group from the Anscombe quartet. If you do not know what the Anscombe quartet is, remember to check it later at
 Wikipedia (<https://en.wikipedia.org/wiki/Anscombe%27s_quartet>). 
 
 
-Now, we are going to rewrite the previous model (model_g), but this time we are going to
-use a Student's t-distribution instead of a Gaussian. This change also introduces the need to
-specify the value of , the normality parameter. If you do not remember the role of this
-parameter, check Chapter 2, Programming Probabilistically, before continuing.
-In the following model, we are using a shifted exponential to avoid values of close to zero.
-The non-shifted exponential puts too much weight on values close to zero. In my
-experience, this is fine for data with no to moderate outliers, but for data with extreme
-outliers (or data with a few bulk points), like in the Anscombe's third dataset, it is better to
-avoid such low values. Take this, as well as other priors recommendations, with a pinch of
-salt. The defaults are good starting points, but there's no need to stick to them. Other
-common priors for are gamma(2, 0.1) or gamma(mu=20, sd=15):
+In the following model ` model_t`, we are using a shifted exponential to avoid values close to zero. The non-shifted exponential puts too much weight on values close to zero. In my experience, this is fine for data with none to moderate outliers, but for data with extreme outliers (or data with a few bulk points), like in the Anscombe's third dataset, it is better to avoid such low values. Take this, as well as other priors recommendations, with a pinch of salt. The defaults are good starting points, but there's no need to stick to them. Other common priors for are gamma(2, 0.1) or gamma(mu=20, sd=15):
 
 
 ```python
 with pm.Model() as model_t:
-    α = pm.Normal('α', mu=y_3.mean(), sigma=1)
+    α = pm.Normal('α', mu=0, sigma=1)
     β = pm.Normal('β', mu=0, sigma=1)
-    ϵ = pm.HalfNormal('ϵ', 5)
+    σ = pm.HalfNormal('σ', 5)
     ν_ = pm.Exponential('ν_', 1/29)
     ν = pm.Deterministic('ν', ν_ + 1)
-    _ = pm.StudentT('y_pred', mu=α + β * x_3, sigma=ϵ, nu=ν, observed=y_3)
+    _ = pm.StudentT('y_pred', mu=α + β * ans.x, sigma=σ, nu=ν, observed=ans.y)
     idata_t = pm.sample(2000)
 ```
 
@@ -224,39 +212,274 @@ In @fig-linear_robust_regression we can see the robust fit, according to `model_
 While the non-robust fit tries to *compromise* and include all points, the robust Bayesian
 model, `model_t`, automatically *discards* one point and fits a line that passes closer through all the remaining points. I know this is a very peculiar dataset, but the message remains the same for other datasets; a Student's t-distribution, due to its heavier tails, gives less importance to points that are far away from the bulk of the data.
 
-Before moving on, take a moment to contemplate a summary of the posterior. The following table:
+<!-- Before moving on, take a moment to contemplate a summary of the posterior. The following table:
 
 |          |   mean |   sd |  hdi_3% |  hdi_97% |
 |:--------:|-------:|-----:|-------- |----------|
 | $\alpha$ |  7.23	| 0.15 |  6.95	 |  7.51    |
 | $\beta$  |  0.33  | 0.05 |  0.24   |  0.43    |
 | $\nu$    |  0.03  | 0.03 |  0.00   |  0.09    |
-| $\sigma$ |  0.43  | 0.23 |  0.15   |  0.83    |
+| $\sigma$ |  0.43  | 0.23 |  0.15   |  0.83    | -->
 
+From @fig-linear_robust_regression_ppc we can see that for the bulk of the data we get a very good match. Also notice that our model predicts
+values away from the bulk to both sides and not just above the bulk (as in the observed data). For our current purposes, this model is performing just fine and it does not need further changes. Nevertheless, notice that for some problems, we may want to avoid this. In such a case, we should probably go back and change the model to restrict the possible values of y_pred to positive values, using a truncated Student's t-distribution. This is left as an exercise for the reader.
 
 ![Posterior predictive check for `model_t`](fig/linear_robust_regression_ppc.png){#fig-linear_robust_regression_ppc width="80%"}
 
-For the bulk of the data, we get a very good match. Also notice that our model predicts
-values away from the bulk to both sides and not just above the bulk. For our current
-purposes, this model is performing just fine and it does not need further changes.
-Nevertheless, notice that for some problems, we may want to avoid this. In such a case, we
-should probably go back and change the model to restrict the possible values of y_pred to
-positive values
+
+
+## Logistic regression
+
+<!-- Regression problems are about predicting a continuous value for an output variable given
+the values of one or more input variables. Instead, classification is about assigning a
+discrete value (representing a discrete class) to an output variable given some input
+variables. In both cases, the task is to get a model that properly models the mapping
+between output and input variables; in order to do so, we have at our disposal a sample
+with correct pairs of output-input variables. From a machine learning perspective, both
+regressions and classifications are instances of supervised learning algorithms.
+My mother prepares a delicious dish called sopa seca, which is basically a spaghetti-based
+recipe and literally means dry soup. While it may sound like a misnomer or even an
+oxymoron, the name of the dish makes total sense when we learn how it is cooked.
+Something similar happens with logistic regression, a model that, despite its name, is
+generally framed as a method to solve classification problems. -->
+The logistic regression model is a generalization of the linear regression model, that we can use when the response variable is binary. This model uses the logistic function as an inverse link function. Let's get familiar with this function before we move on to the model.
+
+$$
+\text{logistic}(z) = \frac{1}{1 + e^{-z}}
+$$
+
+For our purpose, the key property of the logistic function is that irrespective of the values of its argument $z$ the result will always be a number in the [0-1] interval. Thus, we can see this function as a convenient way to compress the values computed from a linear model into values that we can feed into a Bernoulli distribution. This logistic function is also known as the sigmoid function, because of its characteristic S-shaped aspect, as we can see from @fig-logistic
+
+
+![Logistic function](fig/logistic.png){#fig-logistic width="80%"}
+
+## The logistic model
+
+We have almost all the elements to turn a simple linear regression into a simple logistic regression. Let's begin with the case of only two classes, for example ham/spam, safe/unsafe, cloudy/sunny, healthy/ill, or hotdog/not hotdog. First, we codify these classes by saying that the predicted variable $y$ can only take two values, 0 or 1, that
+is $y \in \{0, 1\}$.
+
+Stated this way, the problem sounds very similar to the coin-flipping we used in previous chapters. We may remember we used the Bernoulli distribution as the likelihood. The difference with the coin-flipping problem is that now $\theta$ is not going to be generated from a beta distribution; instead, $\theta$ is going to be defined by a linear model with the logistic as the inverse link function. Omitting the priors we have:
+
+$$
+\begin{aligned}
+\theta &= \text{logistic}(\alpha + \beta x) \\
+y &\sim \text{Bernoulli}(\theta)
+\end{aligned}
+$$
+
+We are going to apply logistic regression to the iris dataset. This is a classic dataset containing information about flowers from three closely related species: setosa, virginica, and versicolor. We have taken measurements from 50 individuals of each species. These measurements are the petal length, petal width, sepal length, and sepal width. In case you are wondering, sepals are modified leaves whose function is generally related to protecting the flowers in a bud.
+
+We are going to begin with a simple case. Let's assume we only have to classes setosa and versicolor, and just one independent variable or feature, the sepal_length. We want to predict the probability of a flower being setosa given its sepal length. 
+
+
+As it is usually done, we are going to encode the setosa and versicolor categorical variables with the numbers 0 and 1. Using pandas, we can do the following:
+
+```python
+df = iris.query("species == ('setosa', 'versicolor')")
+y_0 = pd.Categorical(df['species']).codes
+x_n = 'sepal_length'
+x_0 = df[x_n].values
+x_c = x_0 - x_0.mean()
+```
+As with other linear models, centering the data can help with the sampling. Now that we have the data in the proper format, we can finally build the model with PyMC.
+
+```python
+with pm.Model() as model_lrs:
+    α = pm.Normal('α', mu=0, sigma=1)
+    β = pm.Normal('β', mu=0, sigma=5)
+    
+    μ = α + β * x_c   
+    θ = pm.Deterministic('θ', pm.math.sigmoid(μ))
+    bd = pm.Deterministic('bd', -α/β)
+    
+    yl = pm.Bernoulli('yl', p=θ, observed=y_0)
+
+    idata_lrs = pm.sample()
+```
+
+`model_lrs` has two deterministic variables: `θ` and `bd`. `θ` is the output of the logistic function applied to the `μ` variable, and `bd` the boundary decision, which is the value used to separate classes; we will discuss this later in detail. Another point worth mentioning is that instead of writing the logistic function ourselves, we are using the one provided by PyMC, `pm.math.sigmoid`.
+
+@fig-logistic_regression shows the result of ` model_lrs`, we have the sepal length versus the probability of being versicolor $\theta$ (and if you want also the probability of being setosa $1-\theta$). We have added some jitter (noise) to the binary response so the point does not overlap. An S-shaped (black) line is the mean value of $\theta$. This line can be interpreted as the probability of a flower being versicolor, given that we know the value of the sepal length. The semitransparent S-shaped band is the 94% HDI. What about the vertical line, that's the topic of the next section.
+
+![Logistic regression](fig/logistic_regression.png){#fig-logistic_regression width="80%"}
+
+## Classification with logistic regression
+
+My mother prepares a delicious dish called sopa seca, which is basically a spaghetti-based recipe and literally means dry soup. While it may sound like a misnomer or even an
+oxymoron, the name of the dish makes total sense when we learn how it is cooked. Something similar happens with logistic regression, a model that, despite its name, is generally framed as a method to solve classification problems. Let's see the source of this duality.
+
+Regression problems are about predicting a continuous value for an output variable given the values of one or more input variables. We have seen many examples of regression that include logistic regression. But logistic regression is sometimes discussed in terms of classification. Understanding by classification the assignment of discrete value (representing a class, like versicolor) to an output variable given some input variables. For instance, stating that a flower is versicolor or setosa given its sepal length. So, is logistic regression a regression or a classification method? The answer is that it is a regression method, we are regression the probability of beloging to some class, but it can be used for classification too. The only thing we need is a decision rule like we assign the class `versicolor` if $\theta \ge 0.5$ and `setosa` otherwise. The vertical line in @fig-logistic_regression is the boundary decision, and it is defined as the value of the independent variable that makes the probability of being versicolor equal to 0.5. In other words, the boundary decision is the value of the independent variable that makes the probability of being versicolor equal to 0.5. For this model we can compute this value analytically and is $-\frac{\alpha}{\beta}$. This follows from the definition of the model:
+
+
+$$
+\theta = \text{logistic}(\alpha + \beta x) 
+$$
+
+And from the definition of the logistic function, we have that $\theta = 0.5$ when $\alpha + \beta x = 0$.
+
+
+$$
+0.5 = \text{logistic}(\alpha + \beta x) \Longleftrightarrow 0 = \alpha + \beta x 
+$$
+
+Reordering we find that the value of $x$ that makes $\theta = 0.5$ is $-\frac{\alpha}{\beta}$.
+
+Because we have uncertainty in the value of $\alpha$ and $\beta$ we also have uncertainty about the value of the boundary decision. This uncertainty is represented as the vertical (gray) band in @fig-logistic_regression, that goes from $ \approx 5.3$ to $\approx 5.6$. If we were doing automatic classification of flowers based on their sepal length (or any similar problem that could be framed within this model), we could assign setosa to flowers with sepal lenght below 5.3 and versicolor to flowers with sepal length above 5.6. For flowers with sepal lengths between 5.3 and 5.6, we would be uncertain about their class, so we could either assign them randomly or use some other information to make a decision, including asking a human to check the flower.
+
+To summarise this section 
+
+* The value of $\theta$ is, generally speaking $P(Y=1 \mid X)$. In this sense, the logistic regression is a true regression; the key detail is that we are regressing the
+probability that a data point belongs to class 1, given a linear combination of features.
+
+* We are modeling the mean of a dichotomous variable, that is a number in the [0-1] interval. Thus if we want to use logistic regression for classification, we need to introduce a rule to turn this probability into a two-class assignment. For example if $P(Y=1) > 0.5$ we assign that observation to class 1, otherwise to class 0.
+
+* There is nothing special about the value of 0.5, other than that it is the number in the middle of 0 and 1. This boundary can be justified when we are OK about misclassifying a data point in either direction. But this is not always the case, because the cost associated with the miss-classification does not need to be symmetrical. For example, if we are trying to predict whether a patient has a disease or not, we may want to use a boundary that minimizes the number of false negatives (patients that have the disease but we predict they don't) or false positives (patients that don't have the disease but we predict they do). We will discuss this in more detail in the next section.
+
+
+## Interpreting the coeficient of logistic regression
+
+We must be careful when interpreting the coefficients of a logistic regression. Interpretation is not as straightforward as with simple linear models. Using the logistic inverse link function introduces a non-linearity that we have to take into account. If $\beta$ is positive, increasing $x$ will increase $p(y=1)$ by some amount, but the amount is not a linear function of $x$. Instead, the dependency is non-linear on the value of $x$, meaning that the effect of $x$ on $p(y=1)$ depends on the value of $x$. We can visualize this fact from @fig-logistic_regression, instead of a line with a constant slope, we have an S-shaped line with a slope that changes as a function of $x$. 
+
+A little bit of algebra can give us some further insight into how much $p(y=1)$ changes with $x$. The basic logistic model is:
+
+$$
+\theta = \text{logistic}(\alpha + \beta x)
+$$
+
+The inverse of the logistic is the logit function, which is:
+
+$$
+\text{logit}(z) = \log \frac{z}{1-z} 
+$$
+
+Thus, if we take the first equation in this section and apply the logit function to both terms, we get:
+
+$$
+\text{logit}(\theta) = \alpha + \beta x
+$$
+
+Or equivalently:
+
+$$
+\log \frac{\theta}{1-\theta} = \alpha + \beta x
+$$
+
+Remember that $\theta$ in our model is $p(y=1)$, so we can rewrite the previous expresion as:
+
+$$
+\log(\frac{p(y=1)}{1-p(y=1)}) = \alpha + \beta x
+$$
+
+
+The $\frac{p(y=1)}{1-p(y=1)}$ quantity is known as the **odds** of $y=1$. If we call $y=1$ a *success*, then odds of success is the ratio of the probability of success over the probability of failure. For example, while the probability of getting a 2 by rolling a fair die is $\frac{1}{6}$, the odds of getting a 2 are $\frac{1/6}{5/6} = \frac{1}{5} = 0.2$. In words, one favorable event for every five unfavorable events. Odds are often used by gamblers mainly because odds provide a more intuitive tool than raw probabilities when thinking about the proper way to bet.
+
+
+::: callout-note
+In a logistic regression, the $\beta$ coefficient (*slope*) encodes the increase in log-odds units by unit increase of the $x$ variable.
+:::
+
+The transformation from probability to odds is a monotonic transformation, meaning the odds increase as the probability increases, and the other way around. While probabilities are restricted to the $[0, 1]$ interval, odds live in the $[0, \infty )$ interval. The logarithm is another monotonic transformation and log-odds are in the $(-\infty, \infty)$ interval. @fig-logistic_odds shows how probabilities are related to odds and log-odds:
+
+
+![The effect of x on p(y=1) depends on the value of x](fig/logistic_odds.png){#fig-logistic_odds width="80%"}
+
+
+<!-- podríamos mostrar algo como esto
+
+np.exp(idata_rl.posterior["β"]).mean().item()
+
+La media va al último o primero? entiendo que al último -->
+
+
+## Variable variance
+
+We have been using the linear motif to model the mean of a distribution and, in the previous section, we used it to model interactions. We can also use it to model the variance (or standard deviation) when the assumptions of constant variance do not make sense. For those cases, we may want to consider the variance as a (linear) function of the dependent variable.
+
+The World Health Organization (WHO) and other health institutions around the world collect data for newborns and toddlers and design growth chart standards. These charts
+are an essential component of the paediatric toolkit and also a measure of the general well-being of populations to formulate health-related policies, plan interventions, and monitor their effectiveness. An example of such data is the lengths (heights) of newborn/toddlers girls as a function of their age (in months):
+
+
+```python
+data = pd.read_csv('../data/babies.csv')
+data.plot.scatter('Month', 'Lenght')
+```
+
+To model this data, we are going to introduce three elements we have not seen before:
+
+* $\sigma$ is now a linear function of the predictor variable. To do this, we add two new parameters, $\gamma$ and $\delta$, these are direct analogs of $\alpha$ and $\beta$ in the linear model for the mean. 
+* The linear model for the mean is a function of $\sqrt(X)$. This is just a simple trick to fit a linear model to a curve.
+* We define a `MutableData` variable, `x_shared`. Why we want to do this will become clear soon:
+
+Our full model is:
+
+```python
+with pm.Model() as model_vv:
+    x_shared = pm.MutableData("x_shared", data.Meses.values.astype(float))
+    α = pm.Normal('α', sigma=10)
+    β = pm.Normal('β', sigma=10)
+    γ = pm.HalfNormal('γ', sigma=10)
+    δ = pm.HalfNormal('δ', sigma=10)
+
+
+    μ = pm.Deterministic('μ', α + β * x_shared**0.5)
+    σ = pm.Deterministic('σ', γ + δ * x_shared)
+    
+    y_pred = pm.Normal('y_pred', mu=μ, sigma=σ, observed=data.Longitud)
+    
+    idata_vv = pm.sample()
+```
+
+On the left panel of @fig-babies_fit we can see the mean of $\mu$ represented by a black curve, and the two semi-transparent grey bands represent 1 and 2 standard deviations. On the right panel, we have the estimated variance as a function of the length. As you can see, the variance increases with the length, which is what we expected.
+
+![Posterior fit for `model_vv` on the left panel. On the right the mean estimated variance as a function of the length.](fig/babies_fit.png){#fig-babies_fit}
+
+
+Now that we have the model fitted we might want to use the model to find out how the length of a particular girl compares to the distribution. One way to answer this question is to ask the model for the distribution of the variable _length_ for babies of say 0.5 months. We can answer this question by sampling from the posterior predictive distribution conditional on a length of 0.5. Using PyMC we can get the answer by sampling `pm.sample_posterior_predictive`, the only problem is that by default this function will return values of $\tilde y$ for the already observed values of $x$, i.e. the values used to fit the model. The easiest way to get predictions for unobserved values is to define a `MutableData` variable (`x_shared` in the example) and then update the value of this variable right before sampling the predictive distribution _posteriori_. This is what the following code does:
+
+```python
+with model_vv:
+    pm.set_data({"x_shared": [0.5]})
+    ppc = pm.sample_posterior_predictive(idata_vv)
+    y_ppc = ppc.posterior_predictive['y_pred'].stack(sample=("chain", "draw"))
+```
+
+Now we can plot the expected distribution of lengths for 2-week-old girls and calculate additional amounts, for example, the percentile for a girl of that length:
+
+![Expected distribution of leght at 0.5 months, the shaded area represents the 32% of the accumulated mass](fig/babies_ppc.png){#fig-babies_ppc width="80%"}
 
 
 ## Hierarchical linear regression
+
+On @sec-hierarchical we learned about the rudiments of hierarchical models. We can apply this concept to linear regression as well. This allows models to deal with inferences at the group level and estimations above the group level. As we already saw, this is done by including hyperpriors. We also show that groups can share information by using a common hyperprior. This is a very powerful concept that allows us to model complex data structures. We are going to see two examples. The first one use a synthetic dataset, and the second one uses the `pigs` dataset.
+
+For the first example, I have created eight related groups, including one group with just one datapoint. On GitHub you will find the full code, for the moment just check how the data looks like:
+
+![Synthetic data for the hierarchical linear regression example](fig/hierarchical_data.png){#fig-hierarchical_data width="80%"}
+
+First we are going to fit a non-hierarchical model.
+
+```python
+with pm.Model() as unpooled_model:
+    α = pm.Normal('α', mu=0, sigma=10, shape=M)
+    β = pm.Normal('β', mu=0, sigma=10, shape=M)
+    σ = pm.HalfNormal('σ', 5)
+    _ = pm.Normal('y_pred', mu=α[idx] + β[idx] * x_m, sigma=σ, observed=y_m)
+    trace_up = pm.sample()
+```
+@fig-hierarchical_up_forest shows the estimated values for $\alpha$ and $\beta$, as you can see, the estimates for group 7, the one consisting of a single datapoint, are very different from the rest. This is expected as we don't have enough information to determine their values. The only reason we are not seeing forest plot with values ranging from $-\infty$ to $\infty$ is that we have set (non-flat) priors over the parameters. 
+
+![Posterior distribution for $\alpha$ and $\beta$ for the unpooled model](fig/hierarchical_up_forest.png){#fig-hierarchical_up_forest width="80%"}
+
+Let now fit a hierarchical model to the same dataset.
 <!-- Correlation, causation, and the messiness of life
 Centered vs Non-centered parameterization -->
 
-## Polynomial regression
+<!-- ## Polynomial regression -->
 <!-- ○ Interpreting the parameters of a polynomial regression
 ○ Polynomial regression – the ultimate model? -->
 
-## Multiple linear regression
-## Generalized Linear Models
+<!-- ## Multiple linear regression -->
 <!-- ○ Logistic regression (The penguins dataset)
-○ Count regressions
-○ Variable variance -->
 
 ## Summary
 

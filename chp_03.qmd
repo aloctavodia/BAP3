@@ -189,7 +189,7 @@ Going back to our football players, We have collected data from the *Premier Lea
 ![Hierarchical model for the football players example. Notice how we have one more level than in previous hierarchical models](/fig/beta_binomial_hierarchical_subjects_dag.png){#fig-beta_binomial_hierarchical_subjects_dag width=40%}
 
 
-The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7, 5.8)` was chosen with the help of PreliZ as a prior with 90% of the mass between 0 and 0.5. This is an example of a weakly informative prior, as it is little doubt that a success rate of 0.5 is a high value. Sports statistics are well-studied and there is a lot of prior information that could be used to define stronger priors. For this example, we will settle on this prior. A similar justification can be done for the prior `pm.Gamma('nu', mu=125, sigma=50)`, which we define as the maximum entropy Gamma prior with 90% of the mass between 50 and 200. 
+The PyMC model is defined in the following block of code. The `pm.Beta('mu', 1.7, 5.8)` was chosen with the help of PreliZ as a prior with 95% of the mass between 0 and 0.5. This is an example of a weakly informative prior, as it is little doubt that a success rate of 0.5 is a high value. Sports statistics are well-studied and there is a lot of prior information that could be used to define stronger priors. For this example, we will settle on this prior. A similar justification can be done for the prior `pm.Gamma('nu', mu=125, sigma=50)`, which we define as the maximum entropy Gamma prior with 90% of the mass between 50 and 200. 
 
 
 ```python
