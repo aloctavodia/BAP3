@@ -11,6 +11,7 @@ Piazzolla\'s Libertango---is made from recurring patterns. The same scales, comb
 * Logistic regression
 * Variable variance
 * Hierarchical linear regression
+* Multiple linear regression
 
 
 ## Simple linear regression
@@ -55,26 +56,15 @@ A common assumption when setting priors for linear models is to assume that they
 
 The values the intercept can take can vary a lot from one problem to another and for different domain knowledge. For many problems I have worked on, $\alpha$ is usually centered around zero and with a standard deviation no larger than 1, but this is just my experience (almost anecdotal) with a small subset of problems and not something easy to transfer to other problems. Usually, it may be easier to have an informed guess for the slope ($\beta$). For instance, we may know the sign of the slope a priori; for example, we expect the variable weight to increase, on average, with the variable height. For $\sigma$, we can set it to a large value on the scale of the variable $Y$, for example, 2 times the value for its standard deviation. We should be careful of using the observed data to guesstimate priors, usually, it is fine if the data is used to avoid using very restrictive priors. If we don't have too much knowledge of the parameter, makes sense to ensure our prior is vague. If we instead want more informative priors, then we should not get that information from the observed data, instead, we should get it from our domain knowledge.
 
- <!-- For instance for a positive slope restricted to be between 0 and 1, we can use a Beta distribution. Or we can use a Gamma The default
-parameterization of the gamma distribution in many packages can be a little bit confusing
-at first, but fortunately, PyMC3 allows us to define it using the shape and rate (probably the
-most common parameterization) or the mean and standard deviation (probably a more
-intuitive parameterization, at least for newcomers). -->
-
 
 ::: callout-note
 A linear regression model is an extension of the Normal model where the mean is computed as a linear function of a predictor variable 
 :::
 
- <!-- The machine learning connection
-The core of the linear regression models
-Linear models and high autocorrelation
-Modifying the data before running 
-Interpreting and visualizing the posterior -->
 
 ## Linear bikes
 
-We now have a general idea of what Bayesian linear models looks like. Let's try to cement that idea with an example. We are going to start very simply, we have a record of temperatures and the number of bikes rented in a city. We want to model the relationship between the temperature and the number of bikes rented. We will use the data from the [bike-sharing dataset](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset) from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The original dataset contains 17379 records, and each record has 17 variables, but we will a smaller version with only 359 records and we are going to only use two variables `temperature` and `rented`. The variable `temperature` is the temperature in Celsius and `rented` is the number of bikes rented. @fig-bike_temperature shows a scatter plot of these two variables. 
+We now have a general idea of what Bayesian linear models looks like. Let's try to cement that idea with an example. We are going to start very simply, we have a record of temperatures and the number of bikes rented in a city. We want to model the relationship between the temperature and the number of bikes rented. We will use the data from the [bike-sharing dataset](https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset) from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The original dataset contains 17379 records, and each record has 17 variables, but we will have a smaller version with only 359 records and we are going to only use two variables `temperature` and `rented`. The variable `temperature` is the temperature in Celsius and `rented` is the number of bikes rented. @fig-bike_temperature shows a scatter plot of these two variables. 
 
 ![Bike sharing dataset. Scatter plot of temperature in Celcius vs number of rented bikes](fig/bike_temperature.png){#fig-bike_temperature width=80%}
 
@@ -82,11 +72,11 @@ Let's build a Bayesian linear model for this data. The temperature is going to b
 
 ```python
 with pm.Model() as model_lb:
-    α = pm.Normal('α', mu=0, sigma=100)
-    β = pm.Normal('β', mu=0, sigma=10)
-    σ = pm.HalfCauchy('σ', 10)
-    μ = pm.Deterministic('μ', α + β * bikes.temperature)
-    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=bikes.rented)
+    α = pm.Normal("α", mu=0, sigma=100)
+    β = pm.Normal("β", mu=0, sigma=10)
+    σ = pm.HalfCauchy("σ", 10)
+    μ = pm.Deterministic("μ", α + β * bikes.temperature)
+    y_pred = pm.Normal("y_pred", mu=μ, sigma=σ, observed=bikes.rented)
     idata_lb = pm.sample()
 ```
 
@@ -97,7 +87,7 @@ Take a moment to read the code line by line and be sure to understand what is go
 
 ### Interpreting the posterior mean
 
-To explore the results of our inference, we are going to generate a posterior plot, but omit the deterministic variable `μ`. We ommit it because otherwise we would get a lot of plots, one for each value of `temperature`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude as in the following block of code.
+To explore the results of our inference, we are going to generate a posterior plot, but omit the deterministic variable `μ`. We commit it because otherwise, we would get a lot of plots, one for each value of `temperature`. We can do this by passing the names of the variables we want to include in the plot as a list to the `var_names` argument or we can negate the variable that we want to exclude as in the following block of code.
 
 ```python
 az.plot_posterior(idata_lb, var_names=['~μ'])
@@ -119,10 +109,12 @@ Another reason to show it is that you can see different ways to extract informat
 
 ```python
 posterior = az.extract(idata_lb, num_samples=50)
-x_plot = xr.DataArray(np.linspace(bikes.temperature.min(), bikes.temperature.max(), 50), dims="plot_id")
-mean_line = posterior['α'].mean() + posterior['β'].mean() * x_plot
-lines = posterior['α'] + posterior['β'] * x_plot
-hdi_lines = az.hdi(idata_lb.posterior['μ'])
+x_plot = xr.DataArray(
+    np.linspace(bikes.temperature.min(), bikes.temperature.max(), 50), dims="plot_id"
+)
+mean_line = posterior["α"].mean() + posterior["β"].mean() * x_plot
+lines = posterior["α"] + posterior["β"] * x_plot
+hdi_lines = az.hdi(idata_lb.posterior["μ"])
 ...
 ```
 
@@ -154,7 +146,7 @@ Y &\sim \phi(f(\mu), \theta)
 \end{aligned}
 $$
 
-where $\phi$ is an arbitrary distribution some common cases are Normal, Student's T, Gamma, NegativeBinomial, etc. $\theta$ represent any *auxiliary* or *noise* parameter the distribution may have, like $\sigma$ for the Normal. We also have $f$, usually called the inverse link function. When $\phi$ is a Normal, then $f$ is the identity function. For distributions like Gamma and NegativeBinomial $f$ is usually the exponential function. Why do we need $f$? Because $\mu$ will generally be on the real line, but the $\mu$ parameter (or its equivalent) may be defined on a different domain. For instance, the parameter $\mu$ of the NegativeBinomial is defined for positive values, so we need to transform $\mu$ to the positive integers. The exponential function is a good candidate for this transformation. We are going to explore a few GLMs in this book, a good exercise for you is to create a table and every time we see a new one, you add one line indicating what is $phi$, $theta$, $f$ and maybe some notes about when this GLM is used. OK, let's start with our first concrete example of a GLM.
+where $\phi$ is an arbitrary distribution some common cases are Normal, Student's T, Gamma, NegativeBinomial, etc. $\theta$ represent any *auxiliary* or *noise* parameter the distribution may have, like $\sigma$ for the Normal. We also have $f$, usually called the inverse link function. When $\phi$ is Normal, then $f$ is the identity function. For distributions like Gamma and NegativeBinomial $f$ is usually the exponential function. Why do we need $f$? Because $\mu$ will generally be on the real line, the $\mu$ parameter (or its equivalent) may be defined on a different domain. For instance, the parameter $\mu$ of the NegativeBinomial is defined for positive values, so we need to transform $\mu$ to the positive integers. The exponential function is a good candidate for this transformation. We are going to explore a few GLMs in this book, a good exercise for you is to create a table and every time we see a new one, you add one line indicating what is $phi$, $theta$, $f$ and maybe some notes about when this GLM is used. OK, let's start with our first concrete example of a GLM.
 
 
 ## Counting bikes
@@ -165,12 +157,12 @@ The PyMC model is very similar as before but with two main differences. First, w
 
 ```python 
 with pm.Model() as model_neg:
-    α = pm.Normal('α', mu=0, sigma=100)
-    β = pm.Normal('β', mu=0, sigma=10)
-    σ = pm.HalfCauchy('σ', 10)
-    μ = pm.Deterministic('μ', pm.math.exp(α + β * bikes.temperature))
-    y_pred = pm.NegativeBinomial('y_pred', mu=μ, alpha=σ, observed=bikes.rented)
-    idata_neg = pm.sample(idata_kwargs={"log_likelihood":True})
+    α = pm.Normal("α", mu=0, sigma=1)
+    β = pm.Normal("β", mu=0, sigma=10)
+    σ = pm.HalfNormal("σ", 10)
+    μ = pm.Deterministic("μ", pm.math.exp(α + β * bikes.temperature))
+    y_pred = pm.NegativeBinomial("y_pred", mu=μ, alpha=σ, observed=bikes.rented)
+    idata_neg = pm.sample()
     idata_neg.extend(pm.sample_posterior_predictive(idata_neg))
 ```
 
@@ -195,12 +187,14 @@ In the following model ` model_t`, we are using a shifted exponential to avoid v
 
 ```python
 with pm.Model() as model_t:
-    α = pm.Normal('α', mu=0, sigma=1)
-    β = pm.Normal('β', mu=0, sigma=1)
-    σ = pm.HalfNormal('σ', 5)
-    ν_ = pm.Exponential('ν_', 1/29)
-    ν = pm.Deterministic('ν', ν_ + 1)
-    _ = pm.StudentT('y_pred', mu=α + β * ans.x, sigma=σ, nu=ν, observed=ans.y)
+    α = pm.Normal("α", mu=ans.y.mean(), sigma=1)
+    β = pm.Normal("β", mu=0, sigma=1)
+    σ = pm.HalfNormal("σ", 5)
+    ν_ = pm.Exponential("ν_", 1 / 29)
+    ν = pm.Deterministic("ν", ν_ + 1)
+    μ = pm.Deterministic("μ", α + β * ans.x)
+    _ = pm.StudentT("y_pred", mu=μ, sigma=σ, nu=ν, observed=ans.y)
+
     idata_t = pm.sample(2000)
 ```
 
@@ -211,16 +205,8 @@ In @fig-linear_robust_regression we can see the robust fit, according to `model_
 While the non-robust fit tries to *compromise* and include all points, the robust Bayesian
 model, `model_t`, automatically *discards* one point and fits a line that passes closer through all the remaining points. I know this is a very peculiar dataset, but the message remains the same for other datasets; a Student's t-distribution, due to its heavier tails, gives less importance to points that are far away from the bulk of the data.
 
-<!-- Before moving on, take a moment to contemplate a summary of the posterior. The following table:
 
-|          |   mean |   sd |  hdi_3% |  hdi_97% |
-|:--------:|-------:|-----:|-------- |----------|
-| $\alpha$ |  7.23	| 0.15 |  6.95	 |  7.51    |
-| $\beta$  |  0.33  | 0.05 |  0.24   |  0.43    |
-| $\nu$    |  0.03  | 0.03 |  0.00   |  0.09    |
-| $\sigma$ |  0.43  | 0.23 |  0.15   |  0.83    | -->
-
-From @fig-linear_robust_regression_ppc we can see that for the bulk of the data we get a very good match. Also, notice that our model predicts
+From @fig-linear_robust_regression_ppc we can see that for the bulk of the data, we get a very good match. Also, notice that our model predicts
 values away from the bulk to both sides and not just above the bulk (as in the observed data). For our current purposes, this model is performing just fine and it does not need further changes. Nevertheless, notice that for some problems, we may want to avoid this. In such a case, we should probably go back and change the model to restrict the possible values of y_pred to positive values, using a truncated Student's t-distribution. This is left as an exercise for the reader.
 
 ![Posterior predictive check for `model_t`](fig/linear_robust_regression_ppc.png){#fig-linear_robust_regression_ppc width="80%"}
@@ -229,18 +215,6 @@ values away from the bulk to both sides and not just above the bulk (as in the o
 
 ## Logistic regression
 
-<!-- Regression problems are about predicting a continuous value for an output variable given
-the values of one or more input variables. Instead, classification is about assigning a
-discrete value (representing a discrete class) to an output variable given some input
-variables. In both cases, the task is to get a model that properly models the mapping
-between output and input variables; in order to do so, we have at our disposal a sample
-with correct pairs of output-input variables. From a machine learning perspective, both
-regressions and classifications are instances of supervised learning algorithms.
-My mother prepares a delicious dish called sopa seca, which is basically a spaghetti-based
-recipe and literally means dry soup. While it may sound like a misnomer or even an
-oxymoron, the name of the dish makes total sense when we learn how it is cooked.
-Something similar happens with logistic regression, a model that, despite its name, is
-generally framed as a method to solve classification problems. -->
 The logistic regression model is a generalization of the linear regression model, that we can use when the response variable is binary. This model uses the logistic function as an inverse link function. Let's get familiar with this function before we move on to the model.
 
 $$
@@ -275,23 +249,22 @@ As it is usually done, we are going to encode the setosa and versicolor categori
 
 ```python
 df = iris.query("species == ('setosa', 'versicolor')")
-y_0 = pd.Categorical(df['species']).codes
-x_n = 'sepal_length'
+y_0 = pd.Categorical(df["species"]).codes
+x_n = "sepal_length"
 x_0 = df[x_n].values
 x_c = x_0 - x_0.mean()
 ```
+
 As with other linear models, centering the data can help with the sampling. Now that we have the data in the proper format, we can finally build the model with PyMC.
 
 ```python
 with pm.Model() as model_lrs:
-    α = pm.Normal('α', mu=0, sigma=1)
-    β = pm.Normal('β', mu=0, sigma=5)
-    
-    μ = α + β * x_c   
-    θ = pm.Deterministic('θ', pm.math.sigmoid(μ))
-    bd = pm.Deterministic('bd', -α/β)
-    
-    yl = pm.Bernoulli('yl', p=θ, observed=y_0)
+    α = pm.Normal("α", mu=0, sigma=1)
+    β = pm.Normal("β", mu=0, sigma=5)
+    μ = α + x_c * β
+    θ = pm.Deterministic("θ", pm.math.sigmoid(μ))
+    bd = pm.Deterministic("bd", -α / β)
+    yl = pm.Bernoulli("yl", p=θ, observed=y_0)
 
     idata_lrs = pm.sample()
 ```
@@ -300,7 +273,7 @@ with pm.Model() as model_lrs:
 
 @fig-logistic_regression shows the result of ` model_lrs`, we have the sepal length versus the probability of being versicolor $\theta$ (and if you want also the probability of being setosa $1-\theta$). We have added some jitter (noise) to the binary response so the point does not overlap. An S-shaped (black) line is the mean value of $\theta$. This line can be interpreted as the probability of a flower being versicolor, given that we know the value of the sepal length. The semitransparent S-shaped band is the 94% HDI. What about the vertical line, that's the topic of the next section.
 
-![Logistic regression](fig/logistic_regression.png){#fig-logistic_regression width="80%"}
+![Logistic regression, result of `model_lrs`](fig/logistic_regression.png){#fig-logistic_regression width="80%"}
 
 ### Classification with logistic regression
 
@@ -380,20 +353,20 @@ In logistic regression, the $\beta$ coefficient (*slope*) encodes the increase i
 The transformation from probability to odds is a monotonic transformation, meaning the odds increase as the probability increases, and the other way around. While probabilities are restricted to the $[0, 1]$ interval, odds live in the $[0, \infty )$ interval. The logarithm is another monotonic transformation and log-odds are in the $(-\infty, \infty)$ interval. @fig-logistic_odds shows how probabilities are related to odds and log-odds:
 
 
-![The effect of x on p(y=1) depends on the value of x](fig/logistic_odds.png){#fig-logistic_odds width="80%"}
+![Relationship between probability, odds and log-odds](fig/logistic_odds.png){#fig-logistic_odds width="80%"}
 
 
 ## Variable variance
 
-We have been using the linear motif to model the mean of a distribution and, in the previous section, we used it to model interactions. In statistics, it is said that a linear regression model presents heteroscedasticity when the variance of the errors is not constant in all the observations made. For those cases, we may want to consider the variance (or standard devation) as a (linear) function of the dependent variable.
+We have been using the linear motif to model the mean of a distribution and, in the previous section, we used it to model interactions. In statistics, it is said that a linear regression model presents heteroscedasticity when the variance of the errors is not constant in all the observations made. For those cases, we may want to consider the variance (or standard deviation) as a (linear) function of the dependent variable.
 
 The World Health Organization (WHO) and other health institutions around the world collect data for newborns and toddlers and design growth chart standards. These charts
 are an essential component of the pediatric toolkit and also a measure of the general well-being of populations to formulate health-related policies, plan interventions, and monitor their effectiveness. An example of such data is the lengths (heights) of newborn/toddlers girls as a function of their age (in months):
 
 
 ```python
-data = pd.read_csv('../data/babies.csv')
-data.plot.scatter('Month', 'Lenght')
+data = pd.read_csv("data/babies.csv")
+data.plot.scatter("month", "length")
 ```
 
 To model this data, we are going to introduce three elements we have not seen before:
@@ -406,17 +379,16 @@ Our full model is:
 
 ```python
 with pm.Model() as model_vv:
-    x_shared = pm.MutableData("x_shared", data.Meses.values.astype(float))
-    α = pm.Normal('α', sigma=10)
-    β = pm.Normal('β', sigma=10)
-    γ = pm.HalfNormal('γ', sigma=10)
-    δ = pm.HalfNormal('δ', sigma=10)
+    x_shared = pm.MutableData("x_shared", data.month.values.astype(float))
+    α = pm.Normal("α", sigma=10)
+    β = pm.Normal("β", sigma=10)
+    γ = pm.HalfNormal("γ", sigma=10)
+    δ = pm.HalfNormal("δ", sigma=10)
 
+    μ = pm.Deterministic("μ", α + β * x_shared**0.5)
+    σ = pm.Deterministic("σ", γ + δ * x_shared)
 
-    μ = pm.Deterministic('μ', α + β * x_shared**0.5)
-    σ = pm.Deterministic('σ', γ + δ * x_shared)
-    
-    y_pred = pm.Normal('y_pred', mu=μ, sigma=σ, observed=data.Longitud)
+    y_pred = pm.Normal("y_pred", mu=μ, sigma=σ, observed=data.length)
     
     idata_vv = pm.sample()
 ```
@@ -432,7 +404,7 @@ Now that we have the model fitted we might want to use the model to find out how
 with model_vv:
     pm.set_data({"x_shared": [0.5]})
     ppc = pm.sample_posterior_predictive(idata_vv)
-    y_ppc = ppc.posterior_predictive['y_pred'].stack(sample=("chain", "draw"))
+    y_ppc = ppc.posterior_predictive["y_pred"].stack(sample=("chain", "draw"))
 ```
 
 Now we can plot the expected distribution of lengths for 2-week-old girls and calculate additional amounts, for example, the percentile for a girl of that length:
@@ -458,7 +430,8 @@ with pm.Model(coords=coords) as unpooled_model:
     β = pm.Normal("β", mu=0, sigma=10, dims="group")
     σ = pm.HalfNormal("σ", 5)
     _ = pm.Normal("y_pred", mu=α[idx] + β[idx] * x_m, sigma=σ, observed=y_m)
-    idata_up = pm.sample(random_seed=123)
+
+    idata_up = pm.sample()
 ```
 
 @fig-hierarchical_up_forest shows the estimated values for $\alpha$ and $\beta$, as you can see, the estimates for group H, the one consisting of a single datapoint, are very different from the rest. This is expected as we don't have enough information to fit a line through a single point. We need at least two points, otherwise the parameters are unbounded. That is true unless we provide some more information; we can do this by using priors. Another one is adding more structure to the model. Let's do that and build a hierarchical model.
@@ -481,10 +454,11 @@ with pm.Model(coords=coords) as hierarchical_centered:
     σ = pm.HalfNormal("σ", 5)
     _ = pm.Normal("y_pred", mu=α[idx] + β[idx] * x_m, sigma=σ, observed=y_m)
 
+
     idata_cen = pm.sample()
 ```
 
-If you run `hierarchical_centered` you will see a message from PyMC saying something like `There were 149 divergences after tuning. Increase target_accept or reparameterize.` This message means that samples generated from PyMC may not be trustworthy. So far we have assumed that PyMC always returns samples that we can use without issues, but that's not always the case. In @sec-inference_engines we further discuss why is this along with diagnostic methods to help you identify those situations and recommendations to fix the potential issues. In that section, we also explain what divergences are. For now we will only say that when working with hierarchical linear models we may usually get a lot of divergences. The easy way to solve them is to increase `target_accept`, as PyMC kindly suggests. This is an argument of `pm.sample()` that defaults to 0.8 and can take a maximum value of 1. If you see divergences setting this argument to values like 0.85, 0.9 or even higher can help, but if you reach values like 0.99 and still have divergences probably you are out of luck with this simple trick and you need to do something else. And that's reparametrization. What is this? Reparametrization is writing a model in a different way, but that is mathematically equivalent to your original model, i.e. you are not changing the model, just writing in another way. Many models if not all can be written in alternative ways. Sometimes reparametrization can have a positive effect on the efficiency of the sampler or a model interpretatiblity. For instance, you can remove divergences by doing a reparametrization. Let see how to do that in the next section.
+If you run `hierarchical_centered` you will see a message from PyMC saying something like `There were 149 divergences after tuning. Increase target_accept or reparameterize.` This message means that samples generated from PyMC may not be trustworthy. So far we have assumed that PyMC always returns samples that we can use without issues, but that's not always the case. In @sec-inference_engines we further discuss why is this along with diagnostic methods to help you identify those situations and recommendations to fix the potential issues. In that section, we also explain what divergences are. For now, we will only say that when working with hierarchical linear models we may usually get a lot of divergences. The easy way to solve them is to increase `target_accept`, as PyMC kindly suggests. This is an argument of `pm.sample()` that defaults to 0.8 and can take a maximum value of 1. If you see divergences setting this argument to values like 0.85, 0.9 or even higher can help, but if you reach values like 0.99 and still have divergences probably you are out of luck with this simple trick and you need to do something else. And that's reparametrization. What is this? Reparametrization is writing a model in a different way, but that is mathematically equivalent to your original model, i.e. you are not changing the model, just writing in another way. Many models if not all can be written in alternative ways. Sometimes reparametrization can have a positive effect on the efficiency of the sampler or on the model's interpretability. For instance, you can remove divergences by doing a reparametrization. Let's see how to do that in the next section.
 
 ### Center vs noncentered hierarchical models
 
@@ -526,7 +500,7 @@ Now that our samples are divergence-free we can go back to analyze the posterior
 So far, we have been working with one dependent variable and one independent variable. Nevertheless, it is not unusual to have several independent variables that we want to
 include in our model. Some examples could be:
 
-* Perceived quality of wine (dependent) and acidity, density, alcohol level, residual sugar, and sulphates content (independent variables)
+* Perceived quality of the wine (dependent) and acidity, density, alcohol level, residual sugar, and sulfates content (independent variables)
 * A student's average grades (dependent) and family income, distance from home to school, and mother's education level (categorical variable)
 
 We can easily extend the simple linear regression model to deal with more than one independent variable. We call this model multiple linear regression or less often
@@ -552,7 +526,7 @@ $$
  \mathbf{X} \beta = \sum_i^n  \beta_i X_{i} = \beta_1 X_{1} + \beta_2 X_{2} + \dots + \beta_k X_{k}
 $$
 
-Using the simple linear regression model, we find a straight line that (hopefully) explains our data. Under the multiple linear regression model we find, instead, a hyperplane of dimension $k$. Thus, the multiple linear regression model is essentially the same as the simple linear regression model, the only difference being that now $\beta$ is a vector and \mathbf{X} is a matrix.
+Using the simple linear regression model, we find a straight line that (hopefully) explains our data. Under the multiple linear regression model we find, instead, a hyperplane of dimension $k$. Thus, the multiple linear regression model is essentially the same as the simple linear regression model, the only difference being that now $\beta$ is a vector and $\mathbf{X}$ is a matrix.
 
 To see an example of a multiple linear regression model, let's go back to the bikes dataset. We will use the temperature and the humidity of the day to predict the number of rented bikes. 
 
@@ -562,21 +536,26 @@ with pm.Model() as model_mlb:
     β0 = pm.Normal("β0", mu=0, sigma=10)
     β1 = pm.Normal("β1", mu=0, sigma=10)
     σ = pm.HalfNormal("σ", 10)
-    μ = pm.Deterministic("μ", α + β0 * bikes.temperature + β1 * bikes.hour)
-    _ = pm.NegativeBinomial("y_pred", mu=np.exp(μ), alpha=σ, observed=bikes.rented)
-    idata_mlb = pm.sample(random_seed=123)
+    μ = pm.Deterministic("μ", pm.math.exp(α + β0 * bikes.temperature + β1 * bikes.hour))
+    _ = pm.NegativeBinomial("y_pred", mu=μ, alpha=σ, observed=bikes.rented)
+
+    idata_mlb = pm.sample()
 ```
 
 Please take a moment to compare `model_mlb` which has two independent variables `temperature` and `hour`  with `model_neg` which only has one independent variable `temperature`. The only difference is that now we have two $\beta$ coefficients, one for each independent variable. The rest of the model is the same. Notice that we could have written `β = pm.Normal("β1", mu=0, sigma=10, shape=2)` and then use `β1[0]` and `β1[1]` in the definition of $\mu$. I usually do that.
 
-As you can see writing a multiple regression model is not that different from writing a simple regression model. Interpreting the results can be more challenging, though. For instance, the coefficient of `temperature` is now $\beta_0$ and the coefficient of `hour` is $\beta_1$. We can still interpret the coefficients as the change in the dependent variable for a unit change in the independent variable. But now we have to be careful to specify which independent variable we are talking about. For instance, we can say that for a unit increase in the temperature, the number of rented bikes increases by $\beta_0$ units, _holding the hour constant_. Or we can say that for a unit increase in the hour, the number of rented bikes increases by $\beta_1$ units, _holding the temperature constant_. Also the value of a coefficient for a given variable dependent on what other variables we are including in the model. For instance, the coefficient of `temperature` will be different if we include `hour` in the model or not @fig-neg_vs_mlb shows the $\beta$ coefficients for models `model_neg` (only `temperature`) and for model `model_mld` (`temperature` and `hour`). We can see that the coefficient of `temperature` is different in both models. This is because the effect of `temperature` on the number of rented bikes depends on the hour of the day. Even more the values of the $\beta$ coefficients has been scaled by the standard deviation of their corresponding independent variable, so we can make them comparable. We can see that once we include `hour` in the model the effect of `temperature` on the number of rented bikes get smaller. This is because the effect of `hour` is already explaining some of the variation in the number of rented bikes that was previously explained by `temperature`. In extreme cases, the addition of a new variable can make the coefficient go to zero or even change sign. We will discuss more of this in the next chapter.
+As you can see writing a multiple regression model is not that different from writing a simple regression model. Interpreting the results can be more challenging, though. For instance, the coefficient of `temperature` is now $\beta_0$ and the coefficient of `hour` is $\beta_1$. We can still interpret the coefficients as the change in the dependent variable for a unit change in the independent variable. But now we have to be careful to specify which independent variable we are talking about. For instance, we can say that for a unit increase in the temperature, the number of rented bikes increases by $\beta_0$ units, _holding the hour constant_. Or we can say that for a unit increase in the hour, the number of rented bikes increases by $\beta_1$ units, _holding the temperature constant_. Also, the value of a coefficient for a given variable is dependent on what other variables we are including in the model. For instance, the coefficient of `temperature` will be different if we include `hour` in the model or not @fig-neg_vs_mlb shows the $\beta$ coefficients for models `model_neg` (only `temperature`) and for model `model_mld` (`temperature` and `hour`). We can see that the coefficient of `temperature` is different in both models. This is because the effect of `temperature` on the number of rented bikes depends on the hour of the day. Even more the values of the $\beta$ coefficients have been scaled by the standard deviation of their corresponding independent variable, so we can make them comparable. We can see that once we include `hour` in the model the effect of `temperature` on the number of rented bikes get smaller. This is because the effect of `hour` is already explaining some of the variations in the number of rented bikes that were previously explained by `temperature`. In extreme cases, the addition of a new variable can make the coefficient go to zero or even change the sign. We will discuss more of this in the next chapter.
 
 
-![Scaled $\beta$ coefficients for `model_neg` and  `model_mlb`](../fig/neg_vs_mlb.png){#fig-neg_vs_mlb width="80%"}
-
+![Scaled $\beta$ coefficients for `model_neg` and  `model_mlb`](fig/neg_vs_mlb.png){#fig-neg_vs_mlb width="80%"}
 
 
 ## Summary
+
+
+In this chapter, we have learned about linear regression, which aims to model the relationship between a dependent variable and an independent variable. We have seen how to use PyMC to fit a linear regression model and how to interpret the results and make plots that we can share with different audiences. Our first example was a model with a Gaussian response. But then we saw that this is just one assumption and we can easily change it to deal with none Gaussian responses, such as count data, using a negative binomial regression model or a logistic regression model for Binary data. We saw that when doing so we also need to set an inverse link function to map the linear predictor to the response variable. Using a  Student's t distribution as likelihood can be useful to deal with outliers. We spent most of the chapter modeling the mean as a linear function of the independent variable but we learned that we can also model other parameters like the variance. This is useful when we have heteroscedastic data. We learned how to apply the concept of partial pooling to create hierarchical linear regression models. Finally, we briefly discuss multiple linear regression models.
+
+PyMC makes it very easy to implement all these different flavors of Bayesian linear regression, by changing one or a few lines of code. In the next chapter, we will learn more about linear regression and we will learn about Bambi a tool built on top of PyMC that makes it even easier to build and analyze linear regression models.
 
 ## Exercises
 
