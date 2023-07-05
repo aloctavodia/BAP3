@@ -11,7 +11,7 @@ The PyMC ecosystem has bloom since the previous edition and this new edition ref
 * PreliZ a library for prior elicitation, we use it from chapter 1 and in many chapters after that.
 * Bambi a library for Bayesian regression models with a very simple interface, we have a dedicated chapter for it.
 * Kulrprit is a very new library for variable selection build on top on Bambi, we show one example of how to use it.
-* pymc-bART is a library that extends PyMC to support Bayesian Additive Regression Trees, we have a dedicated chapter for it.
+* pymc-BART is a library that extends PyMC to support Bayesian Additive Regression Trees, we have a dedicated chapter for it.
 
 
 ## Chapter 1
@@ -22,7 +22,7 @@ The PyMC ecosystem has bloom since the previous edition and this new edition ref
 ## Chapter 2
 
 * We discuss the Savage-Dickey density ratio (also in chapter 5).
-* We explaing the InfereceData object from ArviZ and how to use coords and dims with PyMC and ArviZ.
+* We explain the InfereceData object from ArviZ and how to use coords and dims with PyMC and ArviZ.
 * We move the section of hierarchical models to it own chapter, Chapter 3.
 
 ## Chapter 3
@@ -32,3 +32,7 @@ The PyMC ecosystem has bloom since the previous edition and this new edition ref
 ## Chapter 4
 
 * This chapter has been extensivelly rewrited we use the Bikes dataset to introduce both simple linear regression and Negative Binomial regression.
+* Generelized linear models (GLM) are introduced ealier in this chapter (in previous edition they were introduced in another chapter). This helps to see the connection between linear regression and GLM and allows us to introduce more advanced concepts in Chapter 5.
+* We discuss centered vs non-centered parametrization of linear models.
+
+## Chapter 5
