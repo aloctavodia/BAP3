@@ -35,4 +35,12 @@ The PyMC ecosystem has bloom since the previous edition and this new edition ref
 * Generelized linear models (GLM) are introduced ealier in this chapter (in previous edition they were introduced in another chapter). This helps to see the connection between linear regression and GLM and allows us to introduce more advanced concepts in Chapter 5.
 * We discuss centered vs non-centered parametrization of linear models.
 
-## Chapter 5
+## Chapter 5 (Model Comparison)
+
+* We have clean the text to make it more clear and removed the discussion of WAIC, as we now recomend the use of LOO.
+* We have added a dicussion of using the Savage-Dickey density ratio to compute Bayes Factors
+
+## Chapter 6
+
+* Bambi
+* Kulprit
