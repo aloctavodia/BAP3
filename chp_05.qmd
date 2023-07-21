@@ -151,3 +151,181 @@ This is a practical justification for Occam's razor. And he warns us that at lea
 Continuing with the same example but at the other extreme of complexity, we have the model of order 0. This model is simply a Gaussian disguised as a linear model. This model is only capable of capturing the value of the mean of $Y$, and is therefore totally indifferent to the values of $x$. We say that this model has underfitted the data.
 
 ## Measures of predictive accuracy
+
+_Everything should be made as simple as possible, but not simpler_ is a quote often attributed to Einstein. As in a healthy diet, when modeling we have to maintain a balance. Ideally, we would like to have a model that neither underfits nor overfits the data. Somehow you have to balance simplicity and goodness of fit.
+
+In the previous example, it is relatively easy to see that the model of order 0 is _too_ simple while the model of order 5 is _too_ complex. But what can we say about the other two models? How could we establish a numerical ranking of these models? In order to do this we need to formalize our intuition about this balance between simplicity and accuracy.
+
+Let's look at a couple of terms that will be useful to us.
+
+* **Accuracy within the sample** (within-sample accuracy). The accuracy measured with the same data used to fit the model.
+* **Accuracy out of sample** (out-of-sample accuracy). The accuracy measured with data not used to fit the model.
+
+The within-sample accuracy will, on average, be less than the out-of-sample accuracy. That is why using the within-sample accuracy to evaluate a model in general will lead us to think that we have a better model than it really is. Using out-of-sample accuracy is therefore a better idea to avoid fooling ourselves. However, this approximation requires leaving data out of the fit, which is a luxury we generally cannot afford. Since this is a central problem in data analysis, there are several proposals to address it. Two very popular approaches are:
+
+
+* Cross validation: This is an empirical strategy based on dividing the available data into separate subsets that are used to fit and alternatively evaluate
+
+* Information criteria: This is a general term used to refer to various expressions that approximate out-of-sample accuracy as in-sample accuracy plus a term that penalizes model complexity.
+
+### Cross validation
+
+Cross validation is a simple and, in most cases, effective solution for comparing models. We take our data and divide it into K slices. We try to keep the slices more or less the same (in size and sometimes also in other characteristics, such as an equal number of classes). We then use K-1 portions to train the model and the rest to test it. This process is systematically repeated leaving, for each iteration, a different slice out of the training set and using that slice as the evaluation set. This is repeated until we have completed K rounds of adjustment-evaluation. The accuracy of the model will be the average over the K rounds. This is known as K-fold cross validation. Finally, once we have done the cross-validation, we use all the data to last fit our model and this is the model that is used to make predictions or for any other purpose.
+
+
+![](fig/cv.png){#fig-cv width="80%"}
+
+When K equals the number of data points, we get what is known as _leave-one-out cross-validation_ (LOOCV).
+
+Cross validation is a routine practice in _machine learning_. And we have barely described the most essential aspects of this practice. For more information you can read [The Hundred-Page Machine Learning Book](http://themlbook.com/) or [Python Machine Learning](https://www.amazon.com/Python-Machine-Learning-scikit-learn-TensorFlow-ebook/dp/B0742K7HYF/ref=dp_ob_title_def), by Sebastian Rasch ka, or [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/) by Jake Vanderplas.
+
+Cross validation is a very simple and useful idea, but for some models or for large amounts of data, the computational cost of cross validation may be beyond our means. Many people have tried to find simpler quantities to calculate that approximate the results obtained with cross-validation or work in scenarios where cross-validation may not be as easy to perform. And that is the topic of the next section.
+
+### Information criteria
+
+
+Information criteria are a collection of closely related tools used to compare models in terms of goodness-of-fit and model complexity. In other words, the information criteria formalize the intuition that we developed at the beginning of the chapter.
+The exact way in which these quantities are derived has to do with a field known as [Information Theory](http://www.inference.org.uk/mackay/itila/book.html).
+
+
+An intuitive way to measure how well a model fits the data is to calculate the root mean square error between the data and the predictions made by the model:
+
+
+$$\frac{1}{n} \sum_{i=1}^{n} (y_i - \operatorname{E} (y_i \mid \theta))^2$$
+
+
+$\operatorname{E} (y_i \mid \theta)$ is the predicted value given the estimated parameters. It is important to note that this is essentially the average of the difference between the observed and predicted data.
+Taking the square of the errors ensures that the differences do not cancel out and emphasizes large errors compared to other alternatives such as calculating absolute value.
+
+The root mean square error may be familiar to us as it is very popular. But if we stop to reflect on this quantity, we will see that in principle there is nothing special about it and we could well devise other similar expressions. When we adopt a probabilistic approach we see that a more general (and *natural*) expression is the following:
+
+$$ \sum_{i=1}^{n} \log p(y_i \mid \theta)$$
+
+That is, the sum (over $n$ data) of the _likelihoods_ (in logarithmic scale). This is _natural_ because when choosing a likelihood in a model we are implicitly choosing a metric to evaluate the fit of the model. When $p(y_i \mid \theta)$ is a Gaussian then the sum of log-likelihood will be proportional to the root mean square error.
+
+#### Akaike Information Criterion
+
+This is a well-known and widely used information criterion outside the Bayesian universe and is defined as:
+
+$$AIC = -2 \sum_{i=1}^{n} \log p(y_i \mid \hat{\theta}_{mle}) + 2 k $$
+
+Where, k is the number of model parameters and $\hat{\theta}_{mle}$ is the maximum likelihood estimate for $\theta$.
+
+
+Maximum likelihood estimation is common practice for non-Bayesians and is, in general, equivalent to Bayesian maximum a posteriori (MAP) estimation when *flat* priors are used. It is important to note that $\hat{\theta}_{mle}$ is a point estimate and not a distribution.
+
+The factor $-2$ is just a constant, and we could omit it but usually don't. What is important, from a practical point of view, is that the first term takes into account how well the model fits the data, while the second term penalizes the complexity of the model. Therefore if two models fit the data equally well. AIC says that we should choose the model with the least number of parameters.
+
+
+AIC works fine in non-Bayesian approaches, but is problematic otherwise. One reason is that it does not use the posterior distribution of $\theta$ and therefore discards information about estimation uncertainty. Also, AIC, from a Bayesian perspective, assumes that priors are *flat* and therefore AIC is incompatible with informative and slightly informative priors like those used in this book. Also, the number of parameters in a model is not a good measure of the model's complexity when using informative priors or structures like hierarchical structures, as these are ways of reducing the _effective number of parameters_, also known as *regularization*. We will return to this idea of regularization later.
+
+#### Widely applicable information criteria
+
+WAIC is something like the Bayesian version of AIC, just like the latter WAIC is made up of two terms, one that measures the adjustment and the other that penalizes. The following expression assumes that the posterior distribution is represented as a sample of size S (as obtained from an MCMC method).
+
+$$WAIC = -2 \sum_i^n \log \left(\frac{1}{S} \sum_{s=1}^S p(y_i \mid \theta^s) \right) + 2 \sum_i^n \left( V_{s=1}^S \log p(y_i \mid \theta^s) \right)$$
+
+
+The first term is similar to the Akaike criterion, only that it is evaluated for all the observations and all the samples of the later one. The second term is a bit more difficult to justify without getting into technicalities. But it is also a way of penalizing the complexity of the model. What is important from a practical point of view is that WAIC uses the entire posterior (and not a point estimate) for the calculation of both terms, so WAIC can be applied to virtually any Bayesian model.
+
+
+#### Approximating Cross validation
+
+The key problem with leaving one out cross validation is that it is very expensive as we have to refit the model as many times as we have data. Luckily, it is possible to approximate it with a single fit to the data! The method for doing this is called "importance sampling using Pareto smoothing." The name is so ugly that in practice we call it LOO. Conceptually what we are trying to calculate is:
+
+
+$$
+\text{ELPD}_\text{LOO-CV} = \sum_{i=1}^{n} \log
+     \int \ p(y_i \mid \theta) \; p(\theta \mid y_{-i}) d\theta
+$$
+
+$$
+\sum_{i}^{n} \log
+     \left( \frac{1}{s}\sum_j^s \mathbin{\color{#E9692C}{p(y_i \mid \theta_{-i}^j)}} \right)
+$$
+
+where $_{-i}$ means that we leave the observation $i$ out. It is possible to approximate $\color{#E9692C}{p(y_i \mid \theta_{-i}^j})$ using importance sampling, which is a way of approximating a distribution by re-weighting values obtained from another distribution. In our case, the known distribution, once a model has been fitted, is the log-likelihood for all the observations. And we want to approximate the log-likelihood if we had dropped an observation. For this we need to estimate the "importance" (or weight) that each observation has in determining the posterior distribution. An observation will be more "important" (or heavy) the more the subsequent changes when removing that observation. Intuitively, a relatively unlikely observation is more important (or carries more weight) than an expected one. Luckily these weights can be estimated without the need to readjust the model, in fact the weight of the observation $i$ for the sample of the subsequent $s$ is:
+
+$$
+w_s = \frac{1}{p(y_i \mid \theta_s)}
+$$
+
+
+The problem is that under certain conditions these weights may not be reliable. The main problem is that a few $w_s$ could be so large that they dominate the calculation, and this is where Pareto smoothing comes in, which basically consists of replacing some of these weights with weights obtained from fitting a Pareto distribution. Why a Pareto distribution? Because the theory indicates that the weights should follow this distribution. So for each observation $y_i$ , the larger weights are used to estimate a Pareto distribution and that distribution is used to replace those weights with "smoothed" weights. This procedure gives robustness to the estimation of the ELPD and also provides a diagnosis since values of $k$ (one of the parameters of the Pareto distribution) greater than 0.7 indicate that we possibly have "very influential" observations.
+
+
+#### Other information criteria
+
+Another widely used information criterion is DIC, if we use the *bayesometer™*, DIC is more Bayesian than AIC but less than WAIC. Although still popular, WAIC and mainly LOO have been shown to be more useful both theoretically and empirically than DIC. Therefore we do NOT recommend its use.
+
+Another widely used criterion is BIC (Bayesian Information Criteria), like logistic regression and my mother's *dry soup*, this name can be misleading. BIC was proposed as a way to correct some of the problems with AIC and the author proposed a Bayesian justification for it. But BIC is not really Bayesian in the sense that like AIC it assumes *flat* priors and uses maximum likelihood estimation.
+
+But more importantly, BIC differs from AIC and WAIC in its objective. AIC and WAIC try to reflect which model generalizes better to other data (predictive accuracy) while BIC tries to identify which is the _correct_ model and therefore is more related to Bayes factors than WAIC. Later we will discuss Bayes Factors and see how it differs from criteria like WAIC and LOO.
+
+
+## Predictive accuracy calculation using ArviZ
+
+Fortunately, calculating information criteria with ArviZ is very simple. Let's see how to compute LOO
+
+```python
+az.loo(idata_l)
+```
+
+```bash
+Computed from 8000 posterior samples and 33 observations log-likelihood matrix.
+
+         Estimate       SE
+elpd_loo   -14.31     2.67
+p_loo        2.40        -
+------
+
+Pareto k diagnostic values:
+                         Count   Pct.
+(-Inf, 0.5]   (good)       33  100.0%
+ (0.5, 0.7]   (ok)          0    0.0%
+   (0.7, 1]   (bad)         0    0.0%
+   (1, Inf)   (very bad)    0    0.0%
+```
+
+The output of `az.loo` has two sections on the first section we get a table with two rows, the first one is the ELPD (`elpd_loo`) and the second one is the effective number of parameters (`p_loo`). On the second seccion we have the Pareto k diagnostic. This is a measure of the reliability of the approximation of the LOO. Values of k greater than 0.7 indicate that we possibly have "very influential" observations. In this case we have 33 observations and all of them are good, so we can trust the approximation. 
+
+To compute WAIC you can use `az.waic`, the otuput will be similar, except that we will not get the Pareto k diagnostic, or any similar diagnostics, this is a downside of WAIC, we do not get any information about the reliability of the approximation.
+
+If we compute the LOO for the quadratic model we will get a similar output, but the ELPD will be higher (around -4), indicating that the quadratic model is better at predicting the data.
+
+Values of LOO (or WAIC) are not that usefull by themselves, and must be interpreted relatively. That is why ArviZ offers two helper functions to facilitate this comparison let's look at `az.compare` first.
+
+```python
+cmp_df = az.compare({'modelo_l':idata_l, 'modelo_p':idata_p})
+```
+
+|          |   rank |   elpd_loo | p_loo |   elpd_diff |      weight |   se |  dse | warning   | scale   |
+|:---------|-------:|-----------:|------:|------------:|------------:|-----:|-----:|:----------|:--------|
+| modelo_p |      0 |   -4.6     | 2.68  |     0       | 1           | 2.36 | 0    | False     | log     |
+| modelo_l |      1 |  -14.3     | 2.42  |     9.73625 | 3.01e-14    | 2.67 | 2.65 | False     | log     |
+
+
+In the rows we have the compared models and in the columns we have
+
+* rank : the order of the models (from best to worst)
+* elpd : the point estimate of the elpd using
+* p : the effective parameters
+* elpd_diff : the difference between the ELPD of the best model and the other models
+* weight : the relative weight of each model. If we wanted to make predictions by combining the different models, instead of choosing just one, this would be the weight that we should assign to each model. In this case we see that the polynomial model takes all the weight.
+* se : the standard error of the ELPD
+* dse : the standard error of the differences
+* warning : a warning about high k values
+* scale : the scale on which the ELPD is calculated
+
+The other helper function offered by ArviZ is `az.compareplot`, this function provides similar information to `az.compare`, but graphically. Figure @fig-compareplot shows the output of this function.
+
+![Output of `az.compareplot(cmp_df)`](/fig/compareplot.png){#fig-compareplot width="80%"}
+
+
+* The empty circles represent the ELPD values and the black lines the standard error.
+* The highest value of the ELPD is indicated with a vertical dashed gray line to facilitate comparison with other values.
+* For all models except *the best*, we also get a triangle indicating the value of the ELPD difference between each model and the *best* model. The gray error bar indicating the standard error of the differences between the point estimates.
+
+The easiest way to use the information criteria is to choose a single model. Just choose the model with the highest ELPD value. If we follow this rule we will have to accept that the quadratic model is the best. Even if we take into account the standard errors we can see that they do not overlap. This gives us some certainty that indeed the models are *different* from each other. If instead the standard errors did overlap, we should provide a more nuanced answer.
+
+## Average modeling
