@@ -328,4 +328,290 @@ The other helper function offered by ArviZ is `az.compareplot`, this function pr
 
 The easiest way to use the information criteria is to choose a single model. Just choose the model with the highest ELPD value. If we follow this rule we will have to accept that the quadratic model is the best. Even if we take into account the standard errors we can see that they do not overlap. This gives us some certainty that indeed the models are *different* from each other. If instead the standard errors did overlap, we should provide a more nuanced answer.
 
-## Average modeling
+## Model averaging
+
+Model selection is attractive for its simplicity, but we might be missing information about uncertainty in our models. This is somewhat similar to calculating the full posterior and then just keeping the average of the posterior; this can lead us to trust _too much_ what we think we know.
+
+An alternative is to select a single model, but to report and analyze the different models together with the values of the calculated information criteria, their standard error values, and perhaps also the predictive post hoc tests. It is important to put all of these numbers and tests in the context of our problem so that we and our audience can get a better idea of the possible limitations and shortcomings of the models. For those working in academia, these elements can be used to add elements to the discussion section of a paper, presentation, thesis, etc. And in industry this can be useful to inform clients about the advantages and limitations of modeling predictions or conclusions.
+
+Another possibility is to average the models. In this way we are introducing the uncertainty that we have about the goodness of each model, and we can generate a meta-model (and meta-predictions) using a weighted average of each model. ArviZ provides a function for this task, `az.weight_predictions`, which takes as arguments a list of InferenceData objects and a list of weights. The weights can be calculated using the `az.compare` function. For example, if we want to average the two models we have been using, we can do the following:
+
+```python
+idata_w = az.weight_predictions(idatas, weights=[0.35, 0.65])
+```
+
+Figure @fig-lin-pol-weighted shows the results of this calculation. The light gray dashed line is the weighted average of the two models, the black solid line is the linear model and grey solid line is the quadratic one. 
+
+![Weighted average of the linear and quadratic models](/fig/lin-pol-weighted.png){#fig-lin-pol-weighted width="80%"}
+
+There are other ways to average models, such as explicitly building a metamodel that includes all models of interest as particular cases. For example, a degree 2 polynomial contains a linear model as a particular case, or a hierarchical model is the continuous version between two extremes, a grouped model and an ungrouped model.
+
+## Bayes factors
+
+An alternative to LOO, cross-validation, and information criteria are Bayes factors. It is common for Bayesian factors to appear in the literature as a Bayesian alternative to frequentist hypothesis testing.
+
+The "Bayesian way" of comparing $k$ models is to calculate the _marginal likelihood_ of each model $p(y \mid M_k)$, ie the probability of the observed data $Y$ given the model $M_k$. This quantity, the _marginal likelihood_, is simply the normalization constant of Bayes' theorem. We can see this if we write Bayes' theorem and make explicit the fact that all inferences depend on the model.
+
+$$p (\theta \mid Y, M_k ) = \frac{p(Y \mid \theta, M_k) p(\theta \mid M_k)}{p(Y \mid M_k)}$$
+
+where:
+
+* $y$ are the data
+* $\theta$ the parameters
+* $M_k$ a model of k competing models
+
+If our main objective is to choose only one model, the _best_, from a set of models we can choose the one with the largest value of $p(y \mid M_k)$. This is fine if we assume that **all models** have the same _a priori_ probability. Otherwise we must calculate:
+
+$$p(M_k \mid y) \propto p(y \mid M_k) p(M_k)$$
+
+If instead, our main objective is to compare models to determine which are more likely and to what extent. This can be achieved using the Bayes factors:
+
+$$FB_{01} = \frac{p(y \mid M_0)}{p(y \mid M_1)}$$
+
+that is, the quotient between the marginal likelihood of two models. The higher the FB, the _better_ the model in the numerator ($M_0$ in this example). To facilitate the interpretation of the FB, Harold Jeffreys proposed a scale for the interpretation of the Bayes Factors with levels of *support* or *strength*. This is just one way to put numbers into words.
+
+* 1-3: anecdotal
+* 3-10: moderate
+* 10-30: strong
+* 30-100: very strong
+* $>$100: extreme
+
+Keep in mind that if you get numbers below 1, then the support is for the model in the denominator, tables are also available for those cases. Or we can simply take the inverse of the obtained value.
+
+It is very important to remember that these rules are just conventions, simple guides at best. Results should always be put in the context of our problems and should be accompanied by enough detail so that others can assess for themselves whether they agree with our conclusions. The proof necessary to ensure something in particle physics, or in court, or to decide to carry out an evacuation in the face of a looming natural catastrophe is not the same.
+
+
+## Some observations
+ 
+
+We will now briefly discuss some key facts about _marginal likelihood_
+
+* The good
+     * **Occam's Razor Included**: Models with more parameters have a higher penalty than models with fewer parameters. The intuitive reason is that the greater the number of parameters, the more the _prior_ _extends_ with respect to the likelihood. An example where it is easy to see this is with nested models, eg a polynomial of order 2 "contains" the models models "polynomial of order 1" and polynym of order 0.
+
+* The bad
+     * For many problems the marginal likelihood cannot be calculated analytically. And approximating it numerically is usually a difficult task that in the best of cases requires specialized methods and in the worst the estimates are either impractical or unreliable. In fact, the popularity of the MCMC methods is that they allow obtaining the posterior distribution without the need to calculate this quantity.
+
+* The ugly one
+     * The marginal probability depends **very sensitively** on the prior distribution of the parameters in each model $p(\theta_k \mid M_k)$.
+
+It is important to note that *good* and *ugly* are related. Using marginal likelihood to compare models is a good idea because it already includes a penalty for complex models (which helps us prevent overfitting), and at the same time, a change in the prior will affect marginal likelihood calculations. At first this sounds a bit silly; We already know that priors affect calculations (otherwise we could just avoid them), but the point here is the word **sensibly**. We are talking about changes in the prior that would hardly have an effect in the posterior that will have a great impact on the value of the marginal likelihood.
+ 
+The use of FBs is often a watershed among Bayesians. The difficulty of its calculation and the sensitivity to the priors are some of the arguments against it. Another reason is that, like p-values and hypothesis testing in general, BFs favor dichotomous thinking over estimation of "effect size." In other words, instead of asking ourselves questions like: How many more years of life can cancer treatment provide, on average? We end by asking if the difference between treating and not treating a patient is "statistically significant." Note that this last question can be useful in some contexts, the point is that in many other contexts, this type of question is not the question that interests us, only the one that we were taught to answer.
+
+## Calculation of BF
+
+As we already mentioned, marginal likelihood (and the Bayes factors derived from it) is generally not available in closed form, except for some models. For this reason, many numerical methods have been devised for its calculation. Some of these methods are so simple and [naive](https://radfordneal.wordpress.com/2008/08/17/the-harmonic-mean-of-the-likelihood-worst-monte-carlo-method-ever/) that they work very poorly in practice.
+
+### Analytically
+
+For some models, such as the beta-binomial model, we can calculate the marginal likelihood analytically. If we write this model as:
+
+$$\theta \sim Beta(\alpha, \beta)$$
+$$y \sim Bin(n=1, p=\theta)$$
+
+the _marginal likelihood_ will be:
+
+$$p(y) = \binom {n}{h} \frac{B(\alpha + h,\ \beta + n - h)} {B(\alpha, \beta)}$$
+
+where:
+
+* $B$ is the [beta function](https://en.wikipedia.org/wiki/Beta_function) not to be confused with the $Beta$ distribution
+* $n$ is the number of attempts
+* $h$ is the success number
+
+Since we only care about the relative value of the _marginal likelihood_ under two different models (for the same data), we can omit the binomial coefficient $\binom {n}{h}$, so we can write:
+
+$$p(y) \propto \frac{B(\alpha + h,\ \beta + n - h)} {B(\alpha, \beta)}$$
+
+This expression has been coded in the next cell, but with a twist. We will use the `betaln` function, which returns the natural logarithm of the `beta` function, it is common in statistics to do calculations on a logarithmic scale, this reduces numerical problems when working with probabilities.
+
+
+```python
+from scipy.special import betaln
+
+def beta_binom(prior, y):
+    """
+    Calculate the marginal probability, analytically, for a beta-binomial model.
+
+      prior : tuple
+          alpha and beta parameter tuple for the prior (beta distribution)
+      and : array
+          array with "1" and "0" corresponding to success and failure respectively
+    """
+    alpha, beta = prior
+    h = np.sum(y)
+    n = len(y)
+    p_y = np.exp(betaln(alpha + h, beta + n - h) - betaln(alpha, beta))
+
+    return p_y
+```
+
+Our data for this example consists of 100 "coin tosses" and the same number of "heads and tails" observed. We will compare two models one with a uniform prior and one with a _more concentrated_ prior around $\theta = 0.5$
+
+```python
+y = np.repeat([1, 0], [50, 50])  # 50 heads, 50 tails
+priors = ((1, 1), (30, 30))  # uniform prior, peaked prior
+```
+
+Figure @fig-beta-prior shows the two priors, the uniform prior is the black line and the peaked prior is the gray line.
+
+![Uniform and peaked priors](/fig/beta-prior.png){#fig-beta-prior width="80%"}
+
+Now we can calculate the marginal likelihood for each model and the Bayes factor
+
+```python
+BF = beta_binom(priors[1], y) / beta_binom(priors[0], y)
+print(round(BF))
+```
+```bash
+5
+```
+
+We see that the model with the prior $\text{beta}(30, 30)$, more concentrated, has $\approx 5$ times more support than the model with the $\text{beta}(1, 1)$. This is to be expected since the prior for the first case is concentrated around $\theta = 0.5$ and the data $Y$ have the same number of heads and tails, that is, they agree with a value of $\theta$ around 0.5.
+
+### Sequential Monte Carlo
+
+The Sequential Monte Carlo method is a sampling method that basically progresses through a series of successive sequences from prior to posterior. A byproduct of this process is the estimate of marginal likelihood. Actually, for numerical reasons, the return value is the logarithm of the marginal likelihood.
+
+```python
+models = []
+idatas = []
+for alpha, beta in priors:
+    with pm.Model() as model:
+        a = pm.Beta("a", alpha, beta)
+        yl = pm.Bernoulli("yl", a, observed=y)
+        idata = pm.sample_smc(random_seed=42)
+        models.append(model)
+        idatas.append(idata)
+
+BF_smc = np.exp(
+    idatas[1].sample_stats["log_marginal_likelihood"].mean()
+    - idatas[0].sample_stats["log_marginal_likelihood"].mean()
+)
+np.round(BF_smc).item()
+```
+```bash
+5.0
+```
+
+As we can see in the cell above, SMC gives essentially the same answer as the analytical calculation!
+
+Note: In the cell above we calculate a difference (instead of a division) because we are on the logarithmic scale, for the same reason we take the exponential before returning the result. Finally, the reason we compute the mean is because we get a marginal log-likelihood value per string.
+
+The advantage of using SMC to calculate marginal likelihood is that we can use it for a wider range of models, since we no longer need to know an expression in closed form. The cost we pay for this flexibility is a higher estimate. Also keep in mind that SMC (with a separate Metropolis kernel implemented in PyMC) is not as efficient as NUTS. As the dimensionality of the problem increases, a more precise estimate of the posterior and the _marginal likelihood_ will require a larger number of samples of the posterior.
+
+## Bayes factors and inference
+
+So far we have used Bayes factors to judge which model seems to be better at explaining the data, and we find that one of the models is $\approx 5$ times _better_ than the other.
+
+But what about the posterior we get from these models? How different are they? Let's see with `az.summary`:
+
+
+|         |   mean |   sd |   hdi_3% |   hdi_97% |
+|:--------|-------:|-----:|---------:|----------:|
+| uniform |    0.5 | 0.05 |     0.4  |      0.59 |
+| peaked  |    0.5 | 0.04 |     0.42 |      0.57 |'
+
+We can argue that the results are quite similar, we have the same mean value for $\theta$ and a slightly wider trailing for `model_0`, as expected since this model has a wider prior. We can also check the posterior predictive distribution to see how similar they are (See Figure @fig-beta-ppc).
+
+
+![posterior predictive distributions for the models with uniform and peaked priors](/fig/beta-ppc.png){#fig-beta-ppc width="80%"}
+
+In this example, the observed data is more consistent with `model_1`, because the prior is concentrated around the correct value of $\theta$, while `model_0`, assigns the same probability to all possible values of $\theta$. This difference between the models is captured by the Bayes factor. We could say that the Bayes factors measure which model, as a whole, is better to explain the data. And this includes the details of the prior, no matter how similar the model predictions are. In many scenarios what interests us when comparing models is how similar the predictions are. What is estimated by LOO or cross validation.
+
+## Savage–Dickey ratio
+
+For the above examples we have compared two beta-binomial models, we could have compared two completely different models. But there are times when we want to compare a null hypothesis H_0 (or null model) against an alternative H_1. For example, to answer the question _Is this coin biased?_, we could compare the value $\theta = 0.5$ (representing no-bias) with the output of a model in which we allow $\theta$ to vary. For this type of comparison, the null model is nested within the alternative, which means that the null is a particular value of the model we are building. In those cases, calculating the Bayes factor is very easy and does not require any special method. We only need to compare the before and after evaluated to the null value (for example $\theta = 0.5$ ), under the alternative model. We can see that this is true from the following expression:
+
+
+$$
+BF_{01} = \frac{p(y \mid H_0)}{p(y \mid H_1)} \frac{p(\theta=0.5 \mid y, H_1)}{p(\theta=0.5 \mid H_1)}
+$$
+
+Which is true [only](https://statproofbook.github.io/P/bf-sddr) when H_0 is a particular case of H_1.
+
+Let's do it with PyMC and ArviZ. We only need to sample the prior and posterior for a model. Let's try the beta-binomial model with uniform prior.
+
+
+```python
+with pm.Model() as model_uni:
+    a = pm.Beta("a", 1, 1)
+    yl = pm.Bernoulli("yl", a, observed=y)
+    idata_uni = pm.sample(2000, random_seed=42)
+    idata_uni.extend(pm.sample_prior_predictive(8000))
+
+az.plot_bf(idata_uni, var_name="a", ref_val=0.5)
+```
+
+The result is show in Figure @fig-beta-bf, we can see one KDE for the prior (black) and one for the posterior (gray). The two black dots show that we evaluated both distributions at the value 0.5. We can see that the Bayes factor in favor of the null hypothesis, BF_01, is $\approx 7$, which we can interpret as _moderate evidence_ in favor of the null hypothesis (see the Jeffreys scale discussed earlier).
+
+![Bayes factor for the beta-binomial model with uniform prior](/fig/beta-bf.png){#fig-beta-bf width="80%"}
+
+As we already discussed, the Bayes factors measure which model, as a whole, is better at explaining the data. And this includes the prior, even if the prior has a relatively low impact on the computation of the posterior. We can also see this prior effect by comparing a second model to the null model.
+
+If instead our model were a beta-binomial with beta prior (30, 30), the BF_01 would be lower (_anecdotal_ on the Jeffrey scale). This is because, according to this model, the value of $\theta=0.5$ is much more likely priori than for a uniform prior, and therefore the prior and posterior will be much more similar. That is, there is not much _surprise_ to see that the posterior is concentrated around 0.5 after collecting data.
+
+Let's calculate it to see for ourselves.
+
+```python
+with pm.Model() as model_conc:
+    a = pm.Beta("a", 30, 30)
+    yl = pm.Bernoulli("yl", a, observed=y)
+    idata_conc = pm.sample(2000, random_seed=42)
+    idata_conc.extend(pm.sample_prior_predictive(8000))
+
+az.plot_bf(idata_conc, var_name="a", ref_val=0.5)
+```
+
+Figure @fig-beta-bf2 shows the result, we can see that the BF_01 is $\approx 1.5$ which we can interpret as _anecdotal evidence_ in favor of the null hypothesis (see the Jeffreys scale discussed earlier). This is 5 times smaller than with the uniform prior. This is because, according to this model, the value of $\theta=0.5$ is much more likely priori than for a uniform prior, and therefore the prior and posterior will be much more similar. That is, there is not much _surprise_ to see that the posterior is concentrated around 0.5 after collecting data.
+
+
+![Bayes factor for the beta-binomial model with peaked prior](/fig/beta-bf.png){#fig-beta-bf width="80%"}
+
+
+<!-- The graph shows one KDE for the prior (black) and one for the posterior (gray). The two black dots show that we evaluated both distributions at the value 0.5. We can see that the Bayes factor in favor of the null hypothesis, BF_01, is $\approx 1.5$, which we can interpret as _anecdotal evidence_ in favor of the null hypothesis (see the Jeffreys scale discussed earlier). -->
+
+## Summary
+
+In this chapter we have seen how to compare models using posterior predictive checks, information criteria, approximated cross-validation and Bayes factors. 
+
+Posterior predictive checks is a general concept and practice that can help us understand
+how well models are capturing the data and how well the model is capturing the aspects of
+a problem we are interested in. We can perform posterior predictive checks with just one
+model or with many models, and thus we can use it as a method for model comparison.
+Posterior predictive checks are generally done via visualizations, but numerical summaries
+like Bayesian -values can also be helpful.
+
+Good models have a good balance between complexity and predictive accuracy. We
+exemplified this feature by using the classical example of polynomial regression. We
+discussed two methods to estimate the out-of-sample accuracy without leaving data aside:
+cross-validation and information criteria. We focused our discussion on the latter. From a
+practical point of view, information criteria is a family of methods that's balancing two
+contributions: one that measures how well a model fits the data and the other penalizing
+complex models. From the many information criteria available, WAIC is the most useful for
+Bayesian models. Another measure that is useful and, in practice, provides very similar
+results to WAIC is PSIS-LOO-CV (or LOO). This is a method that's used to approximate
+leave-one-out cross validation without the high computational cost of actually refitting a
+model several times. WAIC and LOO can be used for model selection and can also be
+helpful for model averaging. Instead of selecting a single best model, model averaging is
+about combining all available models by taking a weighted average of them.
+
+A different approach to model selection, comparison, and model averaging is Bayes factors,
+which are the ratio of the marginal likelihoods of two models. Bayes factor computations
+can be really challenging. In this chapter, we showed two routes to compute them with
+PyMC and ArviZ: Using the sampling method known as Sequential Monte Carlo and using the Savage–Dickey ratio. The first method can be used for any model as long as Sequential Monte Carlo can be used to sample from the posterior, with the current implmenetation of SMC in PyMC, this can be challenging for high-dimensional models or hierarchical models. The second method can only be used when the null model is a particular case of the alternative model
+
+Besides being computationally challenging to compute Bayes factors are problematic to use,
+given that they are very sensitively to prior specification, we also compare Bayes factors
+and Information Criteria, and walked you through an example whereby they solve two
+related but different questions—one puts the focus on identifying the right model and the
+other on the best predictions or lower generalization loss. None of these methods are free of
+problems, but WAIC and LOO are much more robust in practice.
+
+
+ We have also seen that the Bayes factors are very sensitive to the priors, and that they are not the best tool to compare models when what we are interested in is the predictive accuracy of the models. And thus we generally recomend the use of LOO to compare models.
+
+## Exercises
+
+
