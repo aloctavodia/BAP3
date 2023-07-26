@@ -2,23 +2,15 @@
 
 > "A map is not the territory it represents, but, if correct, it has a similar structure to the territory." -Alfred Korzybski
 
-Models should be designed as approximations to help us understand a particular problem,
-or a class of related problems. Models are not designed to be verbatim copies of the real
-world. Thus, all models are wrong in the same sense that maps are not the territory. Even
-when a priori, we consider every model to be wrong, not every model is equally wrong;
-some models will be better than others at describing a given problem. In the foregoing
-chapters, we focused our attention on the inference problem, that is, how to learn values of
-parameters from the data. In this chapter, we are going to focus on a complementary
-problem: how to compare two or more models that are used to explain the same data. As
-we will learn, this is not a simple problem to solve and at the same time is a central problem
+Models should be designed as approximations to help us understand a particular problem, or a class of related problems. Models are not designed to be verbatim copies of the _real world_. Thus, all models are wrong in the same sense that maps are not the territory. Even when a priori, we consider every model to be wrong, not every model is equally wrong; some models will be better than others at describing a given problem. In the foregoing chapters, we focused our attention on the inference problem, that is, how to learn values of parameters from the data. In this chapter, we are going to focus on a complementary problem: how to compare two or more models that are used to explain the same data. As we will learn, this is not a simple problem to solve and at the same time is a central problem
 in data analysis.
 
 In this chapter, we will explore the following topics:
 
 * Overfitting and underfitting
+* Information criteria
 * Cross-validation
 * Bayes factors
-* Regularizing priors
 
 
 ## Posterior predictive tests 
@@ -128,7 +120,7 @@ Another factor that we generally have to take into account when comparing models
 
 Intuitively, it seems that when comparing models, we tend to prefer those that best fit the data and those that are simpler. But what to do if these two principles conflict? Or more generally, is there a quantitative way to consider both contributions? The short answer is yes, in fact there is more than one way to do it. But first let's see an example in order to generate more intuition.
 
-### Many parameters (can) lead to overfitting
+### Many parameters (may) lead to overfitting
 
 Figure @fig-over_under_fit shows 3 models with increazing number of parameters. The first one (order 0) is just a constant value, whatwer the value of `x`, the model always predicts the same values for `y`, the second model (order 1) is a linear model as we saw in the previous chapter and the last one (order 5) is a polynomial model of order 5, that is something of the form $\alpha + \beta_0 x + \beta_0 x^2 + \beta_0 x^3 + \beta_0 x^4 + \beta_0 x^5$. 
 
@@ -173,7 +165,7 @@ The within-sample accuracy will, on average, be less than the out-of-sample accu
 Cross validation is a simple and, in most cases, effective solution for comparing models. We take our data and divide it into K slices. We try to keep the slices more or less the same (in size and sometimes also in other characteristics, such as an equal number of classes). We then use K-1 portions to train the model and the rest to test it. This process is systematically repeated leaving, for each iteration, a different slice out of the training set and using that slice as the evaluation set. This is repeated until we have completed K rounds of adjustment-evaluation. The accuracy of the model will be the average over the K rounds. This is known as K-fold cross validation. Finally, once we have done the cross-validation, we use all the data to last fit our model and this is the model that is used to make predictions or for any other purpose.
 
 
-![](fig/cv.png){#fig-cv width="80%"}
+![K-fold cross-validation](fig/cv.png){#fig-cv width="80%"}
 
 When K equals the number of data points, we get what is known as _leave-one-out cross-validation_ (LOOCV).
 
@@ -183,13 +175,10 @@ Cross validation is a very simple and useful idea, but for some models or for la
 
 ### Information criteria
 
-
 Information criteria are a collection of closely related tools used to compare models in terms of goodness-of-fit and model complexity. In other words, the information criteria formalize the intuition that we developed at the beginning of the chapter.
 The exact way in which these quantities are derived has to do with a field known as [Information Theory](http://www.inference.org.uk/mackay/itila/book.html).
 
-
 An intuitive way to measure how well a model fits the data is to calculate the root mean square error between the data and the predictions made by the model:
-
 
 $$\frac{1}{n} \sum_{i=1}^{n} (y_i - \operatorname{E} (y_i \mid \theta))^2$$
 
@@ -231,7 +220,7 @@ The first term is similar to the Akaike criterion, only that it is evaluated for
 
 #### Approximating Cross validation
 
-The key problem with leaving one out cross validation is that it is very expensive as we have to refit the model as many times as we have data. Luckily, it is possible to approximate it with a single fit to the data! The method for doing this is called "importance sampling using Pareto smoothing." The name is so ugly that in practice we call it LOO. Conceptually what we are trying to calculate is:
+The key problem with leaving one out cross validation is that it is very expensive as we have to refit the model as many times as datapoints we have. Luckily, it is possible to approximate it using the information from a single fit to the data! The method for doing this is called "importance sampling using Pareto smoothing". The name is so long that in practice we call it LOO. Conceptually what we are trying to calculate is:
 
 
 $$
@@ -239,19 +228,23 @@ $$
      \int \ p(y_i \mid \theta) \; p(\theta \mid y_{-i}) d\theta
 $$
 
+where $_{-i}$ means that we leave the observation $i$ out. 
+
+This expresion is very similar to the one for the posterior predictive distribution. The diference is that now we want to compute the posterior predictive distribution for observation $y_i$ from a posterior distribution computed without the observation $y_i$. The first approximation we take is to avoid the explicit computation of the integral by taking samples from the posterior distribution. Thus we can write
 $$
 \sum_{i}^{n} \log
-     \left( \frac{1}{s}\sum_j^s \mathbin{\color{#E9692C}{p(y_i \mid \theta_{-i}^j)}} \right)
+     \left( \frac{1}{s}\sum_j^s p(y_i \mid \theta_{-i}^j) \right)
 $$
 
-where $_{-i}$ means that we leave the observation $i$ out. It is possible to approximate $\color{#E9692C}{p(y_i \mid \theta_{-i}^j})$ using importance sampling, which is a way of approximating a distribution by re-weighting values obtained from another distribution. In our case, the known distribution, once a model has been fitted, is the log-likelihood for all the observations. And we want to approximate the log-likelihood if we had dropped an observation. For this we need to estimate the "importance" (or weight) that each observation has in determining the posterior distribution. An observation will be more "important" (or heavy) the more the subsequent changes when removing that observation. Intuitively, a relatively unlikely observation is more important (or carries more weight) than an expected one. Luckily these weights can be estimated without the need to readjust the model, in fact the weight of the observation $i$ for the sample of the subsequent $s$ is:
+where the sum is over $s$ posterior samples. We have been using MCMC samples in this book a lot. So this approximation should not sound unfammiliar to you. The tricky part comes next. It is possible to approximate ${p(y_i \mid \theta_{-i}^j)}$ using importance sampling. This is a form of sampling we have not used or explained yet in this book but it can be very helpfull. We are only going to say that importance sampling is a way of approximating a target distribution by re-weighting values obtained from another distribution. This method is useful when we do not know how to sample from the target distribution but we know how to sample from another distribution. Importance sampling works best when the distributions are somehow similar and the know distribution is _wider_ than the target one.
+
+In our case, the known distribution, once a model has been fitted, is the log-likelihood for all the observations. And we want to approximate the log-likelihood if we had dropped one observation. For this we need to estimate the "importance" (or weight) that each observation has in determining the posterior distribution. A given observation will be more "important" the larger the posterior will change if we remove it. Intuitively, a relatively unlikely observation is more important (or carries more weight) than an expected one. Luckily these weights are easy to compute once we have computed the posterior distribution, in fact the weight of the observation $i$ for the $s$ posterior sample is:
 
 $$
 w_s = \frac{1}{p(y_i \mid \theta_s)}
 $$
 
-
-The problem is that under certain conditions these weights may not be reliable. The main problem is that a few $w_s$ could be so large that they dominate the calculation, and this is where Pareto smoothing comes in, which basically consists of replacing some of these weights with weights obtained from fitting a Pareto distribution. Why a Pareto distribution? Because the theory indicates that the weights should follow this distribution. So for each observation $y_i$ , the larger weights are used to estimate a Pareto distribution and that distribution is used to replace those weights with "smoothed" weights. This procedure gives robustness to the estimation of the ELPD and also provides a diagnosis since values of $k$ (one of the parameters of the Pareto distribution) greater than 0.7 indicate that we possibly have "very influential" observations.
+This $w_s$ can be may not be reliable. The main issue is that something a few $w_s$ could be so large that they dominate our calculations making them unstable. To tame this crazy weights we can use Pareto smoothing. This solution consist consists of replacing some of these weights with weights obtained from fitting a Pareto distribution. Why a Pareto distribution? Because the theory indicates that the weights should follow this distribution. So for each observation $y_i$ , the largest weights are used to estimate a Pareto distribution and that distribution is used to replace those weights with "smoothed" weights. This procedure gives robustness to the estimation of the ELPD and also provides a way to diagnostic the approximation, i.e. to get a warning that the LOO method may be failing. For this we need to pay attention to the values of $k$, this is a parameter of the Pareto distribution. Values od $k$ greater than 0.7 indicate that we may have "very influential" observations.
 
 
 #### Other information criteria
@@ -265,7 +258,7 @@ But more importantly, BIC differs from AIC and WAIC in its objective. AIC and WA
 
 ## Predictive accuracy calculation using ArviZ
 
-Fortunately, calculating information criteria with ArviZ is very simple. Let's see how to compute LOO
+Fortunately, calculating information criteria with ArviZ is very simple. We just need to be sure that the Inference Data has the log-likelihood group, when computing a posterior with PyMC this can be achieved by doing `pm.sample(idata_kwargs={"log_likelihood": True})`. Now let's see how to compute LOO
 
 ```python
 az.loo(idata_l)
@@ -567,50 +560,37 @@ az.plot_bf(idata_conc, var_name="a", ref_val=0.5)
 Figure @fig-beta-bf2 shows the result, we can see that the BF_01 is $\approx 1.5$ which we can interpret as _anecdotal evidence_ in favor of the null hypothesis (see the Jeffreys scale discussed earlier). This is 5 times smaller than with the uniform prior. This is because, according to this model, the value of $\theta=0.5$ is much more likely priori than for a uniform prior, and therefore the prior and posterior will be much more similar. That is, there is not much _surprise_ to see that the posterior is concentrated around 0.5 after collecting data.
 
 
-![Bayes factor for the beta-binomial model with peaked prior](/fig/beta-bf.png){#fig-beta-bf width="80%"}
+![Bayes factor for the beta-binomial model with peaked prior](/fig/beta-bf2.png){#fig-beta-bf2 width="80%"}
 
 
 <!-- The graph shows one KDE for the prior (black) and one for the posterior (gray). The two black dots show that we evaluated both distributions at the value 0.5. We can see that the Bayes factor in favor of the null hypothesis, BF_01, is $\approx 1.5$, which we can interpret as _anecdotal evidence_ in favor of the null hypothesis (see the Jeffreys scale discussed earlier). -->
+
+
+## Regularizing priors
+
+
+Using informative and weakly informative priors is a way of introducing bias in a model and, if done properly, this can be a really good because bias prevents overfitting and thus contributes to models being able to make predictions that generalize well. This idea of adding a bias to reduce a generalization error without affecting the ability of the model to adequately model the data that's used to fit is known as **regularization**. This regularization often takes the form of a term penalizing certain values for the parameters in a model, like too big coefficients in a regression model. Restricting parameter values is a way of reducing the data a model is able to represent and thus reducing the chances that a model captures the noise instead of the signal.
+
+This regularization idea is so powerful and useful that it has been discovered several times, including outside the Bayesian framework. For regression models, and outside Bayesian statistics, two popular regularization method are ridge regression and Lasso regression. From the Bayesian point of view, a ridge regression can be interpreted as using normal distributions for the beta coefficients of a linear model, with a small standard deviation that pushes the coefficients toward zero. In this sense, we have been doing something very close to ridge regression for every single linear model in this book (except the examples in
+this chapter that uses SciPy!). On the other hand, Lasso regression can be interpreted from a Bayesian point of view as the MAP of the posterior computed from a model with Laplace priors for the beta coefficients. The Laplace distribution looks similar to the Gaussian distribution, but with a sharp peak at zero, you can also interpret it as two _back-to-back_ exponential distributions (try `pz.Laplace(0, 1).plot_pdf()`). The Laplace distribution concentrates its probability mass much closer to zero compared to the Gaussian distribution. The idea of using such a prior is to provide both regularization and variable selection. The idea is that since we have this peak at zero, we expect the prior to induce sparsity, that is, we create a model with a lot of parameters and the prior will automatically makes most of them zero, keeping only the relevant variables contributing to the output of the model. Unfortunately, and contrary to ridge regression this idea does not directly translate from the frequestist realm to the Bayesian one. Nevertheless, there are Bayesian priors that can be used for inducing sparsity and performing variable selection, like the horseshoe prior. If you want to learn more about the horseshoe and other shrinkage priors you may find this article interesting [@Piironen_2017]. In the next chapter we will discuss more about variable selection. Just one final note, it is important to notice that the classical versions of ridge and Lasso regressions correspond to single point estimates, while the Bayesian versions gave full posterior distributions.
+
 
 ## Summary
 
 In this chapter we have seen how to compare models using posterior predictive checks, information criteria, approximated cross-validation and Bayes factors. 
 
-Posterior predictive checks is a general concept and practice that can help us understand
-how well models are capturing the data and how well the model is capturing the aspects of
-a problem we are interested in. We can perform posterior predictive checks with just one
-model or with many models, and thus we can use it as a method for model comparison.
-Posterior predictive checks are generally done via visualizations, but numerical summaries
-like Bayesian -values can also be helpful.
+Posterior predictive checks is a general concept and practice that can help us understand how well models are capturing different aspects of the data. We can perform posterior predictive checks with just one model or with many models, and thus we can use it as a method for model comparison.
+Posterior predictive checks are generally done via visualizations, but numerical summaries like Bayesian -values can also be helpful.
 
-Good models have a good balance between complexity and predictive accuracy. We
-exemplified this feature by using the classical example of polynomial regression. We
-discussed two methods to estimate the out-of-sample accuracy without leaving data aside:
-cross-validation and information criteria. We focused our discussion on the latter. From a
-practical point of view, information criteria is a family of methods that's balancing two
-contributions: one that measures how well a model fits the data and the other penalizing
-complex models. From the many information criteria available, WAIC is the most useful for
-Bayesian models. Another measure that is useful and, in practice, provides very similar
-results to WAIC is PSIS-LOO-CV (or LOO). This is a method that's used to approximate
-leave-one-out cross validation without the high computational cost of actually refitting a
-model several times. WAIC and LOO can be used for model selection and can also be
-helpful for model averaging. Instead of selecting a single best model, model averaging is
-about combining all available models by taking a weighted average of them.
+Good models have a good balance between complexity and predictive accuracy. We exemplified this feature by using the classical example of polynomial regression. We discussed two methods to estimate the out-of-sample accuracy without leaving data aside: cross-validation and information criteria. From a practical point of view, information criteria is a family of theoretical methods looking to balance two contributions: a measurement of how well a model fits the data and a penalization term for complex models. We briefly discussed AIC, for his historical importance and then WAIC which is a better method for Bayesian models, as it takes into accout the entire posterior distribution and uses a more sophisticated method to compute the effective number of parameters.
 
-A different approach to model selection, comparison, and model averaging is Bayes factors,
-which are the ratio of the marginal likelihoods of two models. Bayes factor computations
-can be really challenging. In this chapter, we showed two routes to compute them with
-PyMC and ArviZ: Using the sampling method known as Sequential Monte Carlo and using the Savage–Dickey ratio. The first method can be used for any model as long as Sequential Monte Carlo can be used to sample from the posterior, with the current implmenetation of SMC in PyMC, this can be challenging for high-dimensional models or hierarchical models. The second method can only be used when the null model is a particular case of the alternative model
+We also discussed cross-validation. And we saw we can approcimate leave-one-out-cross-validation using LOO. Both WAIC and LOO tend to produce very similar results, but LOO can be more reliable. So we recomend its use. Both WAIC and LOO can be used for model selection and for model averaging. Instead of selecting a single best model, model averaging is about combining all available models by taking a weighted average of them.
 
-Besides being computationally challenging to compute Bayes factors are problematic to use,
-given that they are very sensitively to prior specification, we also compare Bayes factors
-and Information Criteria, and walked you through an example whereby they solve two
-related but different questions—one puts the focus on identifying the right model and the
-other on the best predictions or lower generalization loss. None of these methods are free of
-problems, but WAIC and LOO are much more robust in practice.
+A different approach to model selection, comparison, and model averaging is Bayes factors, which are the ratio of the marginal likelihoods of two models. Bayes factor computations can be really challenging. In this chapter, we showed two routes to compute them with PyMC and ArviZ: Using the sampling method known as Sequential Monte Carlo and using the Savage–Dickey ratio. The first method can be used for any model as long as Sequential Monte Carlo provides a good posterior, with the current implmenetation of SMC in PyMC, this can be challenging for high-dimensional models or hierarchical models. The second method can only be used when the null model is a particular case of the alternative model. Besides being computationally challenging, Bayes factors are problematic to use given that they are very (overly)sensitive to prior specification. 
 
+We show that Bayes factors and LOO/WAIC are the answers to two related but different questions. The former one is focused on identifying the right model and the
+other on identifying the model with lower generalization loss, i.e. the model making the best predictions. None of these methods are free of problems, but WAIC and in particular LOO are much more robust in practice.
 
- We have also seen that the Bayes factors are very sensitive to the priors, and that they are not the best tool to compare models when what we are interested in is the predictive accuracy of the models. And thus we generally recomend the use of LOO to compare models.
 
 ## Exercises
 

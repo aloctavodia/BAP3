@@ -215,7 +215,7 @@ pz.BetaBinomial(alpha=2, beta=5, n=5).plot_pdf();
 
 we will get something similar to @fig-beta_binomial_sampling. Even when we can not predict the next value from a random variable, we can predict the probability of getting any particular value and by the same token if we get many values we can predict their overall distribution.
 
-![The black dots represent the pmf of the betabinomial sample. In gray, an histogram of 1000 sample from that distribution](/fig/beta_binomial_sampling.png){#fig-beta_binomial_sampling}
+![The black dots represent the pmf of the betabinomial sample. In gray, a histogram of 1000 draws from that distribution](/fig/beta_binomial_sampling.png){#fig-beta_binomial_sampling}
 
 In this book, we will sometimes know the parameters of a given distribution and we will want to get random samples from it. And sometimes we are going to be in the opposite scenario, we will have a set of samples and we will want to estimate the parameters of a distribution. Playing back and forth between these two scenarios will become second nature as we move forward through the pages.
 
@@ -232,7 +232,7 @@ $$
 Again, we only show this expression to remove the mystery veil. No need to pay too much attention to its details other than this distribution has two parameters $\mu$, which controls the location of the peak of the curve and $\sigma$, which controls the spread of the curve. @fig-gaussian_pdfs shows 3 examples from the Gaussian family. If you want to learn more about this distribution, I recommend you to watch this video <https://www.youtube.com/watch?v=cy8r7WSuT1I>.
 
 
-![3 members of the Gaussian family](/fig/gaussian_pdf.png){#fig-gaussian_pdfs}
+![3 members of the Gaussian family.](/fig/gaussian_pdf.png){#fig-gaussian_pdfs}
 
 If you have been paying attention you may have noticed that we said **probability density function** (pdf) instead of **probability mass function** (pmf). This was no typo, they are actually two different objects. Let's take one step back, the output of a discrete probability distribution is a probability. The height of the bars in @fig-dice_distribution or the height of the dots in @fig-beta_binomial_interactive are probabilities. Each bar or dot will never be higher than 1 and if you sum all the bars or dots you will always get 1. Let's do the same but with the curve in @fig-gaussian_pdfs, the first thing to notice is that we don't have bars or dots, we have a continuous and smooth curve. So maybe we can think that the curve is made up of super thin bars, so thin that we assign one bar for every real value in the support of the distributions, we measure the height of each bar and we perform an infinite sum. This is a sensible thing to do, right? Well yes, but it is not immediately obvious what are we going to get from this. Will this sum give us exactly 1? or instead we are going to get a large number? Is the sum finite? Does the result depend on the parameters of the distribution?
 
@@ -283,7 +283,7 @@ Conditional probabilities are at the heart of statistics, irrespective of whethe
 
 The central panel of @fig-joint_marginal_cond represents $p(A, B)$ using a grayscale with darker colors for higher probability densities. We see the joint distribution is elongated, indicating that the higher the value of $A$ the higher the one of $B$, and viceversa. Knowing the value of $A$ tells us something about the values of $B$ and the other way around. On the top and right *margins* of @fig-joint_marginal_cond we have the **marginal distributions** $p(A)$ and $p(B)$ respectively. To compute the marginal of $A$ we take $p(A, B)$ and we average overall values of $B$, intuitively this is like taking a 2D object, the joint distribution, and projecting it into one dimension. The marginal distribution of $B$ is computed similarly. The dashed lines represent the **conditional probability** $p(A \mid B)$ for 3 different values of $B$. We get them by slicing the joint $p(A, B)$ at a given value of $B$. We can think of this as the distribution of $A$ given that we have observed a particular value of $B$.
 
-![This plot represents the relationship between the joint $p(A, B)$, the marginals, $p(A)$ and $p(B)$ and the conditional probabilities $p(A \mid B)$](/fig/joint_marginal_cond.png){#fig-joint_marginal_cond width=80%}
+![Representation of the relationship between the joint $p(A, B)$, the marginals, $p(A)$ and $p(B)$ and the conditional probabilities $p(A \mid B)$](/fig/joint_marginal_cond.png){#fig-joint_marginal_cond width=80%}
 
 
 ### Expected values
@@ -302,7 +302,7 @@ Another expected value is the variance, which we can use to describe the spread 
 
 The mean and variance are often called the **moments** of a distribution, other moments are skewness, which tells us about the asymmetry of a distribution, and the kurtosis, which tells us about the behavior of the tails or the *extreme values* [@westfall2014]. @fig-moments shows examples of different distributions and their mean $\mu$, standard deviation $\sigma$, skew $\gamma$ and kurtosis $\kappa$. Notice that for some distributions some moments may not be defined or they may be $\inf$.
 
-![Four distributions with their first four moments](/fig/moments.png){#fig-moments}
+![Four distributions with their first four moments.](/fig/moments.png){#fig-moments}
 
 
 ### Bayes' theorem
@@ -411,7 +411,7 @@ This is a discrete distribution returning the probability of getting $y$ heads (
 
 @fig-binomial_distribution shows nine binomial distributions; each subplot has its legend indicating the values of the parameters. Notice that for this plot I did not omit the values on the y-axis. I did this so you can check for yourself that if you sum the height of all bars you will get 1, that is, for discrete distributions, the height of the bars represents actual probabilities.
 
-![Nine members of the binomial family](fig/binomial_distribution.png){#fig-binomial_distribution}
+![Nine members of the binomial family.](fig/binomial_distribution.png){#fig-binomial_distribution}
 
 The binomial distribution is a reasonable choice for the likelihood. We can see that $\theta$ indicates how likely it is to obtain a head when tossing a coin. This is easier to see when $N=1$ but is valid for any value of $N$, just compare the value of $\theta$ with the height of the bar for $y=1$ (heads).
 
@@ -425,7 +425,7 @@ $$
 
 If we look carefully, we will see that the beta distribution looks similar to the binomial except for the first term. $\Gamma$ is the Greek uppercase gamma letter and represents the gamma function, that's not really important, what is relevant for us is that the first term is a normalizing constant that ensures the distribution integrates to 1. We can see from the preceding formula that the beta distribution has two parameters, $\alpha$ and $\beta$. @fig-beta_distribution
 
-![Nine members of the beta family](/fig/beta_distribution.png){#fig-beta_distribution}
+![Nine members of the Beta family](/fig/beta_distribution.png){#fig-beta_distribution}
 
 I like the beta distribution and all the shapes we can get from it, but why are we using it for our model? There are many reasons to use a beta distribution for this and other problems. One of them is that the beta distribution is restricted to be between 0 and 1, in the same way, our $\theta$ parameter is. In general, we use the beta distribution when we want to model the proportions of a binomial variable. Another reason is its versatility. As we can see in the preceding figure, the distribution adopts several shapes (all restricted to the \[0, 1\] interval), including a uniform distribution, Gaussian-like distributions, and U-like distributions. As a third reason, the beta distribution is the conjugate prior for the binomial distribution (which we are using as the likelihood). A conjugate prior of a likelihood is a prior that, when used in combination with a given likelihood, returns a posterior with the same functional form as the prior. Untwisting the tongue, every time we use a beta distribution as the prior and a binomial distribution as the likelihood, we will get a beta as the posterior distribution. There are other pairs of conjugate priors; for example, the Normal distribution is the conjugate prior to itself. For many years, Bayesian analysis was restricted to the use of conjugate priors. Conjugacy ensures mathematical tractability of the posterior, which is important given that a common problem in Bayesian statistics is ending up with a posterior we cannot solve analytically. This was a deal breaker before the development of suitable computational methods to solve probabilistic methods. From @sec-programming_probabilistically onwards, we will learn how to use modern computational methods to solve Bayesian problems, whether we choose conjugate priors or not.
 
@@ -538,7 +538,7 @@ $$
 
 This is just the model we use for the coin-flip example. As you may remember, the $\sim$ symbol indicates that the variable, on the left of it, is a random variable distributed according to the distribution on the right. In many contexts, this symbol is used to indicate that a variable takes *approximately* some value, but when talking about probabilistic models, we will read this symbol out loud saying *is distributed as*. Thus, we can say $\theta$ is distributed as a beta with parameters $\alpha$ and $\beta$, and $y$ is distributed as a binomial with parameters $n=1$ and $p=\theta$. The very same model can be represented graphically using Kruschke's diagrams:
 
-![A Kruschke's diagram of a beta-binomial model](/fig/beta_binomial_dag.pdf){#fig-beta_binomial_dag width=20%}
+![A Kruschke's diagram of a beta-binomial model.](/fig/beta_binomial_dag.pdf){#fig-beta_binomial_dag width=20%}
 
 On the first level, we have the prior that generates the values for $\theta$, then the likelihood, and on the last line the data, $y$. Arrows indicate the relationship between variables, and the symbol $\sim$ indicates the stochastic nature of the variables. All Kruschke's diagrams in the book were made using the templates provided by Rasmus Bååth (<http://www.sumsar.net/blog/2013/10/diy-kruschke-style-diagrams/>).
 
