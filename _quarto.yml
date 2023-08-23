@@ -7,17 +7,17 @@ book:
   author: "Osvaldo Martin"
   chapters:
     - index.qmd
-    - chp_01.qmd
-    - chp_02.qmd
-    - chp_03.qmd
-    - chp_04.qmd
+    # - chp_01.qmd
+    # - chp_02.qmd
+    # - chp_03.qmd
+    # - chp_04.qmd
     - chp_05.qmd
-    - chp_06.qmd
-    - chp_07.qmd
-    - chp_08.qmd
-    - chp_09.qmd
-    - chp_10.qmd
-    - chp_11.qmd
+    # - chp_06.qmd
+    # - chp_07.qmd
+    # - chp_08.qmd
+    # - chp_09.qmd
+    # - chp_10.qmd
+    # - chp_11.qmd
     - references.qmd
 
 bibliography: references.bib

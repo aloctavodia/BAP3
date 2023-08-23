@@ -122,7 +122,7 @@ Intuitively, it seems that when comparing models, we tend to prefer those that b
 
 ### Many parameters (may) lead to overfitting
 
-Figure @fig-over_under_fit shows 3 models with increazing number of parameters. The first one (order 0) is just a constant value, whatwer the value of `x`, the model always predicts the same values for `y`, the second model (order 1) is a linear model as we saw in the previous chapter and the last one (order 5) is a polynomial model of order 5, that is something of the form $\alpha + \beta_0 x + \beta_0 x^2 + \beta_0 x^3 + \beta_0 x^4 + \beta_0 x^5$. 
+Figure @fig-over_under_fit shows 3 models with increazing number of parameters. The first one (order 0) is just a constant value, whatwer the value of `x`, the model always predicts the same values for `y`, the second model (order 1) is a linear model as we saw in the previous chapter and the last one (order 5) is a polynomial model of order 5, that is something of the form $\alpha + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4 x^4 + \beta_5 x^5$. 
 
 
 ![3 simple models and a simple dataset](/fig/over_under_fit.png){#fig-over_under_fit}
