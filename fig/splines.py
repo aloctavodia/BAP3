@@ -100,4 +100,4 @@ for idx, (B, title) in enumerate(zip((B1, B3),
     axes[1, idx].plot(knots, np.zeros_like(knots), "ko")
     axes[0, idx].set_title(title)
 
-plt.savefig('splines_weighted.png')
+plt.savefig('splines_weighted.png', bbox_inches='tight')
