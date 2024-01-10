@@ -29,7 +29,7 @@ pip install pymc==5.8.0 arviz==0.16.1 bambi==0.13.0 pymc-bart==0.5.2 kulprit==0.
 
 ### Citation
 
-If you use the online or printed versions of this book in your own work, please cite us using
+If you use this book in your own work, please cite it using
 
 Martin Osvaldo A, Bayesian Analysis with Python. Packt Publishing. 2024. ISBN 978-1-80512-716-1
 
@@ -42,7 +42,7 @@ Here is the citation in BibTeX format
 	shorttitle = {Bayesian {Analysis} with {Python}},
 	language = {English},
 	publisher = {Packt Publishing},
-	author = {Martin, Osvaldo},
+	author = {Martin, Osvaldo A},
 	month = feb,
 	year = {2024},
 }
