@@ -7,8 +7,7 @@
   <img src="cover.png" width="600"/>
 </p>
 
-This repository contains the code examples from the book. Bayesian Analysis with Python, 3rd Edition. 
-
+This repository contains the code examples from the book
 
 ## See a mistake?
 If you see any issues please create an issue on [the issue tracker](https:/​/​github.​com/​aloctavodia/​BAP3/issues)
@@ -53,5 +52,5 @@ Here is the citation in BibTeX format
 
 This book is only possible because of open-source contributors working on the projects we used. If you like this book we encourage you to donate to [ArviZ](https://numfocus.org/arviz) or [PyMC](https://numfocus.org/pymc). 
 
-If instead, you want to donate directly to the Author you can do it at [ko-fi](ko-fi.com/aloctavodia) or [cafecito](cafecito.app/aloctavodia)
+If instead, you want to donate directly to me, the author, please do it at [ko-fi](ko-fi.com/aloctavodia) or [cafecito](cafecito.app/aloctavodia)
 
