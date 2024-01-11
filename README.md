@@ -4,7 +4,7 @@
   <a href="https://www.amazon.com/Bayesian-Analysis-Python-Practical-probabilistic/dp/1805127160" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/amazon/amazon-button2.png"></a></p>
 
 <p align="center">
-  <img src="cover.png" width="600"/>
+  <img src="cover.png" width="400"/>
 </p>
 
 This repository contains the code examples from the book
