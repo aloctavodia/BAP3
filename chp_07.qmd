@@ -1,1 +1,0 @@
-# Modeling mixtures {#sec-modeling_mixtures}
