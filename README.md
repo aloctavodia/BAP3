@@ -1,4 +1,4 @@
-# Bayesian Analysis with Python
+# Bayesian Analysis with Python (Third Edition)
 
 <p align="center">
   <a href="https://www.amazon.com/Bayesian-Analysis-Python-Practical-probabilistic/dp/1805127160" target="_blank" rel="noopener noreferrer" style="border:none;text-decoration:none"><img src="https://www.niftybuttons.com/amazon/amazon-button2.png"></a></p>
