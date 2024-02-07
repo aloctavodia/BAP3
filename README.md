@@ -24,7 +24,7 @@ conda activate bap3
 
 ### pip
 ```
-pip install pymc==5.8.0 arviz==0.16.1 bambi==0.13.0 pymc-bart==0.5.2 kulprit==0.0.1 peliz==0.3.6 nutpie==0.9.1
+pip install pymc==5.8.0 arviz==0.16.1 bambi==0.13.0 pymc-bart==0.5.2 kulprit==0.0.1 preliz==0.3.6 nutpie==0.9.1
 ```
 
 ### Citation
