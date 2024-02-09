@@ -50,7 +50,7 @@ Here is the citation in BibTeX format
 
 ### Donation
 
-This book is only possible because of open-source contributors working on the projects we used. If you like this book we encourage you to donate to [ArviZ](https://numfocus.org/arviz) or [PyMC](https://numfocus.org/pymc). 
+This book is only possible because of open-source contributors working on the projects we used. If you like this book we encourage you to donate to [ArviZ](https://numfocus.org/donate-to-arviz) or [PyMC](https://numfocus.org/donate-to-pymc). 
 
-If instead, you want to donate directly to me, the author, please do it at [ko-fi](ko-fi.com/aloctavodia) 
+If instead, you want to donate directly to me, the author, please do it at [ko-fi](https://ko-fi.com/aloctavodia) 
 
