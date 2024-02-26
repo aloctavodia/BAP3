@@ -10,7 +10,7 @@
 This repository contains the code examples from the book
 
 ## See a mistake?
-If you see any issues please create an issue on [the issue tracker](https:/​/​github.​com/​aloctavodia/​BAP3/issues)
+If you see any issues please create an issue on [the issue tracker](https://github.com/aloctavodia/BAP3/issues)
 
 ## Environment installation
 To run the code you will need to install the correct packages in a computational environment.
