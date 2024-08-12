@@ -1,6 +1,6 @@
 | Page | Printed text | Correct text | Thanks |
 |------|--------------|--------------|------|
-| 34 | p(\theta \mid Y) = \text{Beta}\left( \alpha_{\text{prior}} + y,\beta_{\text{prior}} + N - y \right)  |  $p(\theta \mid Y) = \text{Beta}\left( \alpha_{\text{prior}} + y,\beta_{\text{prior} + N - y} \right) $ | chimicke |
+| 34 | $p(\theta \mid Y) = \text{Beta}\left( \alpha_{\text{prior}} + y,\beta_{\text{prior} + N - y} \right)$  |  $p(\theta \mid Y) = \text{Beta}\left( \alpha_{\text{prior}} + y,\beta_{\text{prior}} + N - y \right)$ | chimicke |
 | 62 | We will explore the value **of** over a grid of 200 points. |  We will explore the value over a grid of 200 points.| dweights |
 | 88 (exercise 4) | wrong  short url  | The link should point to https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/pymc_overview.html#case-study-2-coal-mining-disasters  | DrEntropy |
 | 94 | ...the variance between observed and theoretical values should be the same for all groups.| ...the variance between observed and theoretical values should be unique for each group. |  Kenji Oman  |
