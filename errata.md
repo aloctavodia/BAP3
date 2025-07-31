@@ -1,5 +1,8 @@
 | Page | Printed text | Correct text | Thanks |
 |------|--------------|--------------|------|
+
+| 1 | We can summarize the Bayesian modeling process using three steps | Missing citation of [Bayesian Data Analysis](https://sites.stat.columbia.edu/gelman/book) by Gelman et al |  |
+| 5 | So let’s take a walk through the garden of forking paths [Borges, 1944]. | In the context of statistics the "garden of forking paths" appears mentioned By [Andrew Gelman](http://www.stat.columbia.edu/~gelman/research/unpublished/p_hacking.pdf), Richard McElreath in his book [Statistical Rethinking](https://xcelab.net/rm/), see also this [wikipedia entry](https://en.wikipedia.org/wiki/Forking_paths_problem) |  |
 | 13 | The binomial coefficient is typeset as $\left(\frac{n}{x}\right)$ | it should be $\left(n\atop{}x\right)$ | Chris Hansen |
 | 32 | There is a typo in the denominator of the normalizing constant | it should be $p(\theta) = \underbrace{\frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha) + \Gamma(\beta)}}_{\text{normalizing constant}} \;\; \theta^{\alpha-1} (1-\theta)^{\beta-1}$ | XIN Hongwei |
 | 62 | We will explore the value **of** over a grid of 200 points. |  We will explore the value over a grid of 200 points.| dweights |
