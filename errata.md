@@ -1,6 +1,5 @@
 | Page | Printed text | Correct text | Thanks |
 |------|--------------|--------------|------|
-
 | 1 | We can summarize the Bayesian modeling process using three steps | Missing citation of [Bayesian Data Analysis](https://sites.stat.columbia.edu/gelman/book) by Gelman et al | Bob Carpenter |
 | 5 | So let’s take a walk through the garden of forking paths [Borges, 1944]. | In the context of statistics the "garden of forking paths" appears mentioned By [Andrew Gelman](http://www.stat.columbia.edu/~gelman/research/unpublished/p_hacking.pdf), Richard McElreath in his book [Statistical Rethinking](https://xcelab.net/rm/), see also this [wikipedia entry](https://en.wikipedia.org/wiki/Forking_paths_problem) | Bob Carpenter |
 | 13 | The binomial coefficient is typeset as $\left(\frac{n}{x}\right)$ | it should be $\left(n\atop{}x\right)$ | Chris Hansen |
