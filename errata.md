@@ -23,7 +23,7 @@
 | 207 | We have been using **bmb.interpret_plot_predictions** ... One of them is **bmb.interpret_plot_comparisons**. | We have been using **bmb.interpret.plot_predictions** ... One of them is **bmb.interpret.plot_comparisons**.|  Tomás Capretto  |
 | 208 | Another useful function is **bmb.interpret_plot_slopes** | Another useful function is **bmb.interpret.plot_slopes**  |  Tomás Capretto |
 | 254 | We call **𝜙** the inverse link function and 𝜙 is... | We call **𝜓** the inverse link function and 𝜙 is... | Jacob Warren |
-
+| 344 | **https://arviz-devs.github.io/Exploratory-Analysis-of-Bayesian-Models/** | **https://arviz-devs.github.io/EABM** |    |
 
 Notes:
 
