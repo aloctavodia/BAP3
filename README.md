@@ -28,6 +28,15 @@ conda activate bap3
 pip install pymc==5.8.0 arviz==0.16.1 bambi==0.13.0 pymc-bart==0.5.2 kulprit==0.0.1 'preliz[full,notebook]==0.3.6' nutpie==0.9.1
 ```
 
+
+### Code updated after book publication
+
+The code in the `code_updated` folder contains the code update to run version of the software released after the original publication of the book. Which are
+
+```
+pip install pymc==6.3.2 arviz==0.13.0 bambi==0.21.0 pymc-bart==0.13.1 kulprit==0.6.1 'preliz[full,notebook]==0.28.0' nutpie==0.16.1
+```
+
 ### Citation
 
 If you use this book in your own work, please cite it using
